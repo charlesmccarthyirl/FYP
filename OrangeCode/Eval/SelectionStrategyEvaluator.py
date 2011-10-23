@@ -5,7 +5,12 @@ Created on 23 Oct 2011
 '''
 
 import orange, orngStat, orngTest
-from Result import Result
+
+class Result:
+    def __init__(self, case_base_size, classification_accuracy, area_under_roc_curve):
+        self.case_base_size = case_base_size
+        self.classification_accuracy = classification_accuracy
+        self.area_under_roc_curve = area_under_roc_curve
 
 class StoppingCriteria:
     def is_criteria_met(self, case_base, unlabelled_set):
