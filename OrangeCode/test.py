@@ -2,11 +2,6 @@ import orange, orngStat, orngTest
 import matplotlib.pyplot as plt
 from Eval import *
 
-# TODO: Put in assert isinstance around the place for pydev.
-class Oracle:
-    def __init__(self, classifyLambda):
-        self.classify = classifyLambda
-
 def main():
     oracle_generator = lambda *args, **kwargs: Oracle(orange.Example.get_class)
     stopping_condition_generator = lambda *args, **kwargs: BudgetBasedStoppingCriteria(10)
@@ -21,6 +16,7 @@ def main():
     
     evaluator = SelectionStrategyEvaluator(**locals())
     points = evaluator.generate_results(test, unlabelled)
+    print points.AULC()
     #print("Accuracy for %3d = %f" % (case_base_size, classification_accuracy))
     
     xs = [result.case_base_size for result in points]

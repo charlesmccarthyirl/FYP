@@ -1,7 +1,7 @@
 '''
 Created on 23 Oct 2011
 
-@author: Charles Mc
+@author: Charles McCarthy
 '''
 
 import random
