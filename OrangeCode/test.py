@@ -1,6 +1,6 @@
 import orange, orngStat, orngTest
-import matplotlib.pyplot as plt
 from Eval import *
+from pyx import *
 
 def main():
     oracle_generator = lambda *args, **kwargs: Oracle(orange.Example.get_class)
@@ -21,8 +21,19 @@ def main():
     
     xs = [result.case_base_size for result in points]
     ys = [result.classification_accuracy for result in points]
-    plt.plot(xs, ys)
-    plt.savefig("test.png")
+
+
+    g = graph.graphxy(width=max(xs),
+                      x=graph.axis.linear(title="Case Base Size"),
+                      y=graph.axis.linear(title="Classification Accuracy"),
+                      key=graph.key.key(pos="br", dist=0.1))
+    
+    # either provide lists of the individual coordinates
+    g.plot([graph.data.values(x=xs, y=ys, title="Random Sampling")], [graph.style.line([color.gradient.Rainbow])])
+    # or provide one list containing the whole points
+    #g.plot(graph.data.points(zip(range(10), range(10)), x=1, y=2))
+    #g.writeEPSfile("points")
+    g.writePDFfile("points")
     
 if __name__ == "__main__":
     main()
