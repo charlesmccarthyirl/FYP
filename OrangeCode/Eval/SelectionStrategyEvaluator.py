@@ -85,11 +85,15 @@ class SelectionStrategyEvaluator:
     def generate_results(self, test_set, unlabelled_set):
         results = ResultSet()
         
+        # hacky Laziness. Just don't want to have to do **locals() myself, but I can't pass self.
+        selection_strategy_evaluator = self
+        del(self)
+        
         # Order of assignment here important so that **locals has the right info (e.g. the stopping_criteria may care about the oracle)
         case_base = orange.ExampleTable(unlabelled_set.domain)
-        selection_strategy = self.selection_strategy_generator(**locals())
-        oracle = self.oracle_generator(**locals())
-        stopping_condition = self.stopping_condition_generator(**locals())
+        selection_strategy = selection_strategy_evaluator.selection_strategy_generator(**locals())
+        oracle = selection_strategy_evaluator.oracle_generator(**locals())
+        stopping_condition = selection_strategy_evaluator.stopping_condition_generator(**locals())
         
         assert isinstance(selection_strategy, SelectionStrategy)
         assert isinstance(oracle, Oracle)
@@ -104,7 +108,7 @@ class SelectionStrategyEvaluator:
             
             case_base.append(selectedExample)
             
-            classifier = self.classifier_generator(case_base)
+            classifier = selection_strategy_evaluator.classifier_generator(case_base)
             
             testResults = orngTest.testOnData([classifier], test_set)
             

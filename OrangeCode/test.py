@@ -5,10 +5,20 @@ from pyx import *
 def main():
     oracle_generator = lambda *args, **kwargs: Oracle(orange.Example.get_class)
     stopping_condition_generator = lambda *args, **kwargs: BudgetBasedStoppingCriteria(10)
-    selection_strategy_generator = lambda *args, **kwargs: RandomSelectionStrategy()
     classifier_generator = lambda training_data, *args, **kwargs: orange.kNNLearner(training_data, k=5)
+    #selection_strategy_generator = lambda *args, **kwargs: RandomSelectionStrategy()
+    
+    competence_measure_generator = lambda *args, **kwargs: ClassifierBasedCompetenceMeasure(classifier_generator, 
+                                                                                            *args, 
+                                                                                            **kwargs)
+    competence_selector = lambda measure1, measure2: measure1 < measure2 
+    selection_strategy_generator = lambda *args, **kwargs: SingleCompetenceBasedSelectionStrategy(competence_measure_generator, 
+                                                                                                  competence_selector, 
+                                                                                                  *args,
+                                                                                                  **kwargs)
     
     data = orange.ExampleTable(r"iris.arff")
+    data.shuffle() #Could all be clustered together in the file. Some of my operations might (and do . . .) go in order - so can skew the results *a lot*.
     rndind = orange.MakeRandomIndices2(data, p0=.8)
     
     test = data.select(rndind, 0)
@@ -22,14 +32,16 @@ def main():
     xs = [result.case_base_size for result in points]
     ys = [result.classification_accuracy for result in points]
 
-
-    g = graph.graphxy(width=max(xs),
-                      x=graph.axis.linear(title="Case Base Size"),
-                      y=graph.axis.linear(title="Classification Accuracy"),
+    max_x=max(xs)
+    max_y=max(ys)
+    g = graph.graphxy(width=10,
+                      height=10, # Want a square graph . . .
+                      x=graph.axis.linear(title="Case Base Size", min=0, max=max_x), #This might seem redundant - but pyx doesn't handle non-varying y well. So specifying the min and max avoids that piece of pyx code.
+                      y=graph.axis.linear(title="Classification Accuracy", min=0, max=max_y),
                       key=graph.key.key(pos="br", dist=0.1))
     
     # either provide lists of the individual coordinates
-    g.plot([graph.data.values(x=xs, y=ys, title="Random Sampling")], [graph.style.line([color.gradient.Rainbow])])
+    g.plot([graph.data.values(x=xs, y=ys, title="Uncertainty Sampling")], [graph.style.line([color.gradient.Rainbow])])
     # or provide one list containing the whole points
     #g.plot(graph.data.points(zip(range(10), range(10)), x=1, y=2))
     #g.writeEPSfile("points")

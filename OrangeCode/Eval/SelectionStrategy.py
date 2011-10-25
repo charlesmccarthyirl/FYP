@@ -5,6 +5,7 @@ Created on 23 Oct 2011
 '''
 
 import random
+import orange
 
 def index_of(collection, needle):
     i = 0
@@ -55,3 +56,46 @@ class RandomSelectionStrategy(SelectionStrategy):
         upTo = len(collection) - 1
         r = self._random.randint(0, upTo)
         return Selection(collection[r], r)
+
+class CompetenceMeasure:
+    def measure(self, example):
+        pass
+
+class ClassifierBasedCompetenceMeasure(CompetenceMeasure):
+    def __init__(self, classifier_generator, *args, **kwargs):
+        self._classifier = classifier_generator(kwargs["case_base"], *args, **kwargs) 
+
+    def measure(self, example):
+        probabilities = self._classifier(example, orange.GetProbabilities)
+        return max(probabilities)
+
+class SingleCompetenceBasedSelectionStrategy(SelectionStrategy):
+    def __init__(self, competence_measure_generator, do_take_measure1_over_measure2, *args, **kwargs):
+        SelectionStrategy.__init__(self, *args, **kwargs)
+        
+        self._competence_measure_generator = lambda: competence_measure_generator(*args, **kwargs)
+        self._do_take_measure1_over_measure2 = do_take_measure1_over_measure2
+        
+    def select(self, collection):   
+        '''
+        Given a collection of items to select from, selects an item and returns it (along with its index_of).
+        @param collection: The indexable collection to select from.
+        '''
+        if (len(collection) == 0):
+            return None
+        
+        i = 0
+        selected_i = 0
+        selected_i_measure = None
+        
+        m = self._competence_measure_generator()
+        assert isinstance(m, CompetenceMeasure)
+        
+        for example in collection:
+            example_measure = m.measure(example)
+            if selected_i_measure is None or self._do_take_measure1_over_measure2(example_measure, selected_i_measure):
+                selected_i = i
+                selected_i_measure = example_measure
+            i += 1
+        
+        return Selection(collection[selected_i], selected_i)
