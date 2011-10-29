@@ -36,7 +36,7 @@ def main():
     ys = [result.classification_accuracy for result in points]
 
     max_x=max(xs)
-    max_y=max(ys)
+    max_y=1.0
     g = graph.graphxy(width=10,
                       height=10, # Want a square graph . . .
                       x=graph.axis.linear(title="Case Base Size", min=0, max=max_x), #This might seem redundant - but pyx doesn't handle non-varying y well. So specifying the min and max avoids that piece of pyx code.
