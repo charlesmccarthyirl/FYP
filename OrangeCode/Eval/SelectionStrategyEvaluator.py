@@ -6,6 +6,7 @@ Created on 23 Oct 2011
 
 import collections
 import orange, orngStat, orngTest
+from pyx import *
 from SelectionStrategy import SelectionStrategy
 
 class Result:
@@ -63,6 +64,10 @@ class BudgetBasedStoppingCriteria(StoppingCondition):
     
     def is_criteria_met(self, case_base, unlabelled_set):
         return len(case_base) - self._initial_case_base_size == self._budget
+
+class PercentageBasedStoppingCriteria(BudgetBasedStoppingCriteria):
+    def __init__ (self, fraction, data, initial_case_base_size):
+        BudgetBasedStoppingCriteria.__init__(self, len(data)*fraction, initial_case_base_size)
 
 class Oracle:
     def __init__(self, classifyLambda):
@@ -164,3 +169,66 @@ class SelectionStrategyEvaluator:
                 results.append(result)
             
         return results
+    
+class ExperimentVariation:
+    def __init__(self, classifier_generator, selection_strategy):
+        self.classifier_generator = classifier_generator
+        self.selection_strategy = selection_strategy
+    
+
+class Experiment:
+    def __init__(self, 
+                 oracle_generator, 
+                 stopping_condition_generator,
+                 training_test_sets_extractor,
+                 named_experiment_variations):
+        self.oracle_generator = oracle_generator
+        self.stopping_condition_generator = stopping_condition_generator
+        self.training_test_sets_extractor = training_test_sets_extractor
+        self.named_experiment_variations = named_experiment_variations
+        
+    def execute_on(self, data): 
+        named_variation_results = ExperimentResult()  
+        
+        stopping_condition_generator = lambda *args, **kwargs: self.stopping_condition_generator(*args, data=data, **kwargs)
+        
+        for (variation_name, variation) in self.named_experiment_variations.items():
+            assert isinstance(variation, ExperimentVariation)
+            
+            evaluator = SelectionStrategyEvaluator(self.oracle_generator, 
+                                                   stopping_condition_generator,
+                                                   variation.selection_strategy,
+                                                   variation.classifier_generator)
+            
+            named_variation_results[variation_name] = evaluator.generate_results_from_many(self.training_test_sets_extractor(data))
+
+        return named_variation_results
+
+class ExperimentResult(dict):
+    def generate_graph(self, title=None):
+        max_x=max((max((result.case_base_size 
+                       for result in result_set)) 
+                  for result_set in self.values()))
+        max_y=1.0
+        
+        g = graph.graphxy(width=10,
+                          height=10, # Want a square graph . . .
+                          x=graph.axis.linear(title="Case Base Size", min=0, max=max_x), #This might seem redundant - but pyx doesn't handle non-varying y well. So specifying the min and max avoids that piece of pyx code.
+                          y=graph.axis.linear(title="Classification Accuracy", min=0, max=max_y),
+                          key=graph.key.key(pos="br", dist=0.1))
+        
+        # either provide lists of the individual coordinates
+        points = [graph.data.values(x=[result.case_base_size for result in result_set], 
+                                    y=[result.classification_accuracy for result in result_set], 
+                                    title="%s (AULC: %.3f)" % (name, result_set.AULC())) 
+                  for (name, result_set) in self.items()]
+        
+        g.plot(points, [graph.style.line([color.gradient.Rainbow])])
+        
+        if (title):
+            g.text(g.width/2, 
+                   g.height + 0.2, 
+                   title,
+                   [text.halign.center, text.valign.bottom, text.size.Large])
+        
+        return g
