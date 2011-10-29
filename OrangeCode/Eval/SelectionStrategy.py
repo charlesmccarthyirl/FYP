@@ -69,7 +69,7 @@ class ClassifierBasedCompetenceMeasure(CompetenceMeasure):
         probabilities = self._classifier(example, orange.GetProbabilities)
         return max(probabilities)
 
-class SingleCompetenceBasedSelectionStrategy(SelectionStrategy):
+class SingleCompetenceSelectionStrategy(SelectionStrategy):
     def __init__(self, competence_measure_generator, do_take_measure1_over_measure2, *args, **kwargs):
         SelectionStrategy.__init__(self, *args, **kwargs)
         

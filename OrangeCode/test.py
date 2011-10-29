@@ -12,20 +12,23 @@ def main():
                                                                                             *args, 
                                                                                             **kwargs)
     competence_selector = lambda measure1, measure2: measure1 < measure2 
-    selection_strategy_generator = lambda *args, **kwargs: SingleCompetenceBasedSelectionStrategy(competence_measure_generator, 
-                                                                                                  competence_selector, 
-                                                                                                  *args,
-                                                                                                  **kwargs)
+    selection_strategy_generator = lambda *args, **kwargs: SingleCompetenceSelectionStrategy(competence_measure_generator, 
+                                                                                             competence_selector, 
+                                                                                             *args,
+                                                                                             **kwargs)
+    
+    num_folds = 10
     
     data = orange.ExampleTable(r"iris.arff")
-    data.shuffle() #Could all be clustered together in the file. Some of my operations might (and do . . .) go in order - so can skew the results *a lot*.
-    rndind = orange.MakeRandomIndices2(data, p0=.8)
+    data.shuffle() # Could all be clustered together in the file. Some of my operations might 
+                   # (and do . . .) go in order - so can skew the results *a lot*.
+    rndind = orange.MakeRandomIndicesCV(data, folds=num_folds)
     
-    test = data.select(rndind, 0)
-    unlabelled = data.select(rndind, 0, negate=1)
-    
+    data_test_iterable = ((data.select(rndind, fold, negate=1), 
+                                     data.select(rndind, fold)) for fold in xrange(num_folds))
+
     evaluator = SelectionStrategyEvaluator(**locals())
-    points = evaluator.generate_results(test, unlabelled)
+    points = evaluator.generate_results_from_many(data_test_iterable)
     print points.AULC()
     #print("Accuracy for %3d = %f" % (case_base_size, classification_accuracy))
     
@@ -49,4 +52,3 @@ def main():
     
 if __name__ == "__main__":
     main()
-

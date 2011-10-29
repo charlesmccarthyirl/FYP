@@ -70,6 +70,15 @@ class Oracle:
     def classify(self, instance):
         pass
 
+def average(iterable):
+    sum = 0
+    length = 0
+    for i in iterable:
+        sum += i
+        length += 1
+        
+    return sum / length
+
 class SelectionStrategyEvaluator:
     def __init__(self, 
                  oracle_generator, 
@@ -82,7 +91,31 @@ class SelectionStrategyEvaluator:
         self.selection_strategy_generator = selection_strategy_generator
         self.classifier_generator = classifier_generator
     
-    def generate_results(self, test_set, unlabelled_set):
+    
+    
+    def generate_results_from_many(self, data_test_iterable):
+        all_results = [list(self.generate_results(test_set, unlabelled_set))
+                       for (test_set, unlabelled_set) 
+                       in data_test_iterable]
+        
+        aligned_results = zip(*all_results)
+        
+        if not all((all((result is not None and result.case_base_size == aligned_result[0].case_base_size
+                         for result
+                         in aligned_result))
+                    for aligned_result
+                    in aligned_results)):
+            raise Exception("case_base_sizes don't seem aligned")
+        
+        averaged_result_instances = (Result(aligned_result[0].case_base_size, 
+                                            average((result.classification_accuracy for result in aligned_result)), 
+                                            average((result.area_under_roc_curve for result in aligned_result))) 
+                                     for aligned_result 
+                                     in aligned_results)
+        
+        return ResultSet(averaged_result_instances)
+    
+    def generate_results(self, unlabelled_set, test_set):
         results = ResultSet()
         
         # hacky Laziness. Just don't want to have to do **locals() myself, but I can't pass self.
