@@ -116,6 +116,17 @@ class SelectionStrategyEvaluator:
         
         return ResultSet(averaged_result_instances)
     
+    def __generate_result(self, case_base, test_set):
+        classifier = self.classifier_generator(case_base)
+                
+        testResults = orngTest.testOnData([classifier], test_set)
+        
+        case_base_size = len(case_base)
+        classification_accuracy = orngStat.CA(testResults)[0]
+        area_under_roc_curve = orngStat.AUC(testResults)[0]
+        
+        return Result(case_base_size, classification_accuracy, area_under_roc_curve)
+    
     def generate_results(self, unlabelled_set, test_set):
         results = ResultSet()
         
@@ -133,6 +144,8 @@ class SelectionStrategyEvaluator:
         assert isinstance(oracle, Oracle)
         assert isinstance(stopping_condition, StoppingCondition)
         
+        results.append(selection_strategy_evaluator.__generate_result(case_base, test_set))
+        
         while not stopping_condition.is_criteria_met(case_base, unlabelled_set):
             selections = selection_strategy.select(unlabelled_set)
             
@@ -146,15 +159,7 @@ class SelectionStrategyEvaluator:
                 
                 case_base.append(selectedExample)
                 
-                classifier = selection_strategy_evaluator.classifier_generator(case_base)
-                
-                testResults = orngTest.testOnData([classifier], test_set)
-                
-                case_base_size = len(case_base)
-                classification_accuracy = orngStat.CA(testResults)[0]
-                area_under_roc_curve = orngStat.AUC(testResults)[0]
-                
-                result = Result(case_base_size, classification_accuracy, area_under_roc_curve)
+                result = selection_strategy_evaluator.__generate_result(case_base, test_set)
                 
                 results.append(result)
             
