@@ -34,7 +34,7 @@ class SelectionStrategy:
     
     def select(self, collection):
         '''
-        Given a collection of items to select from, selects an item and returns it (along with its index_of).
+        Given a collection of items to select from, selects a list of items and returns them (along with their index_of).
         @param collection: The indexable collection to select from.
         '''
         pass
@@ -50,12 +50,12 @@ class RandomSelectionStrategy(SelectionStrategy):
     
     def select(self, collection):   
         '''
-        Given a collection of items to select from, selects an item and returns it (along with its index_of).
+        Given a collection of items to select from, selects a list of items and returns them (along with their index_of).
         @param collection: The indexable collection to select from.
         '''
         upTo = len(collection) - 1
         r = self._random.randint(0, upTo)
-        return Selection(collection[r], r)
+        return [Selection(collection[r], r)]
 
 class CompetenceMeasure:
     def measure(self, example):
@@ -78,7 +78,7 @@ class SingleCompetenceSelectionStrategy(SelectionStrategy):
         
     def select(self, collection):   
         '''
-        Given a collection of items to select from, selects an item and returns it (along with its index_of).
+        Given a collection of items to select from, selects a list of items and returns them (along with their index_of).
         @param collection: The indexable collection to select from.
         '''
         if (len(collection) == 0):
@@ -98,4 +98,4 @@ class SingleCompetenceSelectionStrategy(SelectionStrategy):
                 selected_i_measure = example_measure
             i += 1
         
-        return Selection(collection[selected_i], selected_i)
+        return [Selection(collection[selected_i], selected_i)]

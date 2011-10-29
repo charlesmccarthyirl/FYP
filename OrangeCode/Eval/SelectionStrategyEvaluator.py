@@ -4,6 +4,7 @@ Created on 23 Oct 2011
 @author: Charles McCarthy
 '''
 
+import collections
 import orange, orngStat, orngTest
 from SelectionStrategy import SelectionStrategy
 
@@ -133,24 +134,28 @@ class SelectionStrategyEvaluator:
         assert isinstance(stopping_condition, StoppingCondition)
         
         while not stopping_condition.is_criteria_met(case_base, unlabelled_set):
-            selection = selection_strategy.select(unlabelled_set)
+            selections = selection_strategy.select(unlabelled_set)
             
-            selectedExample = orange.Example(selection.selection)
-            selection.delete_from(unlabelled_set)
-            selectedExample.set_class(oracle.classify(selectedExample))
+            if not isinstance(selections, collections.Iterable):
+                selections = [selections]
             
-            case_base.append(selectedExample)
-            
-            classifier = selection_strategy_evaluator.classifier_generator(case_base)
-            
-            testResults = orngTest.testOnData([classifier], test_set)
-            
-            case_base_size = len(case_base)
-            classification_accuracy = orngStat.CA(testResults)[0]
-            area_under_roc_curve = orngStat.AUC(testResults)[0]
-            
-            result = Result(case_base_size, classification_accuracy, area_under_roc_curve)
-            
-            results.append(result)
+            for selection in selections:
+                selectedExample = orange.Example(selection.selection)
+                selection.delete_from(unlabelled_set)
+                selectedExample.set_class(oracle.classify(selectedExample))
+                
+                case_base.append(selectedExample)
+                
+                classifier = selection_strategy_evaluator.classifier_generator(case_base)
+                
+                testResults = orngTest.testOnData([classifier], test_set)
+                
+                case_base_size = len(case_base)
+                classification_accuracy = orngStat.CA(testResults)[0]
+                area_under_roc_curve = orngStat.AUC(testResults)[0]
+                
+                result = Result(case_base_size, classification_accuracy, area_under_roc_curve)
+                
+                results.append(result)
             
         return results
