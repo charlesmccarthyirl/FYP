@@ -10,7 +10,7 @@ def n_fold_cross_validation(data, n):
 def main():
     oracle_generator = lambda *args, **kwargs: Oracle(orange.Example.get_class)
     stopping_condition_generator = lambda data, *args, **kwargs: PercentageBasedStoppingCriteria(0.1, data, 0)
-    classifier_generator = lambda training_data, *args, **kwargs: orange.kNNLearner(training_data, k=5)
+    classifier_generator = lambda training_data, *args, **kwargs: orange.kNNLearner(training_data, k=5, rankWeight=False)
     
     random_selection_strategy_generator = lambda *args, **kwargs: RandomSelectionStrategy()
     
@@ -18,12 +18,17 @@ def main():
                                                                                             *args, 
                                                                                             **kwargs)
     competence_selector = lambda measure1, measure2: measure1 < measure2 
-    classifier_output_selection_strategy_generator = lambda *args, **kwargs: SingleCompetenceSelectionStrategy(competence_measure_generator, 
-                                                                                             competence_selector, 
-                                                                                             *args,
-                                                                                             **kwargs)
-    named_experiment_variations = {"Random Selection": ExperimentVariation(classifier_generator, random_selection_strategy_generator),
-                                   "Uncertainty Sampling": ExperimentVariation(classifier_generator, classifier_output_selection_strategy_generator)}
+    classifier_output_selection_strategy_generator = lambda *args, **kwargs: SingleCompetenceSelectionStrategy(
+                                                                                            competence_measure_generator, 
+                                                                                            competence_selector, 
+                                                                                            *args,
+                                                                                            **kwargs)
+    named_experiment_variations = {"Random Selection": 
+                                   ExperimentVariation(classifier_generator, 
+                                                       random_selection_strategy_generator),
+                                   "Uncertainty Sampling": 
+                                   ExperimentVariation(classifier_generator, 
+                                                       classifier_output_selection_strategy_generator)}
     
     training_test_sets_extractor = lambda data: n_fold_cross_validation(data, 10)
     
