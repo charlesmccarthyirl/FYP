@@ -66,8 +66,12 @@ class ClassifierBasedCompetenceMeasure(CompetenceMeasure):
         self._classifier = classifier_generator(kwargs["case_base"], *args, **kwargs) 
 
     def measure(self, example):
-        probabilities = self._classifier(example, orange.GetProbabilities)
-        return max(probabilities)
+        try:
+            probabilities = self._classifier(example, orange.GetProbabilities)
+            return max(probabilities)
+        except:
+            return 0; # Slight hack - if the classifier for some reason can't give me its best probability, technically its best is 0. 
+                      # Needed for if 0 training examples.
 
 class SingleCompetenceSelectionStrategy(SelectionStrategy):
     def __init__(self, competence_measure_generator, do_take_measure1_over_measure2, *args, **kwargs):
