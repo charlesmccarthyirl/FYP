@@ -69,11 +69,11 @@ class BudgetBasedStoppingCriteria(StoppingCondition):
         self._initial_case_base_size = initial_case_base_size
     
     def is_criteria_met(self, case_base, unlabelled_set):
-        return len(case_base) - self._initial_case_base_size == self._budget
+        return len(case_base) - self._initial_case_base_size >= self._budget
 
 class PercentageBasedStoppingCriteria(BudgetBasedStoppingCriteria):
     def __init__ (self, fraction, data, initial_case_base_size):
-        BudgetBasedStoppingCriteria.__init__(self, len(data)*fraction, initial_case_base_size)
+        BudgetBasedStoppingCriteria.__init__(self, round(len(data)*fraction), initial_case_base_size)
 
 class Oracle:
     def __init__(self, classifyLambda):
