@@ -8,6 +8,7 @@ import collections
 import orange, orngStat, orngTest
 from pyx import *
 from SelectionStrategy import SelectionStrategy
+import logging
 
 class Result:
     def __init__(self, case_base_size, classification_accuracy, area_under_roc_curve):
@@ -28,6 +29,8 @@ class ResultSet(list):
         >>> r.AULC()
         10.0
         '''
+        logging.debug("Starting calculating AULC")
+        
         # Should be sorted already - but just in case . . .
         orderedResults = sorted(self, key=lambda x: x.case_base_size)
         previous_result = Result(0, 0, 0)
@@ -43,8 +46,11 @@ class ResultSet(list):
             
             total_area += rectangle_area + triangle_area
             previous_result = result
-            
+        
+        logging.debug("Finishing calculating AULC")
+        
         return total_area
+        
         
 
 class StoppingCondition:
@@ -173,7 +179,9 @@ class SelectionStrategyEvaluator:
                 
                 case_base.append(selectedExample)
                 
+                logging.info("Starting testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set)))
                 result = selection_strategy_evaluator.__generate_result(case_base, test_set)
+                logging.info("Finishing testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set)))                
                 
                 results.append(result)
             
@@ -209,12 +217,16 @@ class Experiment:
                                                    variation.selection_strategy,
                                                    variation.classifier_generator)
             
+            logging.info("Starting evaluation on variation %s" % variation_name)
             named_variation_results[variation_name] = evaluator.generate_results_from_many(self.training_test_sets_extractor(data))
+            logging.info("Finishing evaluation on variation %s" % variation_name)
 
         return named_variation_results
 
 class ExperimentResult(dict):
     def generate_graph(self, title=None):
+        logging.debug("Starting graph generation")
+        
         max_x=max((max((result.case_base_size 
                        for result in result_set)) 
                   for result_set in self.values()))
@@ -239,5 +251,7 @@ class ExperimentResult(dict):
                    g.height + 0.2, 
                    title,
                    [text.halign.center, text.valign.bottom, text.size.Large])
+        
+        logging.debug("Finishing graph generation")
         
         return g

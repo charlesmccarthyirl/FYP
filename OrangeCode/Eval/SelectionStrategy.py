@@ -6,6 +6,7 @@ Created on 23 Oct 2011
 
 import random
 import orange
+import logging
 
 def index_of(collection, needle):
     i = 0
