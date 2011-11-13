@@ -202,13 +202,13 @@ class SelectionStrategyEvaluator:
                 selectedExample.set_class(oracle.classify(selectedExample))
                 
                 case_base.append(selectedExample)
-                
-                logging.info("Starting testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set)))
-                result = selection_strategy_evaluator.__generate_result(case_base, test_set)
-                logging.info("Finishing testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set)))                
-                
+
                 results.append(result)
             
+            logging.info("Starting testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set)))
+            result = selection_strategy_evaluator.__generate_result(case_base, test_set)
+            logging.info("Finishing testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set))) 
+        
         return results
     
 class ExperimentVariation:
