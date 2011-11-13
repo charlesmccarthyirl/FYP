@@ -41,12 +41,12 @@ class SelectionStrategy:
         pass
 
 class RandomSelectionStrategy(SelectionStrategy):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, random_seed=None, *args, **kwargs):
         SelectionStrategy.__init__(self, *args, **kwargs)
         
         # Other stuff might have screwed with the state of random.random - so I'm taking my own.
         self._random = random.Random()
-        self._random.seed()
+        self._random.seed(random_seed)
         
     
     def select(self, collection):   
