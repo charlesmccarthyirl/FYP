@@ -9,6 +9,8 @@ import orange, orngStat, orngTest
 from pyx import *
 from SelectionStrategy import SelectionStrategy
 import logging
+import csv
+import itertools
 
 class Result:
     def __init__(self, case_base_size, classification_accuracy, area_under_roc_curve):
@@ -17,6 +19,28 @@ class Result:
         self.area_under_roc_curve = area_under_roc_curve
 
 class ResultSet(list):
+    def read_csv(self, stream):
+        logging.debug("Starting CSV reading from stream %s" % stream)
+        
+        reader = csv.reader(stream)
+        rows = (row for row in itertools.islice(reader, 1, None) if len(row) > 1)
+        self.extend((Result(*row) for row in rows))
+        
+        logging.debug("Ending CSV reading from stream %s" % stream)
+    
+    def write_csv(self, stream):
+        logging.debug("Starting CSV generation on stream %s" % stream)
+        
+        writer = csv.writer(stream)
+        writer.writerow("Case base size", "Classification Accuracy", "Area under ROC curve")
+        orderedResults = sorted(self, key=lambda x: x.case_base_size)
+        writer.writerows(((result.case_base_size, 
+                           result.classification_accuracy, 
+                           result.area_under_roc_curve) 
+                          for result in orderedResults))
+        
+        logging.debug("Ending CSV generation on stream %s" % stream)
+    
     def AULC(self):
         '''
         Calculates the area under the learning curve, based on simple (rectangle + top triangle)
@@ -204,13 +228,17 @@ class Experiment:
         self.training_test_sets_extractor = training_test_sets_extractor
         self.named_experiment_variations = named_experiment_variations
         
-    def execute_on(self, data): 
-        named_variation_results = ExperimentResult()  
+    def execute_on(self, data, named_variation_results=None): 
+        named_variation_results = named_variation_results or ExperimentResult()
         
         stopping_condition_generator = lambda *args, **kwargs: self.stopping_condition_generator(*args, data=data, **kwargs)
         
         for (variation_name, variation) in self.named_experiment_variations.items():
             assert isinstance(variation, ExperimentVariation)
+            
+            if named_variation_results.has_key(variation_name):
+                logging.info("Already have results for %s. Skipping evaluation." % variation_name)
+                continue
             
             evaluator = SelectionStrategyEvaluator(self.oracle_generator, 
                                                    stopping_condition_generator,
@@ -224,6 +252,19 @@ class Experiment:
         return named_variation_results
 
 class ExperimentResult(dict):
+    def load_from_csvs(self, name_to_stream_generator_pairs):
+        for (experiment_name, stream_generator) in name_to_stream_generator_pairs:
+            with stream_generator() as stream:
+                result_set = ResultSet()
+                result_set.read_csv(stream)
+                self[experiment_name] = result_set
+                
+    
+    def write_to_csvs(self, stream_from_name_getter):
+        for (experiment_name, result_set) in self.items():
+            with stream_from_name_getter(experiment_name) as stream:
+                result_set.write_csv(stream)
+    
     def generate_graph(self, title=None):
         logging.debug("Starting graph generation")
         
