@@ -23,7 +23,8 @@ class ResultSet(list):
         logging.debug("Starting CSV reading from stream %s" % stream)
         
         reader = csv.reader(stream)
-        rows = (row for row in itertools.islice(reader, 1, None) if len(row) > 1)
+        rows = ((float(cell) if '.' in cell else int(cell)for cell in row) 
+                for row in itertools.islice(reader, 1, None) if len(row) > 1)
         self.extend((Result(*row) for row in rows))
         
         logging.debug("Ending CSV reading from stream %s" % stream)
@@ -32,7 +33,7 @@ class ResultSet(list):
         logging.debug("Starting CSV generation on stream %s" % stream)
         
         writer = csv.writer(stream)
-        writer.writerow("Case base size", "Classification Accuracy", "Area under ROC curve")
+        writer.writerow(("Case base size", "Classification Accuracy", "Area under ROC curve"))
         orderedResults = sorted(self, key=lambda x: x.case_base_size)
         writer.writerows(((result.case_base_size, 
                            result.classification_accuracy, 
@@ -203,10 +204,9 @@ class SelectionStrategyEvaluator:
                 
                 case_base.append(selectedExample)
 
-                results.append(result)
-            
             logging.info("Starting testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set)))
             result = selection_strategy_evaluator.__generate_result(case_base, test_set)
+            results.append(result)
             logging.info("Finishing testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set))) 
         
         return results
