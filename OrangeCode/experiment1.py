@@ -8,15 +8,27 @@ competence_measure_generator = lambda *args, **kwargs: ClassifierBasedCompetence
                                                                                         *args, 
                                                                                         **kwargs)
 
-competence_selector = lambda measure1, measure2: measure1 < measure2 
+margin_sampling_measure_generator = lambda *args, **kwargs: ClassifierBasedMarginSamplingMeasure(classifier_generator, 
+                                                                                                 *args, 
+                                                                                                 **kwargs)
+
+
+
 classifier_output_selection_strategy_generator = lambda *args, **kwargs: SingleCompetenceSelectionStrategy(
                                                                                         competence_measure_generator, 
-                                                                                        competence_selector, 
+                                                                                        SingleCompetenceSelectionStrategy.take_minimum, 
                                                                                         *args,
                                                                                         **kwargs)
+margin_sampling_selection_strategy_generator = lambda *args, **kwargs: SingleCompetenceSelectionStrategy(
+                                                                                        margin_sampling_measure_generator, 
+                                                                                        SingleCompetenceSelectionStrategy.take_minimum, 
+                                                                                        *args,
+                                                                                        **kwargs)
+
 named_selection_strategy_generators = {
                                        "Random Selection": random_selection_strategy_generator,
-                                       "Uncertainty Sampling": classifier_output_selection_strategy_generator
+                                       "Uncertainty Sampling": classifier_output_selection_strategy_generator,
+                                       "Margin Sampling": margin_sampling_selection_strategy_generator
                                        }
 
 named_experiment_variations = create_named_experiment_variations(named_selection_strategy_generators)
