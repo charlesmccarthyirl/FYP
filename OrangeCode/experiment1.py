@@ -27,7 +27,7 @@ margin_sampling_selection_strategy_generator = lambda *args, **kwargs: SingleCom
 
 named_selection_strategy_generators = {
                                        "Random Selection": random_selection_strategy_generator,
-                                       "Uncertainty Sampling": classifier_output_selection_strategy_generator,
+                                       "Least Confident Selection": classifier_output_selection_strategy_generator,
                                        "Margin Sampling": margin_sampling_selection_strategy_generator
                                        }
 
