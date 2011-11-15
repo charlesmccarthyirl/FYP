@@ -294,6 +294,7 @@ class ExperimentResult(dict):
         g.plot(points, [graph.style.line([color.gradient.Rainbow])])
         
         if (title):
+            title = title.replace("_", r"\_")
             g.text(g.width/2, 
                    g.height + 0.2, 
                    title,
