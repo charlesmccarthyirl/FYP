@@ -31,12 +31,13 @@ def main(experiment, named_data_sets, experiment_directory):
         existing_results.load_from_csvs(name_to_file_stream_getter_pairs)
         
         results = experiment.execute_on(data_set, existing_results)
-        g = results.generate_graph(data_set_name)
-
-        g.writePDFfile(os.path.abspath(csv_path)) # Yes this is intentional, want it in the experiment directory, but with the same name as the folder.
-    
+        
         results.write_to_csvs(lambda variation_name: 
                               stream_getter(csv_filename_getter(variation_name, csv_path)))
+        
+        g = results.generate_graph(data_set_name)
+        g.writePDFfile(os.path.abspath(csv_path)) # Yes this is intentional, want it in the experiment directory, but with the same name as the folder.
+    
     
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s',level=logging.INFO)
