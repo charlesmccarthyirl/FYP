@@ -63,8 +63,8 @@ class CompetenceMeasure:
         pass
 
 class ClassifierBasedCompetenceMeasure(CompetenceMeasure):
-    def __init__(self, classifier_generator, *args, **kwargs):
-        self._classifier = classifier_generator(kwargs["case_base"], *args, **kwargs) 
+    def __init__(self, classifier_generator, case_base, *args, **kwargs):
+        self._classifier = classifier_generator(case_base, *args, **kwargs) 
 
     def measure(self, example):
         try:
@@ -74,7 +74,29 @@ class ClassifierBasedCompetenceMeasure(CompetenceMeasure):
             return 0; # Slight hack - if the classifier for some reason can't give me its best probability, technically its best is 0. 
                       # Needed for if 0 training examples.
 
+class ClassifierBasedMarginSamplingMeasure(CompetenceMeasure):
+    def __init__(self, classifier_generator, case_base, *args, **kwargs):
+        self._classifier = classifier_generator(case_base, *args, **kwargs) 
+
+    def measure(self, example):
+        try:
+            probabilities = self._classifier(example, orange.GetProbabilities)
+            top_2 = sorted(probabilities, reverse=True)[:2]
+            return abs(top_2[0] - top_2[1])
+        except:
+            return 0; # Slight hack - if the classifier for some reason can't give me its best probability, technically its best is 0. 
+                      # Needed for if 0 training examples.
+    
+
 class SingleCompetenceSelectionStrategy(SelectionStrategy):
+    @staticmethod
+    def take_minimum(measure1, measure2):
+        return measure1 < measure2
+    
+    @staticmethod
+    def take_maximum(measure1, measure2):
+        return measure1 > measure2
+    
     def __init__(self, competence_measure_generator, do_take_measure1_over_measure2, *args, **kwargs):
         SelectionStrategy.__init__(self, *args, **kwargs)
         
