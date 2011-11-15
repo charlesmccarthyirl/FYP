@@ -7,6 +7,7 @@ Created on 23 Oct 2011
 import random
 import orange
 import logging
+from functools import partial
 
 def index_of(collection, needle):
     i = 0
@@ -86,8 +87,18 @@ class ClassifierBasedMarginSamplingMeasure(CompetenceMeasure):
         except:
             return 0; # Slight hack - if the classifier for some reason can't give me its best probability, technically its best is 0. 
                       # Needed for if 0 training examples.
-    
 
+class DiversityMeasure(CompetenceMeasure):
+    def __init__(self, case_base, *args, **kwargs):
+        self._case_base = case_base
+        self._distance_measure = orange.ExamplesDistanceConstructor_Euclidean(case_base) if len(case_base) > 0 else None
+
+    def measure(self, example):
+        if not self._distance_measure:
+            return 0
+        
+        return min((self._distance_measure(example, e) for e in self._case_base))
+    
 class SingleCompetenceSelectionStrategy(SelectionStrategy):
     @staticmethod
     def take_minimum(measure1, measure2):
