@@ -1,50 +1,49 @@
 import orange, orngStat, orngTest
 from Eval import *
+import logging
+import cProfile
+import itertools
+import os, sys, glob
+from os.path import basename, splitext
+from functools import partial
 
-def n_fold_cross_validation(data, n):
-    rndind = orange.MakeRandomIndicesCV(data, folds=n)
-    return ((data.select(rndind, fold, negate=1), 
-             data.select(rndind, fold)) 
-            for fold in xrange(n))
-    
-def main():
-    oracle_generator = lambda *args, **kwargs: Oracle(orange.Example.get_class)
-    stopping_condition_generator = lambda data, *args, **kwargs: PercentageBasedStoppingCriteria(0.1, data, 0)
-    classifier_generator = lambda training_data, *args, **kwargs: orange.kNNLearner(training_data, k=5, rankWeight=False)
-    
-    random_selection_strategy_generator = lambda *args, **kwargs: RandomSelectionStrategy()
-    
-    competence_measure_generator = lambda *args, **kwargs: ClassifierBasedCompetenceMeasure(classifier_generator, 
-                                                                                            *args, 
-                                                                                            **kwargs)
-    competence_selector = lambda measure1, measure2: measure1 < measure2 
-    classifier_output_selection_strategy_generator = lambda *args, **kwargs: SingleCompetenceSelectionStrategy(
-                                                                                            competence_measure_generator, 
-                                                                                            competence_selector, 
-                                                                                            *args,
-                                                                                            **kwargs)
-    named_experiment_variations = {"Random Selection": 
-                                   ExperimentVariation(classifier_generator, 
-                                                       random_selection_strategy_generator),
-                                   "Uncertainty Sampling": 
-                                   ExperimentVariation(classifier_generator, 
-                                                       classifier_output_selection_strategy_generator)}
-    
-    training_test_sets_extractor = lambda data: n_fold_cross_validation(data, 10)
-    
-    experiment = Experiment(oracle_generator, 
-                            stopping_condition_generator, 
-                            training_test_sets_extractor, 
-                            named_experiment_variations)
-    
-    d = orange.ExampleTable(r"iris.arff")
-    d.shuffle() # Could all be clustered together in the file. Some of my operations might 
-                   # (and do . . .) go in order - so can skew the results *a lot*.
+def csv_filename_getter(variation_name, path):
+    return os.path.join(path, variation_name + '.csv')
 
-    results = experiment.execute_on(d)
-    g = results.generate_graph("iris")
-    #g.writeEPSfile("points")
-    g.writePDFfile("points")
+def stream_getter(filename):
+    path = os.path.dirname(filename)
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return open(filename, 'wb')
+
+def main(experiment, named_data_sets, experiment_directory):
+    # data_set_name -> example_table (pre-shuffled)
+    for (data_set_name, data_set_generator) in named_data_sets:
+        logging.info("Beginning processing on %s" % data_set_name)
+        data_set = data_set_generator()
+        
+        csv_path = os.path.join(experiment_directory, data_set_name)
+        
+        files = glob.glob(os.path.join(csv_path, "*.csv"))
+        name_to_file_stream_getter_pairs = [(splitext(basename(f))[0], partial(open, f, "rb")) for f in files]
+        
+        existing_results = ExperimentResult()
+        existing_results.load_from_csvs(name_to_file_stream_getter_pairs)
+        
+        results = experiment.execute_on(data_set, existing_results)
+        g = results.generate_graph(data_set_name)
+
+        g.writePDFfile(os.path.abspath(csv_path)) # Yes this is intentional, want it in the experiment directory, but with the same name as the folder.
+    
+        results.write_to_csvs(lambda variation_name: 
+                              stream_getter(csv_filename_getter(variation_name, csv_path)))
     
 if __name__ == "__main__":
-    main()
+    logging.basicConfig(format='%(asctime)s %(message)s',level=logging.INFO)
+#    cProfile.run("main()", "mainProfile")
+    experiment = __import__(sys.argv[1]).experiment
+    named_data_sets = __import__(sys.argv[2]).named_data_sets
+    experiment_directory = sys.argv[3]
+    if not os.path.exists(experiment_directory):
+        os.makedirs(experiment_directory)
+    main(experiment, named_data_sets, experiment_directory)

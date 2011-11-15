@@ -12,6 +12,12 @@ import logging
 import csv
 import itertools
 
+def n_fold_cross_validation(data, n, randseed=0):
+    rndind = orange.MakeRandomIndicesCV(data, folds=n, randseed=randseed)
+    return ((data.select(rndind, fold, negate=1), 
+             data.select(rndind, fold)) 
+            for fold in xrange(n))
+
 class Result:
     def __init__(self, case_base_size, classification_accuracy, area_under_roc_curve):
         self.case_base_size = case_base_size
@@ -228,16 +234,16 @@ class Experiment:
         self.training_test_sets_extractor = training_test_sets_extractor
         self.named_experiment_variations = named_experiment_variations
         
-    def execute_on(self, data, named_variation_results=None): 
-        named_variation_results = named_variation_results or ExperimentResult()
+    def execute_on(self, data, existing_named_variation_results=None): 
+        named_variation_results = ExperimentResult()
         
         stopping_condition_generator = lambda *args, **kwargs: self.stopping_condition_generator(*args, data=data, **kwargs)
         
         for (variation_name, variation) in self.named_experiment_variations.items():
             assert isinstance(variation, ExperimentVariation)
-            
-            if named_variation_results.has_key(variation_name):
+            if existing_named_variation_results.has_key(variation_name):
                 logging.info("Already have results for %s. Skipping evaluation." % variation_name)
+                named_variation_results[variation_name] = existing_named_variation_results[variation_name]
                 continue
             
             evaluator = SelectionStrategyEvaluator(self.oracle_generator, 
@@ -253,16 +259,16 @@ class Experiment:
 
 class ExperimentResult(dict):
     def load_from_csvs(self, name_to_stream_generator_pairs):
-        for (experiment_name, stream_generator) in name_to_stream_generator_pairs:
-            with stream_generator() as stream:
+        for (variation_name, stream_generator) in name_to_stream_generator_pairs:
+            with stream_generator() as stream:                
                 result_set = ResultSet()
                 result_set.read_csv(stream)
-                self[experiment_name] = result_set
+                self[variation_name] = result_set
                 
     
     def write_to_csvs(self, stream_from_name_getter):
-        for (experiment_name, result_set) in self.items():
-            with stream_from_name_getter(experiment_name) as stream:
+        for (variation_name, result_set) in self.items():
+            with stream_from_name_getter(variation_name) as stream:
                 result_set.write_csv(stream)
     
     def generate_graph(self, title=None):
