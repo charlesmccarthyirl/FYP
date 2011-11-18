@@ -40,6 +40,6 @@ named_selection_strategy_generators = {
                                        "Maximum Diversity Sampling": maximum_diversity_selection_strategy_generator
                                        }
 
-named_experiment_variations = create_named_experiment_variations(named_selection_strategy_generators)
+named_experiment_variations_generator = create_named_experiment_variations_generator(named_selection_strategy_generators)
 
-experiment = create_experiment(stopping_condition_generator, named_experiment_variations)
+experiment = create_experiment(stopping_condition_generator, named_experiment_variations_generator)

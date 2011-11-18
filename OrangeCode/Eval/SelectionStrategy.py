@@ -89,9 +89,9 @@ class ClassifierBasedMarginSamplingMeasure(CompetenceMeasure):
                       # Needed for if 0 training examples.
 
 class DiversityMeasure(CompetenceMeasure):
-    def __init__(self, case_base, *args, **kwargs):
+    def __init__(self, case_base, distance_constructor, *args, **kwargs):
         self._case_base = case_base
-        self._distance_measure = orange.ExamplesDistanceConstructor_Euclidean(case_base) if len(case_base) > 0 else None
+        self._distance_measure = distance_constructor(case_base) if len(case_base) > 0 else None
 
     def measure(self, example):
         if not self._distance_measure:

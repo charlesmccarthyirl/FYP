@@ -88,7 +88,7 @@ class StoppingCondition:
     def is_criteria_met(self, case_base, unlabelled_set):
         pass
 
-class BudgetBasedStoppingCriteria(StoppingCondition):
+class  BudgetBasedStoppingCriteria(StoppingCondition):
     def __init__(self, budget, initial_case_base_size=0):
         '''
         
@@ -122,6 +122,11 @@ def average(iterable):
         
     return sum / length
 
+def add_dicts(dict1, dict2):
+    result = dict1.copy()
+    result.update(dict2)
+    return result
+
 class SelectionStrategyEvaluator:
     def __init__(self, 
                  oracle_generator, 
@@ -133,6 +138,7 @@ class SelectionStrategyEvaluator:
         self.stopping_condition_generator = stopping_condition_generator
         self.selection_strategy_generator = selection_strategy_generator
         self.classifier_generator = classifier_generator
+        self.kwargs = kwargs
     
     
     
@@ -162,7 +168,7 @@ class SelectionStrategyEvaluator:
         case_base_size = len(case_base)
         
         try:
-            classifier = self.classifier_generator(case_base)
+            classifier = self.classifier_generator(case_base, **self.kwargs)
                     
             testResults = orngTest.testOnData([classifier], test_set)
 
@@ -187,9 +193,9 @@ class SelectionStrategyEvaluator:
         
         # Order of assignment here important so that **locals has the right info (e.g. the stopping_criteria may care about the oracle)
         case_base = orange.ExampleTable(unlabelled_set.domain)
-        selection_strategy = selection_strategy_evaluator.selection_strategy_generator(**locals())
-        oracle = selection_strategy_evaluator.oracle_generator(**locals())
-        stopping_condition = selection_strategy_evaluator.stopping_condition_generator(**locals())
+        selection_strategy = selection_strategy_evaluator.selection_strategy_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
+        oracle = selection_strategy_evaluator.oracle_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
+        stopping_condition = selection_strategy_evaluator.stopping_condition_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
         
         assert isinstance(selection_strategy, SelectionStrategy)
         assert isinstance(oracle, Oracle)
@@ -210,10 +216,10 @@ class SelectionStrategyEvaluator:
                 
                 case_base.append(selectedExample)
 
-            logging.info("Starting testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set)))
+            logging.debug("Starting testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set)))
             result = selection_strategy_evaluator.__generate_result(case_base, test_set)
             results.append(result)
-            logging.info("Finishing testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set))) 
+            logging.debug("Finishing testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set))) 
         
         return results
     
@@ -228,18 +234,20 @@ class Experiment:
                  oracle_generator, 
                  stopping_condition_generator,
                  training_test_sets_extractor,
-                 named_experiment_variations):
+                 named_experiment_variations_generator):
         self.oracle_generator = oracle_generator
         self.stopping_condition_generator = stopping_condition_generator
         self.training_test_sets_extractor = training_test_sets_extractor
-        self.named_experiment_variations = named_experiment_variations
+        self.named_experiment_variations_generator = named_experiment_variations_generator
         
-    def execute_on(self, data, existing_named_variation_results=None): 
+    def execute_on(self, data_distance_constructor_pair, existing_named_variation_results=None): 
         named_variation_results = ExperimentResult()
         
-        stopping_condition_generator = lambda *args, **kwargs: self.stopping_condition_generator(*args, data=data, **kwargs)
+        data, distance_constructor = data_distance_constructor_pair
         
-        for (variation_name, variation) in self.named_experiment_variations.items():
+        named_experiment_variations = self.named_experiment_variations_generator(data)
+        
+        for (variation_name, variation) in named_experiment_variations.items():
             assert isinstance(variation, ExperimentVariation)
             if existing_named_variation_results.has_key(variation_name):
                 logging.info("Already have results for %s. Skipping evaluation." % variation_name)
@@ -247,9 +255,11 @@ class Experiment:
                 continue
             
             evaluator = SelectionStrategyEvaluator(self.oracle_generator, 
-                                                   stopping_condition_generator,
+                                                   self.stopping_condition_generator,
                                                    variation.selection_strategy,
-                                                   variation.classifier_generator)
+                                                   variation.classifier_generator,
+                                                   data=data,
+                                                   distance_constructor=distance_constructor)
             
             logging.info("Starting evaluation on variation %s" % variation_name)
             named_variation_results[variation_name] = evaluator.generate_results_from_many(self.training_test_sets_extractor(data))
