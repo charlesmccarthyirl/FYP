@@ -88,7 +88,7 @@ class StoppingCondition:
     def is_criteria_met(self, case_base, unlabelled_set):
         pass
 
-class  BudgetBasedStoppingCriteria(StoppingCondition):
+class BudgetBasedStoppingCriteria(StoppingCondition):
     def __init__(self, budget, initial_case_base_size=0):
         '''
         
