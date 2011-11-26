@@ -41,10 +41,10 @@ def main(experiment, named_data_sets, experiment_directory):
     
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s',level=logging.INFO)
-#    cProfile.run("main()", "mainProfile")
     experiment = __import__(sys.argv[1]).experiment
     named_data_sets = __import__(sys.argv[2]).named_data_sets
-    experiment_directory = sys.argv[3]
+    experiment_directory = os.path.expanduser(sys.argv[3])
     if not os.path.exists(experiment_directory):
         os.makedirs(experiment_directory)
     main(experiment, named_data_sets, experiment_directory)
+#    cProfile.run("main(experiment, named_data_sets, experiment_directory)", "mainProfile")
