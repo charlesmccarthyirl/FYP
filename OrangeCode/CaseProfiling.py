@@ -3,26 +3,26 @@ import orange
 
 class RcdlCaseProfile:
     def __init__(self, 
-                 reachability=(), 
-                 coverage=(), 
-                 dissimilarity=(), 
-                 liability=(), 
+                 reachability_set=(), 
+                 coverage_set=(), 
+                 dissimilarity_set=(), 
+                 liability_set=(), 
                  nearest_neighbours=(),
                  reverse_nearest_neighbours=()):
-        self.reachability = set(reachability)
-        self.coverage = set(coverage)
-        self.dissimilarity = set(dissimilarity)
-        self.liability = set(liability)
+        self.reachability_set = set(reachability_set)
+        self.coverage_set = set(coverage_set)
+        self.dissimilarity_set = set(dissimilarity_set)
+        self.liability_set = set(liability_set)
         self.nearest_neighbours = set(nearest_neighbours)
         self.reverse_nearest_neighbours = set(reverse_nearest_neighbours)
     
     def difference_update(self, other_case_profile):
-        for attr in ("reachability", "coverage", "dissimilarity", "liability", 
+        for attr in ("reachability_set", "coverage_set", "dissimilarity_set", "liability_set", 
                      "nearest_neighbours", "reverse_nearest_neighbours"):
             getattr(self, attr).difference_update(getattr(other_case_profile, attr))
     
     def update(self, other_case_profile):
-        for attr in ("reachability", "coverage", "dissimilarity", "liability", 
+        for attr in ("reachability_set", "coverage_set", "dissimilarity_set", "liability_set", 
                      "nearest_neighbours", "reverse_nearest_neighbours"):
             getattr(self, attr).update(getattr(other_case_profile, attr))
 
@@ -38,14 +38,18 @@ class AddRemovalStore:
 class CaseProfileBuilder:
     # TODO - add unit test here. Build an entire 1. Check to NNs match against brute force.
     def nns_getter(self, case_base, case):
-        return self.__get_classifier(case_base).find_nearest(case, classifier.k)
+        try:
+            return self.__get_classifier(case_base).find_nearest(case, classifier.k)
+        except:
+            assert(len(case_base) == 0)
+            return []
     
     def __get_classifier(self, cases):
-        if not (type(case_base) is list or type(case_base) is orange.ExampleTable):
-            case_base = list(case_base)
-        return self.classifier_generator(case_base)
+        if not (type(cases) is list or type(cases) is orange.ExampleTable):
+            cases = list(cases)
+        return self.__classifier_generator(cases, self.__distance_constructor)
     
-    def __init__(self, classifier_generator):
+    def __init__(self, classifier_generator, distance_constructor):
         '''
         Initializes a new instance of the CaseProfileBuilder class.
         
@@ -55,6 +59,7 @@ class CaseProfileBuilder:
         #TODO: Possibly include the Oracle
         
         self.__classifier_generator = classifier_generator
+        self.__distance_constructor = distance_constructor
 
         self.case_info_lookup = {}
     
@@ -84,7 +89,7 @@ class CaseProfileBuilder:
         
         case_changes = get_or_create(case)
         
-        case_nns = self.nns_getter(self.case_base, case)
+        case_nns = self.nns_getter(self.case_info_lookup.keys(), case)
         
         for (other_case, other_case_profile) in self.case_info_lookup.items():
             other_case_new_nns = self.nns_getter(chain(other_case_profile.nearest_neighbours, (case,)), other_case)
@@ -113,10 +118,10 @@ class CaseProfileBuilder:
     
     def suppose(self, _case):
         
-        add_removals_dict = self.__suppose_nn(case)
+        add_removals_dict = self.__suppose_nn(_case)
         
         def get_or_create(case):
-            if not add_removals_dict.has_key(_ase):
+            if not add_removals_dict.has_key(case):
                 add_removals_dict[case] = AddRemovalStore()
             return add_removals_dict[case]
         

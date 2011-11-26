@@ -7,6 +7,7 @@ Created on 23 Oct 2011
 import random
 import orange
 import logging
+import CaseProfiling
 from functools import partial
 
 def index_of(collection, needle):
@@ -137,3 +138,42 @@ class SingleCompetenceSelectionStrategy(SelectionStrategy):
             i += 1
         
         return [Selection(collection[selected_i], selected_i)]
+
+class CaseProfileBasedCompetenceMeasure(CompetenceMeasure):
+    def __init__(self, classifier_generator, case_base, case_profile_builder=None, *args, **kwargs):
+        self.case_profile_builder = case_profile_builder
+        try:
+            self.classifier = classifier_generator(case_base, *args, **kwargs) 
+        except:
+            self.classifier = None
+        self.case_base = case_base
+
+    def measure(self, example):
+        classes = example.domain.class_var.values
+        try:
+            probabilities = self.classifier(example, orange.GetProbabilities).items()
+        except:
+            assert(len(self.case_base) == 0)
+            probabilities = ((c, 1.0/len(classes)) for c in classes)
+        
+        def make_dummy_example(_class):
+            dummy_example = orange.Example(example)
+            dummy_example.set_class(_class)
+            return dummy_example
+        
+        example_possibilities = [(probability, 
+                                  self.case_profile_builder.suppose(make_dummy_example(_class))) 
+                                 for (_class, probability) in probabilities]
+        
+        def compute_rcdl_score(rcdl_profile):
+            return len(rcdl_profile.coverage_set) - len(rcdl_profile.liability_set)
+        
+        def compute_add_removal_score(add_removal):
+            return compute_rcdl_score(add_removal.added) - compute_rcdl_score(add_removal.removed)
+        
+        def compute_add_removals_dict_score(add_removals_dict):
+            return sum((compute_add_removal_score(add_removal) for add_removal in add_removals_dict.values()))
+        
+        return sum((probability*compute_add_removals_dict_score(add_removals_dict) 
+                    for (probability, add_removals_dict) in example_possibilities))
+        
