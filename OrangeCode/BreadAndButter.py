@@ -11,7 +11,10 @@ DATASETS_DIR = "../Datasets/"
 DATASET_EXTENSIONS = [".csv", ".tab", ".arff"]
 
 oracle_generator = lambda *args, **kwargs: Oracle(orange.Example.get_class)
-def classifier_generator(training_data, distance_constructor, *args, **kwargs): 
+def classifier_generator(training_data, distance_constructor, *args, **kwargs):
+    if len(training_data) == 0:
+        return None
+        
     return orange.kNNLearner(training_data, k=5, rankWeight=False, distanceConstructor=distance_constructor()) 
 
 def get_training_test_sets_extractor(rand_seed):

@@ -109,11 +109,17 @@ class SingleCompetenceSelectionStrategy(SelectionStrategy):
     def take_maximum(measure1, measure2):
         return measure1 > measure2
     
-    def __init__(self, competence_measure_generator, do_take_measure1_over_measure2, *args, **kwargs):
+    def __init__(self, 
+                 competence_measure_generator, 
+                 do_take_measure1_over_measure2, 
+                 on_selection_action=None, 
+                 *args, 
+                 **kwargs):
         SelectionStrategy.__init__(self, *args, **kwargs)
         
         self._competence_measure_generator = lambda: competence_measure_generator(*args, **kwargs)
         self._do_take_measure1_over_measure2 = do_take_measure1_over_measure2
+        self.on_selection_action = on_selection_action
         
     def select(self, collection):   
         '''
@@ -137,7 +143,11 @@ class SingleCompetenceSelectionStrategy(SelectionStrategy):
                 selected_i_measure = example_measure
             i += 1
         
-        return [Selection(collection[selected_i], selected_i)]
+        selected_example = collection[selected_i]
+        if (self.on_selection_action):
+            self.on_selection_action(selected_example)
+        
+        return [Selection(selected_example, selected_i)]
 
 class CaseProfileBasedCompetenceMeasure(CompetenceMeasure):
     def __init__(self, classifier_generator, case_base, case_profile_builder=None, *args, **kwargs):
@@ -151,10 +161,10 @@ class CaseProfileBasedCompetenceMeasure(CompetenceMeasure):
     def measure(self, example):
         classes = example.domain.class_var.values
         try:
-            probabilities = self.classifier(example, orange.GetProbabilities).items()
+            probabilities = [(c, p) for (c, p) in self.classifier(example, orange.GetProbabilities).items()] # list as items' items are generators, so exception not caught.
         except:
             assert(len(self.case_base) == 0)
-            probabilities = ((c, 1.0/len(classes)) for c in classes)
+            probabilities = [(c, 1.0/len(classes)) for c in classes]
         
         def make_dummy_example(_class):
             dummy_example = orange.Example(example)
