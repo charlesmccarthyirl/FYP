@@ -165,14 +165,10 @@ class CaseProfileBasedCompetenceMeasure(CompetenceMeasure):
         except:
             assert(len(self.case_base) == 0)
             probabilities = [(c, 1.0/len(classes)) for c in classes]
-        
-        def make_dummy_example(_class):
-            dummy_example = orange.Example(example)
-            dummy_example.set_class(_class)
-            return dummy_example
+
         
         example_possibilities = [(probability, 
-                                  self.case_profile_builder.suppose(make_dummy_example(_class))) 
+                                  self.case_profile_builder.suppose(example, _class)) 
                                  for (_class, probability) in probabilities]
         
         def compute_rcdl_score(rcdl_profile):

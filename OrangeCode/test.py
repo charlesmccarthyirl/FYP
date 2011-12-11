@@ -40,7 +40,7 @@ def main(experiment, named_data_sets, experiment_directory):
     
     
 if __name__ == "__main__":
-    logging.basicConfig(format='%(asctime)s %(message)s',level=logging.INFO)
+    logging.basicConfig(format='%(asctime)s %(message)s',level=logging.DEBUG)
     experiment = __import__(sys.argv[1]).experiment
     named_data_sets = __import__(sys.argv[2]).named_data_sets
     experiment_directory = os.path.expanduser(sys.argv[3])

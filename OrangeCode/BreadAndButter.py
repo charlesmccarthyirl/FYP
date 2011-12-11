@@ -11,11 +11,15 @@ DATASETS_DIR = "../Datasets/"
 DATASET_EXTENSIONS = [".csv", ".tab", ".arff"]
 
 oracle_generator = lambda *args, **kwargs: Oracle(orange.Example.get_class)
+k=5
 def classifier_generator(training_data, distance_constructor, *args, **kwargs):
     if len(training_data) == 0:
         return None
-        
-    return orange.kNNLearner(training_data, k=5, rankWeight=False, distanceConstructor=distance_constructor()) 
+    #logging.debug("Beginning get_classifier") 
+    #logging.debug("on %s" % list(training_data))
+    classifier = orange.kNNLearner(training_data, k=k, rankWeight=False, distanceConstructor=distance_constructor())
+    #logging.debug("Ending get_classifier") 
+    return classifier
 
 def get_training_test_sets_extractor(rand_seed):
     def split_data(data): 
@@ -53,6 +57,14 @@ def load_data_distance_constructor_pair(
         #distance_constructor_generator=euclidean_distance_constructor_generator):
     d = orange.ExampleTable(data_files_dict[base_filename], randomGenerator=orange.RandomGenerator(random_seed))
     
+    prev_len = len(d)
+    d.remove_duplicates()
+    new_len = len(d)
+    
+    if (prev_len != new_len):
+        logging.info("Removed %d duplicates contained in %s" % (prev_len - new_len, base_filename))
+    
+    # Have to add these after . . .
     if not d.domain.has_meta("ex_id"):
         var = orange.FloatVariable("ex_id")
         varId = orange.newmetaid()
@@ -61,7 +73,7 @@ def load_data_distance_constructor_pair(
         for ex in d:
             ex.set_meta(varId, i)
             i += 1
-        
+    
     distance_constructor = distance_constructor_generator(d)
     
     d.shuffle() # Could all be clustered together in the file. Some of my operations might 

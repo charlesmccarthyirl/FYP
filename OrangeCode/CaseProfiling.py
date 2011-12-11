@@ -1,5 +1,6 @@
 from itertools import *
 import orange
+import logging
 
 class RcdlCaseProfile:
     def __init__(self, 
@@ -40,17 +41,31 @@ class CaseProfileBuilder:
     def nns_getter(self, case_base, case):
         try:
             classifier = self.__get_classifier(case_base)
-            return classifier.find_nearest(case, classifier.k)
-        except:
+            result = classifier.find_nearest(case, classifier.k)
+            assert (case not in result)
+            return result
+        except Exception, e:
+            if len(case_base) > 0:
+                raise e
             assert(len(case_base) == 0)
             return []
     
     def __get_classifier(self, cases):
-        if not (type(cases) is list or type(cases) is orange.ExampleTable):
-            cases = list(cases)
-        return self.__classifier_generator(cases, self.__distance_constructor)
+        if not (type(cases) is orange.ExampleTable):
+            if (type(cases) is not list):
+                cases = list(cases)   
+            if self.__temp_case_base is None:
+                self.__temp_case_base = orange.ExampleTable(cases)
+            else:
+                while len(self.__temp_case_base) > 0:
+                    del(self.__temp_case_base[0])
+            
+                self.__temp_case_base.extend(cases)
+                
+        classifier = self.__classifier_generator(self.__temp_case_base, self.__distance_constructor)
+        return classifier
     
-    def __init__(self, classifier_generator, distance_constructor):
+    def __init__(self, classifier_generator, distance_constructor, k):
         '''
         Initializes a new instance of the CaseProfileBuilder class.
         
@@ -61,8 +76,10 @@ class CaseProfileBuilder:
         
         self.__classifier_generator = classifier_generator
         self.__distance_constructor = distance_constructor
+        self.__k = k
 
         self.case_info_lookup = {}
+        self.__temp_case_base = None #ExampleTable that I'm going to use . . .
     
     def __get_or_create(self, case):
         if not self.case_info_lookup.has_key(case):
@@ -70,7 +87,7 @@ class CaseProfileBuilder:
         return self.case_info_lookup[case]
     
     def put(self, _case):
-        add_removals_dict = self.suppose(_case)
+        add_removals_dict = self.suppose(_case, _case.get_class())
         
         for (case, add_removal) in add_removals_dict.items():
             case_profile = self.__get_or_create(case)
@@ -80,7 +97,7 @@ class CaseProfileBuilder:
     
     def __suppose_nn(self, case):
         assert(not self.case_info_lookup.has_key(case)) # Just don't want to deal with the hassle right now.
-
+        
         add_removals_dict = {}
         
         def get_or_create(_case):
@@ -97,10 +114,35 @@ class CaseProfileBuilder:
             nn_changes = get_or_create(nn)
             nn_changes.added.reverse_nearest_neighbours.add(case)
         
+        dist_gen = self.__distance_constructor()
         for (other_case, other_case_profile) in self.case_info_lookup.items():
-            other_case_new_nns = self.nns_getter(chain(other_case_profile.nearest_neighbours, (case,)), other_case)
-            if case not in other_case_new_nns:
-                continue
+            if len(other_case_profile.nearest_neighbours) < self.__k:
+                other_case_new_nns = chain(other_case_profile.nearest_neighbours, (case,))
+                shunted = None
+            else:
+                dist_meas = dist_gen(other_case_profile.nearest_neighbours)
+                max_ex, max_dist = max(((other_case_nn, dist_meas(other_case, other_case_nn))
+                                for other_case_nn 
+                                in other_case_profile.nearest_neighbours), key=lambda el: el[1])
+                
+                case_dist = dist_meas(other_case, case)
+                
+                if case_dist > max_dist:
+                    continue
+                elif case_dist == max_dist:
+                    # Unsure - deferreing decision to nn finder for tie breaking
+                    other_case_new_nns = self.nns_getter(chain(other_case_profile.nearest_neighbours, (case,)), other_case)
+                    if case not in other_case_new_nns:
+                        continue
+                    
+                    difference = set(other_case_profile.nearest_neighbours).difference(other_case_new_nns)
+                    assert(len(difference) <= 1)
+                    shunted = difference.pop()
+                else:
+                    other_case_new_nns = [nn for nn in other_case_profile.nearest_neighbours 
+                                          if nn != max_ex]
+                    other_case_new_nns.append(case)
+                    shunted = max_ex
             
             other_case_changes = get_or_create(other_case)
             
@@ -109,22 +151,24 @@ class CaseProfileBuilder:
             other_case_changes.added.nearest_neighbours.add(case)
             
             # now, did it shunt out another one for the position
-            difference = set(other_case_profile.nearest_neighbours).difference(other_case_new_nns)
-            assert(len(difference) <= 1)
-            if len(difference) == 0:
+            if shunted is None:
                 continue 
-            
-            shunted = difference.pop()
+
             shunted_changes = get_or_create(shunted)
             
             other_case_changes.removed.nearest_neighbours.add(shunted)
             shunted_changes.removed.reverse_nearest_neighbours.add(other_case)
         
+        assert(all(ca not in add_removed.added.nearest_neighbours for (ca, add_removed) in add_removals_dict.items()))
         return add_removals_dict
     
-    def suppose(self, _case):
+    def suppose(self, _case, _class):
+        assert(not self.case_info_lookup.has_key(_case)) # Just don't want to deal with the hassle right now.
         
         add_removals_dict = self.__suppose_nn(_case)
+        
+        def get_class(m_case):
+            return _class if m_case == _case else m_case.get_class() # want the fake class if I'm dealing with the input _case, otherwise, the case's real class
         
         def get_or_create(case):
             if not add_removals_dict.has_key(case):
@@ -149,7 +193,7 @@ class CaseProfileBuilder:
                
             if not case_info: 
                 assert(case == _case)
-            
+    
             # Deal with NN removals
             for removed_nn_case in case_add_removals.removed.nearest_neighbours:
                 # might affect R/D of me, C/L of other.
@@ -179,25 +223,31 @@ class CaseProfileBuilder:
             
             case_old_class = None 
             case_new_nearest_neighbours = set(case_add_removals.added.nearest_neighbours)
-
+    
             if case_info is not None:
                 case_new_nearest_neighbours.update(case_info.nearest_neighbours)
+                # Only could be removals if there was stuff there before
                 case_new_nearest_neighbours.difference_update(case_add_removals.removed.nearest_neighbours)
                 
                 if len(case_info.nearest_neighbours) > 0:
-                    case_old_class = self.__get_classifier(case_info.nearest_neighbours)(case)
+                    # Can get the previous class from it's reachability / dissimilarity set. (Only 1 will ever be populated at a time).
+                    # TODO: Wrong given the new definition of contributes.
+                    similar_ex = tuple(islice(chain(case_info.reachability_set, case_info.dissimilarity_set), 1))[0]
+                    case_old_class = get_class(similar_ex)
             
-            # If the case changed as a result of the adds, scrubbing needed.
-            # Otherwise, just need to check if the added case helps or hinders this one, and if so, 
+            # If the classification changed as a result of the adds, scrubbing needed.
+            # Otherwise, just need to check if the added case helps or hinders this one, and if so, update as approrpiate.
+            # TODO - only change class if a different class of the new_nn
             case_new_class = self.__get_classifier(case_new_nearest_neighbours)(case)
             
-            if case_old_class is not None and case_old_class != case_new_class:
+            if case_old_class is not None and case_old_class != case_new_class: #TODO: Slightly wrong - only scrub  if classification correctness changed
                 # Case has changed - need to go a-scrubbing.
                 # Generate the list of things which 'helped' in the classification
-                to_remove = [c for c in case_info.nearest_neighbours if c.get_class() == case_old_class]
+                assert(len(case_info.reachability_set) == 0 or len(case_info.dissimilarity_set) == 0)
+                to_remove = case_info.reachability_set or case_info.dissimilarity_set
                 
-                direct, reverse = self.get_direct_reverse_names(case_old_class, case.get_class())
-
+                direct, reverse = self.get_direct_reverse_names(case_old_class, get_class(case))
+    
                 # case's dissimilarity set, and those things liability set need updating.
                 assert(len(set(to_remove).difference(getattr(case_info, direct))) == 0)
                 getattr(case_add_removals.removed, direct).update(to_remove)
@@ -205,10 +255,11 @@ class CaseProfileBuilder:
                     assert(case in getattr(self.case_info_lookup[r], reverse))
                     getattr(get_or_create(r).removed, reverse).add(case)
             
-            direct, reverse = self.get_direct_reverse_names(case_new_class, case.get_class())
+            direct, reverse = self.get_direct_reverse_names(case_new_class, get_class(case))
             
             # Now any scrubbing related the old class is done. Time to deal with adding
-            to_add = [c for c in case_new_nearest_neighbours if c.get_class() == case_new_class]
+            # TODO - wrong given new definition.
+            to_add = [c for c in case_new_nearest_neighbours if get_class(c) == case_new_class]
             
             # Need to filter to what I'm *actually* going to add (what's not there already).
             if case_info is not None:
