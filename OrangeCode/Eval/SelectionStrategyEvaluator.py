@@ -6,7 +6,7 @@ Created on 23 Oct 2011
 
 from __future__ import division
 import collections
-import orange, orngStat, orngTest
+import orange
 from pyx import graph, text, color
 from SelectionStrategy import SelectionStrategy
 import logging
@@ -200,7 +200,7 @@ class SelectionStrategyEvaluator:
         del(self)
         
         # Order of assignment here important so that **locals has the right info (e.g. the stopping_criteria may care about the oracle)
-        case_base = orange.ExampleTable(unlabelled_set.domain)
+        case_base = [] 
         selection_strategy = selection_strategy_evaluator.selection_strategy_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
         oracle = selection_strategy_evaluator.oracle_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
         stopping_condition = selection_strategy_evaluator.stopping_condition_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
