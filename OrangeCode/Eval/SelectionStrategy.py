@@ -23,13 +23,6 @@ class Selection:
     def __init__(self, selection, index_of):
         self.selection = selection
         self.index = index_of
-        
-    def delete_from(self, example_table):
-        index_of = self.index
-        if index_of is None:
-            index_of = index_of(self.selection)
-        
-        del(example_table[index_of])
 
 class SelectionStrategy:
     def __init__(self, *args, **kwargs):

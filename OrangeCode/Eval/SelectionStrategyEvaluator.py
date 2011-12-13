@@ -195,6 +195,9 @@ class SelectionStrategyEvaluator:
     def generate_results(self, unlabelled_set, test_set):
         results = ResultSet()
         
+        if not isinstance(unlabelled_set, list):
+            unlabelled_set = list(unlabelled_set)
+        
         # hacky Laziness. Just don't want to have to do **locals() myself, but I can't pass self.
         selection_strategy_evaluator = self
         del(self)
@@ -218,11 +221,8 @@ class SelectionStrategyEvaluator:
                 selections = [selections]
             
             for selection in selections:
-                selectedExample = orange.Example(selection.selection)
-                selection.delete_from(unlabelled_set)
-                selectedExample.set_class(selection_strategy_evaluator.true_oracle(selectedExample))
-                
-                case_base.append(selectedExample)
+                del(unlabelled_set[selection.index])
+                case_base.append(selection.selection)
 
             logging.debug("Starting testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set)))
             result = selection_strategy_evaluator.__generate_result(case_base, test_set)
