@@ -4,9 +4,10 @@ Created on 23 Oct 2011
 @author: Charles McCarthy
 '''
 
+from __future__ import division
 import collections
 import orange, orngStat, orngTest
-from pyx import *
+from pyx import graph, text, color
 from SelectionStrategy import SelectionStrategy
 import logging
 import csv
@@ -19,10 +20,9 @@ def n_fold_cross_validation(data, n, randseed=0):
             for fold in xrange(n))
 
 class Result:
-    def __init__(self, case_base_size, classification_accuracy, area_under_roc_curve):
+    def __init__(self, case_base_size=0, classification_accuracy=0):
         self.case_base_size = case_base_size
         self.classification_accuracy = classification_accuracy
-        self.area_under_roc_curve = area_under_roc_curve
 
 class ResultSet(list):
     def read_csv(self, stream):
@@ -39,11 +39,10 @@ class ResultSet(list):
         logging.debug("Starting CSV generation on stream %s" % stream)
         
         writer = csv.writer(stream)
-        writer.writerow(("Case base size", "Classification Accuracy", "Area under ROC curve"))
+        writer.writerow(("Case base size", "Classification Accuracy"))
         orderedResults = sorted(self, key=lambda x: x.case_base_size)
         writer.writerows(((result.case_base_size, 
-                           result.classification_accuracy, 
-                           result.area_under_roc_curve) 
+                           result.classification_accuracy) 
                           for result in orderedResults))
         
         logging.debug("Ending CSV generation on stream %s" % stream)
@@ -54,9 +53,9 @@ class ResultSet(list):
         area for each couple of Results.
         
         >>> r = ResultSet()
-        >>> r.append(Result(4, 5, 0))
-        >>> r.append(Result(0, 1, 0))
-        >>> r.append(Result(1, 1, 0))
+        >>> r.append(Result(4, 5))
+        >>> r.append(Result(0, 1))
+        >>> r.append(Result(1, 1))
         >>> r.AULC()
         10.0
         '''
@@ -64,7 +63,7 @@ class ResultSet(list):
         
         # Should be sorted already - but just in case . . .
         orderedResults = sorted(self, key=lambda x: x.case_base_size)
-        previous_result = Result(0, 0, 0)
+        previous_result = Result()
         total_area = 0
         for result in orderedResults:
             assert isinstance(result, Result)
@@ -110,17 +109,17 @@ class Oracle:
     def __init__(self, classifyLambda):
         self.classify = classifyLambda
     
-    def classify(self, instance):
-        pass
+    def __call__(self, instance):
+        self.classify(instance)
 
 def average(iterable):
-    sum = 0
+    total = 0
     length = 0
     for i in iterable:
-        sum += i
+        total += i
         length += 1
         
-    return sum / length
+    return total / length
 
 def add_dicts(dict1, dict2):
     result = dict1.copy()
@@ -130,17 +129,17 @@ def add_dicts(dict1, dict2):
 class SelectionStrategyEvaluator:
     def __init__(self, 
                  oracle_generator, 
+                 true_oracle,
                  stopping_condition_generator, 
                  selection_strategy_generator,
                  classifier_generator,
                  **kwargs):
         self.oracle_generator = oracle_generator
+        self.true_oracle = true_oracle
         self.stopping_condition_generator = stopping_condition_generator
         self.selection_strategy_generator = selection_strategy_generator
         self.classifier_generator = classifier_generator
         self.kwargs = kwargs
-    
-    
     
     def generate_results_from_many(self, data_test_iterable):
         all_results = [list(self.generate_results(test_set, unlabelled_set))
@@ -157,32 +156,41 @@ class SelectionStrategyEvaluator:
             raise Exception("case_base_sizes don't seem aligned")
         
         averaged_result_instances = (Result(aligned_result[0].case_base_size, 
-                                            average((result.classification_accuracy for result in aligned_result)), 
-                                            average((result.area_under_roc_curve for result in aligned_result))) 
+                                            average((result.classification_accuracy 
+                                                     for result in aligned_result))) 
                                      for aligned_result 
                                      in aligned_results)
         
         return ResultSet(averaged_result_instances)
     
+    def generate_ca(self, t, p):
+        count = 0
+        correct = 0
+        for (ti, pi) in itertools.izip(t, p):
+            count += 1
+            if ti == pi:
+                correct += 1
+        
+        if count == 0:
+            return 0
+        
+        return correct / count
+    
+    def generate_ca_of_classifier(self, classifier, test_set):
+        return self.generate_ca(map(self.true_oracle, test_set), map(classifier, test_set))
+    
     def __generate_result(self, case_base, test_set):
         case_base_size = len(case_base)
-        
         try:
             classifier = self.classifier_generator(case_base, **self.kwargs)
-                    
-            testResults = orngTest.testOnData([classifier], test_set)
-
-            classification_accuracy = orngStat.CA(testResults)[0]
-            area_under_roc_curve = orngStat.AUC(testResults)[0]
-        
+            classification_accuracy = self.generate_ca_of_classifier(classifier, test_set)
         except:
             if case_base_size != 0:
                 raise
             # Some classifiers have issues with 0 examples in the training set.
             classification_accuracy = 0
-            area_under_roc_curve = 0 
         
-        return Result(case_base_size, classification_accuracy, area_under_roc_curve)
+        return Result(case_base_size, classification_accuracy)
     
     def generate_results(self, unlabelled_set, test_set):
         results = ResultSet()
@@ -212,7 +220,7 @@ class SelectionStrategyEvaluator:
             for selection in selections:
                 selectedExample = orange.Example(selection.selection)
                 selection.delete_from(unlabelled_set)
-                selectedExample.set_class(oracle.classify(selectedExample))
+                selectedExample.set_class(selection_strategy_evaluator.true_oracle(selectedExample))
                 
                 case_base.append(selectedExample)
 
@@ -228,14 +236,15 @@ class ExperimentVariation:
         self.classifier_generator = classifier_generator
         self.selection_strategy = selection_strategy
     
-
 class Experiment:
     def __init__(self, 
-                 oracle_generator, 
+                 oracle_generator,
+                 true_oracle,
                  stopping_condition_generator,
                  training_test_sets_extractor,
                  named_experiment_variations_generator):
         self.oracle_generator = oracle_generator
+        self.true_oracle = true_oracle
         self.stopping_condition_generator = stopping_condition_generator
         self.training_test_sets_extractor = training_test_sets_extractor
         self.named_experiment_variations_generator = named_experiment_variations_generator
@@ -255,6 +264,7 @@ class Experiment:
                 continue
             
             evaluator = SelectionStrategyEvaluator(self.oracle_generator, 
+                                                   self.true_oracle,
                                                    self.stopping_condition_generator,
                                                    variation.selection_strategy,
                                                    variation.classifier_generator,
