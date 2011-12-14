@@ -5,13 +5,15 @@ from functools import partial
 import collections
 import logging
 import itertools
+import random
 
 RANDOM_SEED = 42
 DATASETS_DIR = "../Datasets/"
 DATASET_EXTENSIONS = [".csv", ".tab", ".arff"]
 
-oracle_generator = lambda *args, **kwargs: Oracle(orange.Example.get_class)
-true_oracle = orange.Example.get_class
+true_oracle = lambda ex: ex.get_class().value
+oracle_generator = lambda *args, **kwargs: Oracle(true_oracle)
+
 k=5
 
 def classifier_generator(training_data, distance_constructor, *args, **kwargs):
@@ -23,9 +25,9 @@ def classifier_generator(training_data, distance_constructor, *args, **kwargs):
     #logging.debug("Ending get_classifier") 
     return classifier
 
-def get_training_test_sets_extractor(rand_seed):
-    def split_data(data): 
-        splits = n_fold_cross_validation(data, 10, rand_seed)
+def get_training_test_sets_extractor(rand_seed=None):
+    def split_data(data):   
+        splits = n_fold_cross_validation(data, 10, true_oracle, rand_seed=rand_seed)
         return splits
     return split_data
 

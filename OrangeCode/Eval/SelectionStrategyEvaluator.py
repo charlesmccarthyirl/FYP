@@ -6,18 +6,36 @@ Created on 23 Oct 2011
 
 from __future__ import division
 import collections
-import orange
+from sklearn.cross_validation import StratifiedKFold, KFold
 from pyx import graph, text, color
 from SelectionStrategy import SelectionStrategy
 import logging
 import csv
-import itertools
+from itertools import compress, imap, izip, islice
+import random
 
-def n_fold_cross_validation(data, n, randseed=0):
-    rndind = orange.MakeRandomIndicesCV(data, folds=n, randseed=randseed)
-    return ((data.select(rndind, fold, negate=1), 
-             data.select(rndind, fold)) 
-            for fold in xrange(n))
+def to_numerically_indexed(sequence):
+    index_dict = {}
+    next_index = 0
+    for e in sequence:
+        index = index_dict.get(e)
+        if index is None:
+            index = next_index
+            next_index += 1
+            index_dict[e] = index
+        yield index
+
+def n_fold_cross_validation(data, n, true_oracle, rand_seed=None):
+    if rand_seed is not None:
+        data = list(data)
+        random_function = random.Random(rand_seed).random
+        random.shuffle(data, random_function)
+#    classes = imap(true_oracle, data)
+#    classes_as_numbers = list(to_numerically_indexed(classes))
+#    train_test_bit_maps = StratifiedKFold(classes_as_numbers, n)
+    train_test_bit_maps = KFold(len(data), n)
+    return ((list(compress(data, train)), list(compress(data, test)))  
+           for train, test in train_test_bit_maps)
 
 class Result:
     def __init__(self, case_base_size=0, classification_accuracy=0):
@@ -30,7 +48,7 @@ class ResultSet(list):
         
         reader = csv.reader(stream)
         rows = ((float(cell) if '.' in cell else int(cell)for cell in row) 
-                for row in itertools.islice(reader, 1, None) if len(row) > 1)
+                for row in islice(reader, 1, None) if len(row) > 1)
         self.extend((Result(*row) for row in rows))
         
         logging.debug("Ending CSV reading from stream %s" % stream)
@@ -166,7 +184,7 @@ class SelectionStrategyEvaluator:
     def generate_ca(self, t, p):
         count = 0
         correct = 0
-        for (ti, pi) in itertools.izip(t, p):
+        for (ti, pi) in izip(t, p):
             count += 1
             if ti == pi:
                 correct += 1
@@ -177,7 +195,7 @@ class SelectionStrategyEvaluator:
         return correct / count
     
     def generate_ca_of_classifier(self, classifier, test_set):
-        return self.generate_ca(map(self.true_oracle, test_set), map(classifier, test_set))
+        return self.generate_ca(imap(self.true_oracle, test_set), imap(classifier, test_set))
     
     def __generate_result(self, case_base, test_set):
         case_base_size = len(case_base)
