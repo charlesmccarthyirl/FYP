@@ -8,7 +8,6 @@ from __future__ import division
 import collections
 from sklearn.cross_validation import StratifiedKFold, KFold
 from pyx import graph, text, color
-from SelectionStrategy import SelectionStrategy
 import logging
 import csv
 from itertools import compress, imap, izip, islice
@@ -225,10 +224,6 @@ class SelectionStrategyEvaluator:
         selection_strategy = selection_strategy_evaluator.selection_strategy_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
         oracle = selection_strategy_evaluator.oracle_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
         stopping_condition = selection_strategy_evaluator.stopping_condition_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
-        
-        assert isinstance(selection_strategy, SelectionStrategy)
-        assert isinstance(oracle, Oracle)
-        assert isinstance(stopping_condition, StoppingCondition)
         
         results.append(selection_strategy_evaluator.__generate_result(case_base, test_set))
         
