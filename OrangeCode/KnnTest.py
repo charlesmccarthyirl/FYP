@@ -4,7 +4,7 @@ Created on Nov 26, 2011
 @author: charles
 '''
 import unittest
-import BreadAndButter
+import Knn
 
 
 class Test(unittest.TestCase):
@@ -19,7 +19,7 @@ class Test(unittest.TestCase):
         true_oracle = lambda b: b[1]
         possible_classes = ['red', 'blue']
         
-        self.knn = BreadAndButter.KNN(data, 2, dist_meas, true_oracle, possible_classes)
+        self.knn = Knn.KNN(data, 2, dist_meas, true_oracle, possible_classes)
 
     def test_get_probabilities(self):
         probs = self.knn.get_probabilities((1, ''))

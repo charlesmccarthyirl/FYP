@@ -1,5 +1,5 @@
 import orange, orngStat, orngTest
-from Eval import *
+from SelectionStrategyEvaluator import *
 import logging
 import cProfile
 import itertools
