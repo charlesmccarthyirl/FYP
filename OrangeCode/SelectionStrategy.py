@@ -69,7 +69,7 @@ class ClassifierBasedMarginSamplingMeasure(CompetenceMeasure):
         self._probability_getter = probability_generator(case_base, *args, **kwargs) 
 
     def measure(self, example):
-        probabilities = (c_p[1] for c_p in self._probability_getter(example))
+        probabilities = [c_p[1] for c_p in self._probability_getter(example)]
         top_2 = sorted(probabilities, reverse=True)[:2]
         return abs(top_2[0] - top_2[1])
 

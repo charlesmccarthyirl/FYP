@@ -2,6 +2,7 @@ from __future__ import division
 import orange, orngStat, orngTest
 from SelectionStrategyEvaluator import *
 from PrecomputedDistance import *
+from Knn import *
 import glob, os
 from functools import partial
 import collections
@@ -20,25 +21,22 @@ oracle_generator = lambda *args, **kwargs: Oracle(true_oracle)
 
 k=5
 
+def get_knn_for(data, distance_constructor, possible_classes):
+    return KNN(data, k, distance_constructor()(data), true_oracle, possible_classes)
+
+def get_orange_example_based_knn_action(data, distance_constructor, thing_to_do):
+    knn = get_knn_for(data, distance_constructor, None)
+    def thing(ex):
+        if knn.possible_classes is None:
+            knn.possible_classes = ex.domain.class_var.values.native()
+        return thing_to_do(knn, ex)
+    return thing
+
 def classifier_generator(training_data, distance_constructor, *args, **kwargs):
-    if len(training_data) == 0:
-        return None
-    #logging.debug("Beginning get_classifier") 
-    #logging.debug("on %s" % list(training_data))
-    classifier = orange.kNNLearner(training_data, k=k, rankWeight=False, distanceConstructor=distance_constructor())
-    #logging.debug("Ending get_classifier") 
-    return classifier
+    return get_orange_example_based_knn_action(training_data, distance_constructor, KNN.classify)
 
 def probability_generator(training_data, distance_constructor, *args, **kwargs):
-    classifier = classifier_generator(training_data, distance_constructor, *args, **kwargs)
-    def get_probabilities(ex):
-        classes = ex.domain.class_var.values
-        try:
-            return [(c, p) for (c, p) in classifier(ex, orange.GetProbabilities).items()] # list as items' items are generators, so exception not caught.
-        except:
-            assert(len(training_data) == 0)
-            return[(c, 1.0/len(classes)) for c in classes]
-    return get_probabilities
+    return get_orange_example_based_knn_action(training_data, distance_constructor, KNN.get_probabilities)
 
 def get_training_test_sets_extractor(rand_seed=None):
     def split_data(data):   
