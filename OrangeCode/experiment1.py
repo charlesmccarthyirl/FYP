@@ -7,15 +7,15 @@ from SelectionStrategy import *
 stopping_condition_generator = lambda data, *args, **kwargs: PercentageBasedStoppingCriteria(0.1, data, 0)
 random_selection_strategy_generator = lambda *args, **kwargs: RandomSelectionStrategy(random_seed=RANDOM_SEED)
 
-competence_measure_generator = lambda *args, **kwargs: ClassifierBasedCompetenceMeasure(classifier_generator, 
+competence_measure_generator = lambda *args, **kwargs: ClassifierBasedCompetenceMeasure(probability_generator, 
                                                                                         *args, 
                                                                                         **kwargs)
 
-margin_sampling_measure_generator = lambda *args, **kwargs: ClassifierBasedMarginSamplingMeasure(classifier_generator, 
+margin_sampling_measure_generator = lambda *args, **kwargs: ClassifierBasedMarginSamplingMeasure(probability_generator, 
                                                                                                  *args, 
                                                                                                  **kwargs)
 
-case_profile_measure_generator = lambda *args, **kwargs: CaseProfileBasedCompetenceMeasure(classifier_generator, 
+case_profile_measure_generator = lambda *args, **kwargs: CaseProfileBasedCompetenceMeasure(probability_generator, 
                                                                                                  *args, 
                                                                                                  **kwargs)
 

@@ -28,6 +28,17 @@ def classifier_generator(training_data, distance_constructor, *args, **kwargs):
     #logging.debug("Ending get_classifier") 
     return classifier
 
+def probability_generator(training_data, distance_constructor, *args, **kwargs):
+    classifier = classifier_generator(training_data, distance_constructor, *args, **kwargs)
+    def get_probabilities(ex):
+        classes = ex.domain.class_var.values
+        try:
+            return [(c, p) for (c, p) in classifier(ex, orange.GetProbabilities).items()] # list as items' items are generators, so exception not caught.
+        except:
+            assert(len(training_data) == 0)
+            return[(c, 1.0/len(classes)) for c in classes]
+    return get_probabilities
+
 def get_training_test_sets_extractor(rand_seed=None):
     def split_data(data):   
         splits = n_fold_cross_validation(data, 10, true_oracle, rand_seed=rand_seed)
@@ -165,11 +176,12 @@ def existing_takes_precedence_tie_breaker(ties):
     return iter(ties).next()
 
 class KNN:    
-    def __init__(self, data, dist_meas, true_oracle, possible_classes, 
+    def __init__(self, data, k, dist_meas, true_oracle, possible_classes, 
                  distance_weighter=standard_inverse_distance_weighting, 
                  instance_tie_breaker=existing_takes_precedence_tie_breaker,
                  classification_tie_breaker=min):
         self.data = data
+        self.k = k
         self.dist_meas = dist_meas
         self.true_oracle = true_oracle
         self.distance_weighter = distance_weighter
@@ -206,7 +218,7 @@ class KNN:
                 output[e[0]] = e[1]
         return output.items()
     
-    def find_nearest(self, instance, k, exclude_self=True):
+    def find_nearest(self, instance, exclude_self=True):
         current_nearest_sorted = []
         cmp_key = self.__key_generator()
         
@@ -215,18 +227,18 @@ class KNN:
                 continue
             other_dist = self.dist_meas(instance, other)
             
-            if len(current_nearest_sorted) < k \
+            if len(current_nearest_sorted) < self.k \
                or other_dist <= current_nearest_sorted[-1][1]:
                 current_nearest_sorted.append((other, self.dist_meas(instance, other)))
                 current_nearest_sorted.sort(key=cmp_key)
                 
-                if len(current_nearest_sorted) <= k:
+                if len(current_nearest_sorted) <= self.k:
                     continue
                 
                 maxes = max_multiple(current_nearest_sorted, key=cmp_key)
                 
                 current_nearest_sorted = current_nearest_sorted[:-(len(maxes))]
-                while len(current_nearest_sorted) < k:
+                while len(current_nearest_sorted) < self.k:
                     max_instances = [m[0] for m in maxes]
                     best = self.instance_tie_breaker(max_instances)
                     best_index = max_instances.index(best)
@@ -235,17 +247,17 @@ class KNN:
 
         return [nnd[0] for nnd in current_nearest_sorted]
     
-    def get_probabilities(self, instance, neighbours=None, k=None, exclude_self=True):
+    def get_probabilities(self, instance, neighbours=None, exclude_self=True):
         if neighbours is None:
-            neighbours = self.find_nearest(instance, k, exclude_self)
+            neighbours = self.find_nearest(instance, exclude_self)
         classes = map(self.true_oracle, neighbours)
         weights = [self.dist_meas(instance, n) for n in neighbours]
         class_weights = KNN.sum_instances(itertools.izip(classes, weights))
         weights_sum = sum(weights) or 1 # to avoid div by 0
         return [(_class, s/weights_sum) for (_class, s) in class_weights]
     
-    def classifiy(self, instance, k):
-        return self.classify_from_neighbours(instance, self.find_nearest(instance, k, exclude_self=True))
+    def classifiy(self, instance):
+        return self.classify_from_neighbours(instance, self.find_nearest(instance, exclude_self=True))
     
     def classify_from_neighbours(self, instance, neighbours):
         class_probabilities = self.get_probabilities(instance, neighbours)

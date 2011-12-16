@@ -5,7 +5,6 @@ Created on 23 Oct 2011
 '''
 
 import random
-import orange
 import logging
 import CaseProfiling
 from functools import partial
@@ -58,29 +57,21 @@ class CompetenceMeasure:
         pass
 
 class ClassifierBasedCompetenceMeasure(CompetenceMeasure):
-    def __init__(self, classifier_generator, case_base, *args, **kwargs):
-        self._classifier = classifier_generator(case_base, *args, **kwargs) 
+    def __init__(self, probability_generator, case_base, *args, **kwargs): 
+        self._probability_getter = probability_generator(case_base, *args, **kwargs)
 
     def measure(self, example):
-        try:
-            probabilities = self._classifier(example, orange.GetProbabilities)
-            return max(probabilities)
-        except:
-            return 0; # Slight hack - if the classifier for some reason can't give me its best probability, technically its best is 0. 
-                      # Needed for if 0 training examples.
+        probabilities = (c_p[1] for c_p in self._probability_getter(example))
+        return max(probabilities)
 
 class ClassifierBasedMarginSamplingMeasure(CompetenceMeasure):
-    def __init__(self, classifier_generator, case_base, *args, **kwargs):
-        self._classifier = classifier_generator(case_base, *args, **kwargs) 
+    def __init__(self, probability_generator, case_base, *args, **kwargs):
+        self._probability_getter = probability_generator(case_base, *args, **kwargs) 
 
     def measure(self, example):
-        try:
-            probabilities = self._classifier(example, orange.GetProbabilities)
-            top_2 = sorted(probabilities, reverse=True)[:2]
-            return abs(top_2[0] - top_2[1])
-        except:
-            return 0; # Slight hack - if the classifier for some reason can't give me its best probability, technically its best is 0. 
-                      # Needed for if 0 training examples.
+        probabilities = (c_p[1] for c_p in self._probability_getter(example))
+        top_2 = sorted(probabilities, reverse=True)[:2]
+        return abs(top_2[0] - top_2[1])
 
 class DiversityMeasure(CompetenceMeasure):
     def __init__(self, case_base, distance_constructor, *args, **kwargs):
@@ -143,23 +134,14 @@ class SingleCompetenceSelectionStrategy(SelectionStrategy):
         return [Selection(selected_example, selected_i)]
 
 class CaseProfileBasedCompetenceMeasure(CompetenceMeasure):
-    def __init__(self, classifier_generator, case_base, case_profile_builder=None, *args, **kwargs):
+    def __init__(self, probability_generator, case_base, case_profile_builder=None, *args, **kwargs):
         self.case_profile_builder = case_profile_builder
-        try:
-            self.classifier = classifier_generator(case_base, *args, **kwargs) 
-        except:
-            self.classifier = None
+        self._probability_getter = probability_generator(case_base, *args, **kwargs)
         self.case_base = case_base
 
     def measure(self, example):
-        classes = example.domain.class_var.values
-        try:
-            probabilities = [(c, p) for (c, p) in self.classifier(example, orange.GetProbabilities).items()] # list as items' items are generators, so exception not caught.
-        except:
-            assert(len(self.case_base) == 0)
-            probabilities = [(c, 1.0/len(classes)) for c in classes]
+        probabilities = self._probability_getter(example)
 
-        
         example_possibilities = [(probability, 
                                   self.case_profile_builder.suppose(example, _class)) 
                                  for (_class, probability) in probabilities]
