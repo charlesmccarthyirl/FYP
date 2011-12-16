@@ -23,14 +23,14 @@ class Test(unittest.TestCase):
 
     def test_get_probabilities(self):
         probs = self.knn.get_probabilities((1, ''))
-        self.assertItemsEqual([('blue', 1.0)], probs)
+        self.assertItemsEqual([('blue', 1.0), ('red', 0)], probs)
         
     def test_find_nearest(self):
         nearest = self.knn.find_nearest((1, ''))
         self.assertItemsEqual([(1, 'blue'), (2, 'blue')], nearest)
     
     def test_classify(self):
-        classification = self.knn.classifiy((1, ''))
+        classification = self.knn.classify((1, ''))
         self.assertEqual("blue", classification)
         
     def test_get_probabilities1(self):
@@ -43,11 +43,11 @@ class Test(unittest.TestCase):
     
     def test_classify1(self):
         self.knn.classification_tie_breaker = lambda classes: list(classes)[1]
-        classification = self.knn.classifiy((3.5, ''))
+        classification = self.knn.classify((3.5, ''))
         self.assertEqual("red", classification)
     
     def test_classify2(self):
-        classification = self.knn.classifiy((3.5, ''))
+        classification = self.knn.classify((3.5, ''))
         self.assertEqual("blue", classification)
         
     def test_find_nearest2(self):

@@ -67,12 +67,15 @@ def max_multiple(the_list, key=None):
 def standard_inverse_distance_weighting(distance):
     return 1/(distance+1)
 
+def squared_inverse_distance_weighting(distance):
+    return pow(standard_inverse_distance_weighting(distance), 2)
+
 def existing_takes_precedence_tie_breaker(ties):
     return iter(ties).next()
 
 class KNN:    
     def __init__(self, data, k, dist_meas, true_oracle, possible_classes, 
-                 distance_weighter=standard_inverse_distance_weighting, 
+                 distance_weighter=squared_inverse_distance_weighting, 
                  instance_tie_breaker=existing_takes_precedence_tie_breaker,
                  classification_tie_breaker=min):
         self.data = data
@@ -146,12 +149,19 @@ class KNN:
         if neighbours is None:
             neighbours = self.find_nearest(instance, exclude_self)
         classes = map(self.true_oracle, neighbours)
-        weights = [self.dist_meas(instance, n) for n in neighbours]
+        weights = [self.distance_weighter(self.dist_meas(instance, n)) for n in neighbours]
         class_weights = KNN.sum_instances(itertools.izip(classes, weights))
-        weights_sum = sum(weights) or 1 # to avoid div by 0
-        return [(_class, s/weights_sum) for (_class, s) in class_weights]
+        weights_sum = sum(weights)
+        if weights_sum:
+            class_probs = [(_class, s/weights_sum) for (_class, s) in class_weights]
+            non_mentioned = [c for c in self.possible_classes if c not in (cp[0] for cp in class_probs)]
+            class_probs.extend(((c, 0) for c in non_mentioned))
+        else:
+            equal_prob = 1 / len(self.possible_classes)
+            class_probs = [(c, equal_prob) for c in self.possible_classes]
+        return class_probs
     
-    def classifiy(self, instance):
+    def classify(self, instance):
         return self.classify_from_neighbours(instance, self.find_nearest(instance, exclude_self=True))
     
     def classify_from_neighbours(self, instance, neighbours):
