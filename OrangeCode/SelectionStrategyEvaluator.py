@@ -6,7 +6,7 @@ Created on 23 Oct 2011
 
 from __future__ import division
 import collections
-from sklearn.cross_validation import StratifiedKFold, KFold
+from cross_validation import KFold
 from pyx import graph, text, color
 import logging
 import csv
