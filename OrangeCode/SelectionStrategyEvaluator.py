@@ -7,7 +7,11 @@ Created on 23 Oct 2011
 from __future__ import division
 import collections
 from cross_validation import KFold
-from pyx import graph, text, color
+try:
+    import pyx
+except:
+    pass
+import sys
 import logging
 import csv
 from itertools import compress, imap, izip, islice
@@ -215,12 +219,14 @@ class SelectionStrategyEvaluator:
         if not isinstance(unlabelled_set, list):
             unlabelled_set = list(unlabelled_set)
         
+        classifier_generator = self.classifier_generator # just so it's in locals()
         # hacky Laziness. Just don't want to have to do **locals() myself, but I can't pass self.
         selection_strategy_evaluator = self
         del(self)
         
         # Order of assignment here important so that **locals has the right info (e.g. the stopping_criteria may care about the oracle)
         case_base = [] 
+        
         selection_strategy = selection_strategy_evaluator.selection_strategy_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
         oracle = selection_strategy_evaluator.oracle_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
         stopping_condition = selection_strategy_evaluator.stopping_condition_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
@@ -245,8 +251,10 @@ class SelectionStrategyEvaluator:
         return results
     
 class ExperimentVariation:
-    def __init__(self, classifier_generator, selection_strategy):
+    def __init__(self, classifier_generator, probability_generator, nns_getter_generator, selection_strategy):
         self.classifier_generator = classifier_generator
+        self.probability_generator = probability_generator
+        self.nns_getter_generator = nns_getter_generator
         self.selection_strategy = selection_strategy
     
 class Experiment:
@@ -282,6 +290,8 @@ class Experiment:
                                                    self.stopping_condition_generator,
                                                    variation.selection_strategy,
                                                    variation.classifier_generator,
+                                                   probability_generator=variation.probability_generator,
+                                                   nns_getter_generator=variation.nns_getter_generator,
                                                    data=data,
                                                    distance_constructor=distance_constructor,
                                                    possible_classes=possible_classes)
@@ -307,33 +317,34 @@ class ExperimentResult(dict):
                 result_set.write_csv(stream)
     
     def generate_graph(self, title=None):
+        if not sys.modules.has_key('pyx'):
+            raise ImportError('pyx not available on this system.')
         logging.debug("Starting graph generation")
         
         max_x=max((max((result.case_base_size 
                        for result in result_set)) 
                   for result_set in self.values()))
         max_y=1.0
-        
-        g = graph.graphxy(width=10,
+        g = pyx.graph.graphxy(width=10,
                           height=10, # Want a square graph . . .
-                          x=graph.axis.linear(title="Case Base Size", min=0, max=max_x), #This might seem redundant - but pyx doesn't handle non-varying y well. So specifying the min and max avoids that piece of pyx code.
-                          y=graph.axis.linear(title="Classification Accuracy", min=0, max=max_y),
-                          key=graph.key.key(pos="br", dist=0.1))
+                          x=pyx.graph.axis.linear(title="Case Base Size", min=0, max=max_x), #This might seem redundant - but pyx doesn't handle non-varying y well. So specifying the min and max avoids that piece of pyx code.
+                          y=pyx.graph.axis.linear(title="Classification Accuracy", min=0, max=max_y),
+                          key=pyx.graph.key.key(pos="br", dist=0.1))
         
         # either provide lists of the individual coordinates
-        points = [graph.data.values(x=[result.case_base_size for result in result_set], 
+        points = [pyx.graph.data.values(x=[result.case_base_size for result in result_set], 
                                     y=[result.classification_accuracy for result in result_set], 
                                     title="%s (AULC: %.3f)" % (name, result_set.AULC())) 
                   for (name, result_set) in self.items()]
         
-        g.plot(points, [graph.style.line([color.gradient.Rainbow])])
+        g.plot(points, [pyx.graph.style.line([pyx.color.gradient.Rainbow])])
         
         if (title):
             title = title.replace("_", r"\_")
             g.text(g.width/2, 
                    g.height + 0.2, 
                    title,
-                   [text.halign.center, text.valign.bottom, text.size.Large])
+                   [pyx.text.halign.center, pyx.text.valign.bottom, pyx.text.size.Large])
         
         logging.debug("Finishing graph generation")
         

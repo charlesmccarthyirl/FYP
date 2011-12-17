@@ -10,7 +10,6 @@ import logging
 import itertools
 import random
 import functools
-from collections import defaultdict
 
 RANDOM_SEED = 42
 DATASETS_DIR = "../Datasets/"
@@ -33,6 +32,10 @@ def classifier_generator(training_data, distance_constructor, possible_classes, 
 def probability_generator(training_data, distance_constructor, possible_classes, *args, **kwargs):
     return get_orange_example_based_knn_action(training_data, distance_constructor, possible_classes, KNN.get_probabilities)
 
+def nns_getter_generator(training_data, distance_constructor, possible_classes, *args, **kwargs):
+    return get_orange_example_based_knn_action(training_data, distance_constructor, possible_classes, KNN.find_nearest)
+
+
 def get_training_test_sets_extractor(rand_seed=None):
     def split_data(data):   
         splits = n_fold_cross_validation(data, 10, true_oracle, rand_seed=rand_seed)
@@ -42,6 +45,8 @@ def get_training_test_sets_extractor(rand_seed=None):
 def create_named_experiment_variations_generator(named_selection_strategy_generators):
     return lambda *args, **kwargs: dict([(name, 
                                           ExperimentVariation(classifier_generator, 
+                                                              probability_generator, 
+                                                              nns_getter_generator,
                                                               selection_strategy_generator))
                                          for (name, selection_strategy_generator) 
                                          in named_selection_strategy_generators.items()])
