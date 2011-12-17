@@ -24,19 +24,14 @@ k=5
 def get_knn_for(data, distance_constructor, possible_classes):
     return KNN(data, k, distance_constructor()(data), true_oracle, possible_classes)
 
-def get_orange_example_based_knn_action(data, distance_constructor, thing_to_do):
-    knn = get_knn_for(data, distance_constructor, None)
-    def thing(ex):
-        if knn.possible_classes is None:
-            knn.possible_classes = ex.domain.class_var.values.native()
-        return thing_to_do(knn, ex)
-    return thing
+def get_orange_example_based_knn_action(data, distance_constructor, possible_classes, thing_to_do):
+    return lambda ex: thing_to_do(get_knn_for(data, distance_constructor, possible_classes), ex)
 
-def classifier_generator(training_data, distance_constructor, *args, **kwargs):
-    return get_orange_example_based_knn_action(training_data, distance_constructor, KNN.classify)
+def classifier_generator(training_data, distance_constructor, possible_classes, *args, **kwargs):
+    return get_orange_example_based_knn_action(training_data, distance_constructor, possible_classes, KNN.classify)
 
-def probability_generator(training_data, distance_constructor, *args, **kwargs):
-    return get_orange_example_based_knn_action(training_data, distance_constructor, KNN.get_probabilities)
+def probability_generator(training_data, distance_constructor, possible_classes, *args, **kwargs):
+    return get_orange_example_based_knn_action(training_data, distance_constructor, possible_classes, KNN.get_probabilities)
 
 def get_training_test_sets_extractor(rand_seed=None):
     def split_data(data):   

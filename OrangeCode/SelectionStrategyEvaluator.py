@@ -266,6 +266,7 @@ class Experiment:
         named_variation_results = ExperimentResult()
         
         data, distance_constructor = data_distance_constructor_pair
+        possible_classes = list(set((self.true_oracle(d) for d in data)))
         
         named_experiment_variations = self.named_experiment_variations_generator(data)
         
@@ -275,14 +276,15 @@ class Experiment:
                 logging.info("Already have results for %s. Skipping evaluation." % variation_name)
                 named_variation_results[variation_name] = existing_named_variation_results[variation_name]
                 continue
-            
+
             evaluator = SelectionStrategyEvaluator(self.oracle_generator, 
                                                    self.true_oracle,
                                                    self.stopping_condition_generator,
                                                    variation.selection_strategy,
                                                    variation.classifier_generator,
                                                    data=data,
-                                                   distance_constructor=distance_constructor)
+                                                   distance_constructor=distance_constructor,
+                                                   possible_classes=possible_classes)
             
             logging.info("Starting evaluation on variation %s" % variation_name)
             named_variation_results[variation_name] = evaluator.generate_results_from_many(self.training_test_sets_extractor(data))
