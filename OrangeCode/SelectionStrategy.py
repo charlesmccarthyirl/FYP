@@ -144,7 +144,7 @@ class CaseProfileBasedCompetenceMeasure(CompetenceMeasure):
 
         example_possibilities = [(probability, 
                                   self.case_profile_builder.suppose(example, _class)) 
-                                 for (_class, probability) in probabilities]
+                                 for (_class, probability) in probabilities if probability > 0]
         
         def compute_rcdl_score(rcdl_profile):
             return len(rcdl_profile.coverage_set) - len(rcdl_profile.liability_set)
