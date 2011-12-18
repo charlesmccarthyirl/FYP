@@ -5,7 +5,6 @@ from PrecomputedDistance import *
 from Knn import *
 import glob, os
 from functools import partial
-import collections
 import logging
 import itertools
 import random
@@ -21,7 +20,7 @@ oracle_generator = lambda *args, **kwargs: Oracle(true_oracle)
 k=5
 
 def get_knn_for(data, distance_constructor, possible_classes):
-    return KNN(data, k, distance_constructor()(data), true_oracle, possible_classes)
+    return KNN(data, k, distance_constructor(data), true_oracle, possible_classes)
 
 def get_orange_example_based_knn_action(data, distance_constructor, possible_classes, thing_to_do):
     return lambda ex: thing_to_do(get_knn_for(data, distance_constructor, possible_classes), ex)
@@ -71,7 +70,7 @@ def load_data_distance_constructor_pair(
         base_filename, 
         random_seed=RANDOM_SEED, 
         #distance_constructor_generator=generate_example_distance_constructor_generator()):
-        distance_constructor_generator=generate_precomputed_example_distance_constructor_generator()):
+        distance_constructor=orange.ExamplesDistanceConstructor_Euclidean()):
         #distance_constructor_generator=euclidean_distance_constructor_generator):
     d = orange.ExampleTable(data_files_dict[base_filename], randomGenerator=orange.RandomGenerator(random_seed))
     
@@ -82,17 +81,8 @@ def load_data_distance_constructor_pair(
     if (prev_len != new_len):
         logging.info("Removed %d duplicates contained in %s" % (prev_len - new_len, base_filename))
     
-    # Have to add these after . . .
-    if not d.domain.has_meta("ex_id"):
-        var = orange.FloatVariable("ex_id")
-        varId = orange.newmetaid()
-        d.domain.add_meta(varId, var)
-        i = 0
-        for ex in d:
-            ex.set_meta(varId, i)
-            i += 1
-    
-    distance_constructor = distance_constructor_generator(d)
+    distance_measurer = distance_constructor(d)
+    distance_constructor = generate_precomputed_example_distance_constructor(d, distance_measurer)
     
     d.shuffle() # Could all be clustered together in the file. Some of my operations might 
                 # (and do . . .) go in order - so can skew the results *a lot*.

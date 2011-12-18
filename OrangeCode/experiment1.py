@@ -1,4 +1,3 @@
-import orange, orngStat, orngTest
 from SelectionStrategyEvaluator import *
 from BreadAndButter import *
 from CaseProfiling import *
