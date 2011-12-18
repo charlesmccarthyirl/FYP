@@ -1,14 +1,10 @@
 from __future__ import division
-import orange, orngStat, orngTest
+import orange
 from SelectionStrategyEvaluator import *
 from PrecomputedDistance import *
 from Knn import *
-import glob, os
 from functools import partial
-import logging
-import itertools
-import random
-import functools
+import os, logging, itertools, random
 
 RANDOM_SEED = 42
 DATASETS_DIR = "../Datasets/"

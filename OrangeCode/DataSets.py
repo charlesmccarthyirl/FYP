@@ -1,5 +1,4 @@
-import orange, orngStat, orngTest
-from BreadAndButter import *
+from BreadAndButter import create_named_data_set_generators
 
 named_data_sets = create_named_data_set_generators(("iris",
                                                     "zoo", 
