@@ -8,7 +8,7 @@ from DataInfoLoaders import get_data_info
 import os, logging, itertools, random
 
 RANDOM_SEED = 42
-DATASETS_DIR = "../Datasets/"
+DATASETS_DIR = os.path.join(os.path.dirname(__file__), "../Datasets/")
 
 oracle_generator_generator = lambda true_oracle: lambda data, possible_classes, *args, **kwargs: Oracle(true_oracle)
 random_seed_generator=lambda: RANDOM_SEED
@@ -79,5 +79,5 @@ def create_named_data_set_generators(base_data_set_infos):
     base_data_set_infos = [info if isinstance(info, dict) 
                                 else {"base_filename": info} 
                            for info in base_data_set_infos]
-    return [(data_set_info["base_filename"], partial(load_data_info, **data_set_info)) 
+    return [(os.path.splitext(data_set_info["base_filename"])[0], partial(load_data_info, **data_set_info)) 
             for data_set_info in base_data_set_infos]

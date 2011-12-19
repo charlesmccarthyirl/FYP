@@ -84,22 +84,26 @@ class DataInfo:
         dist_matrix = precomputed_distances.dist_matrix
         
         writer = csv.writer(stream)
-        writer.write_row(("Instance", "Classification", "Computed Distances"))
+        writer.writerow(("Instance", "Classification", "Computed Distances"))
         
         data_with_classes = ((str_repr_getter(d), self.oracle(d)) for d in self.data) 
-        rows = imap(chain, izip(data_with_classes, dist_matrix))
-        writer.write_rows(rows)
+        data_with_classes_to_distances = izip(data_with_classes, dist_matrix)
+        rows = imap(list, imap(lambda its: chain(*its), data_with_classes_to_distances))
+        writer.writerows(rows)
     
     @staticmethod
     def get_numeric_str_repr_getter():
-        id_no = 0
+        id_no = [0]
         def str_repr_getter(ex):
-            id_to_return = id_no
-            id_no += 1
+            id_to_return = id_no[0]
+            id_no[0] += 1
             return id_to_return
+        
+        return str_repr_getter
     
     @staticmethod
     def deserialize(stream):
+        logging.info("Beginning deserializing Data Info from %s" % stream)
         reader = csv.reader(stream)
         rows = islice(reader, 1, None)
         row_splits = [(r[0], r[1], map(float, r[2:])) for r in rows]
@@ -115,6 +119,8 @@ class DataInfo:
         
         di = DataInfo(data, lambda e: e.label, lambda data: precomputed_distances.get_distance)
         di._is_precached = True
+        
+        logging.info("Finishing deserializing Data Info from %s" % stream)
         return di
 
 class PrecomputedDistances:

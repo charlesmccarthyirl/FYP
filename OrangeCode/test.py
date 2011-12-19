@@ -10,7 +10,7 @@ from utils import stream_getter
 def csv_filename_getter(variation_name, path):
     return os.path.join(path, variation_name + '.csv')
 
-def main(experiment, named_data_sets, experiment_directory):
+def main(experiment, named_data_sets, experiment_directory, do_create_graphs=True):
     # data_set_name -> example_table (pre-shuffled)
     for (data_set_name, data_set_generator) in named_data_sets:
         logging.info("Beginning processing on %s" % data_set_name)
@@ -29,7 +29,7 @@ def main(experiment, named_data_sets, experiment_directory):
         results.write_to_csvs(lambda variation_name: 
                               stream_getter(csv_filename_getter(variation_name, csv_path)))
         
-        g = results.generate_graph(os.path.splitext(data_set_name)[0])
+        g = results.generate_graph(data_set_name)
         g.writePDFfile(os.path.abspath(csv_path)) # Yes this is intentional, want it in the experiment directory, but with the same name as the folder.
     
     
@@ -38,6 +38,7 @@ if __name__ == "__main__":
     experiment = __import__(sys.argv[1]).experiment
     named_data_sets = __import__(sys.argv[2]).named_data_sets
     experiment_directory = os.path.expanduser(sys.argv[3])
+    do_create_graph = sys.argv[4] != "0"
     if not os.path.exists(experiment_directory):
         os.makedirs(experiment_directory)
     main(experiment, named_data_sets, experiment_directory)
