@@ -1,39 +1,40 @@
 from __future__ import division
-import orange
 from SelectionStrategyEvaluator import *
 from PrecomputedDistance import *
 from Knn import *
+from utils import stream_getter
 from functools import partial
+from DataInfoLoaders import get_data_info
 import os, logging, itertools, random
 
 RANDOM_SEED = 42
 DATASETS_DIR = "../Datasets/"
-DATASET_EXTENSIONS = [".csv", ".tab", ".arff"]
 
-true_oracle = lambda ex: ex.get_class().value
-oracle_generator = lambda *args, **kwargs: Oracle(true_oracle)
+oracle_generator_generator = lambda true_oracle: lambda data, possible_classes, *args, **kwargs: Oracle(true_oracle)
+random_seed_generator=lambda: RANDOM_SEED
 
 k=5
 
-def get_knn_for(data, distance_constructor, possible_classes):
-    return KNN(data, k, distance_constructor(data), true_oracle, possible_classes)
+def get_knn_for(data, distance_constructor, possible_classes, oracle):
+    return KNN(data, k, distance_constructor(data), 
+               oracle, possible_classes)
 
-def get_orange_example_based_knn_action(data, distance_constructor, possible_classes, thing_to_do):
-    return lambda ex: thing_to_do(get_knn_for(data, distance_constructor, possible_classes), ex)
+def get_knn_action(data, distance_constructor, possible_classes, oracle, thing_to_do):
+    return lambda ex: thing_to_do(get_knn_for(data, distance_constructor, possible_classes, oracle), ex)
 
-def classifier_generator(training_data, distance_constructor, possible_classes, *args, **kwargs):
-    return get_orange_example_based_knn_action(training_data, distance_constructor, possible_classes, KNN.classify)
+def classifier_generator(training_data, distance_constructor, possible_classes, oracle, *args, **kwargs):
+    return get_knn_action(training_data, distance_constructor, possible_classes, oracle, KNN.classify)
 
-def probability_generator(training_data, distance_constructor, possible_classes, *args, **kwargs):
-    return get_orange_example_based_knn_action(training_data, distance_constructor, possible_classes, KNN.get_probabilities)
+def probability_generator(training_data, distance_constructor, possible_classes, oracle, *args, **kwargs):
+    return get_knn_action(training_data, distance_constructor, possible_classes, oracle, KNN.get_probabilities)
 
-def nns_getter_generator(training_data, distance_constructor, possible_classes, *args, **kwargs):
-    return get_orange_example_based_knn_action(training_data, distance_constructor, possible_classes, KNN.find_nearest)
+def nns_getter_generator(training_data, distance_constructor, possible_classes, oracle, *args, **kwargs):
+    return get_knn_action(training_data, distance_constructor, possible_classes, oracle, KNN.find_nearest)
 
-
-def get_training_test_sets_extractor(rand_seed=None):
-    def split_data(data):   
-        splits = n_fold_cross_validation(data, 10, true_oracle, rand_seed=rand_seed)
+def get_training_test_sets_extractor(random_seed_generator=random_seed_generator):
+    def split_data(data, true_oracle):
+        splits = n_fold_cross_validation(data, 10, true_oracle=true_oracle, 
+                                         random_seed=random_seed_generator())
         return splits
     return split_data
 
@@ -46,48 +47,37 @@ def create_named_experiment_variations_generator(named_selection_strategy_genera
                                          for (name, selection_strategy_generator) 
                                          in named_selection_strategy_generators.items()])
     
-def create_experiment(stopping_condition_generator, named_experiment_variations, rand_seed=RANDOM_SEED):
-    return Experiment(oracle_generator,
-                      true_oracle,
+def create_experiment(stopping_condition_generator, named_experiment_variations, random_seed_generator=random_seed_generator):
+    return Experiment(oracle_generator_generator,
                       stopping_condition_generator, 
-                      get_training_test_sets_extractor(rand_seed), 
+                      get_training_test_sets_extractor(random_seed_generator), 
                       named_experiment_variations)
     
 data_files = [os.path.join(DATASETS_DIR, filename)
-              for filename in os.listdir(DATASETS_DIR) 
-              if os.path.splitext(filename)[1].lower() in DATASET_EXTENSIONS]
+              for filename in os.listdir(DATASETS_DIR)]
 
-data_files_dict = dict([(os.path.splitext(os.path.basename(df))[0], df) for df in data_files])
+data_files_dict = dict(((os.path.basename(df), df) for df in data_files))
 
-def euclidean_distance_constructor_generator(data):
-    return orange.ExamplesDistanceConstructor_Euclidean
-
-def load_data_distance_constructor_pair(
+def load_data_info(
         base_filename, 
-        random_seed=RANDOM_SEED, 
-        #distance_constructor_generator=generate_example_distance_constructor_generator()):
-        distance_constructor=orange.ExamplesDistanceConstructor_Euclidean()):
-        #distance_constructor_generator=euclidean_distance_constructor_generator):
-    d = orange.ExampleTable(data_files_dict[base_filename], randomGenerator=orange.RandomGenerator(random_seed))
+        random_seed_generator=random_seed_generator, 
+        distance_constructor=None):
+    filename = data_files_dict[base_filename]
     
-    prev_len = len(d)
-    d.remove_duplicates()
-    new_len = len(d)
+    data_info = get_data_info(filename, distance_constructor)
+    data_info = data_info.get_precached()
     
-    if (prev_len != new_len):
-        logging.info("Removed %d duplicates contained in %s" % (prev_len - new_len, base_filename))
-    
-    distance_measurer = distance_constructor(d)
-    distance_constructor = generate_precomputed_example_distance_constructor(d, distance_measurer)
-    
-    d.shuffle() # Could all be clustered together in the file. Some of my operations might 
-                # (and do . . .) go in order - so can skew the results *a lot*.
-    return (d, distance_constructor)
-
+    if random_seed_generator is not None:
+        random_seed = random_seed_generator()
+        data_info.data = list(data_info.data)
+        random_function = random.Random(random_seed).random
+        random.shuffle(data_info.data, random_function)
+        
+    return data_info
 
 def create_named_data_set_generators(base_data_set_infos):
     base_data_set_infos = [info if isinstance(info, dict) 
                                 else {"base_filename": info} 
                            for info in base_data_set_infos]
-    return [(data_set_info["base_filename"], partial(load_data_distance_constructor_pair, **data_set_info)) 
+    return [(data_set_info["base_filename"], partial(load_data_info, **data_set_info)) 
             for data_set_info in base_data_set_infos]

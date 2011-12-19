@@ -1,4 +1,3 @@
-import orange, orngStat, orngTest
 from SelectionStrategyEvaluator import *
 import logging
 import cProfile
@@ -6,15 +5,10 @@ import itertools
 import os, sys, glob
 from os.path import basename, splitext
 from functools import partial
+from utils import stream_getter
 
 def csv_filename_getter(variation_name, path):
     return os.path.join(path, variation_name + '.csv')
-
-def stream_getter(filename):
-    path = os.path.dirname(filename)
-    if not os.path.exists(path):
-        os.makedirs(path)
-    return open(filename, 'wb')
 
 def main(experiment, named_data_sets, experiment_directory):
     # data_set_name -> example_table (pre-shuffled)
@@ -40,7 +34,7 @@ def main(experiment, named_data_sets, experiment_directory):
     
     
 if __name__ == "__main__":
-    logging.basicConfig(format='%(asctime)s %(message)s',level=logging.DEBUG)
+    logging.basicConfig(format='%(asctime)s %(message)s',level=logging.INFO)
     experiment = __import__(sys.argv[1]).experiment
     named_data_sets = __import__(sys.argv[2]).named_data_sets
     experiment_directory = os.path.expanduser(sys.argv[3])

@@ -28,14 +28,11 @@ def to_numerically_indexed(sequence):
             index_dict[e] = index
         yield index
 
-def n_fold_cross_validation(data, n, true_oracle, rand_seed=None):
-    if rand_seed is not None:
+def n_fold_cross_validation(data, n, true_oracle, random_seed=None):
+    if random_seed is not None:
         data = list(data)
-        random_function = random.Random(rand_seed).random
+        random_function = random.Random(random_seed).random
         random.shuffle(data, random_function)
-#    classes = imap(true_oracle, data)
-#    classes_as_numbers = list(to_numerically_indexed(classes))
-#    train_test_bit_maps = StratifiedKFold(classes_as_numbers, n)
     train_test_bit_maps = KFold(len(data), n)
     return ((list(compress(data, train)), list(compress(data, test)))  
            for train, test in train_test_bit_maps)
@@ -131,7 +128,7 @@ class Oracle:
         self.classify = classifyLambda
     
     def __call__(self, instance):
-        self.classify(instance)
+        return self.classify(instance)
 
 def average(iterable):
     total = 0
@@ -150,13 +147,13 @@ def add_dicts(dict1, dict2):
 class SelectionStrategyEvaluator:
     def __init__(self, 
                  oracle_generator, 
-                 true_oracle,
+                 oracle,
                  stopping_condition_generator, 
                  selection_strategy_generator,
                  classifier_generator,
                  **kwargs):
         self.oracle_generator = oracle_generator
-        self.true_oracle = true_oracle
+        self.oracle = oracle
         self.stopping_condition_generator = stopping_condition_generator
         self.selection_strategy_generator = selection_strategy_generator
         self.classifier_generator = classifier_generator
@@ -198,12 +195,12 @@ class SelectionStrategyEvaluator:
         return correct / count
     
     def generate_ca_of_classifier(self, classifier, test_set):
-        return self.generate_ca(imap(self.true_oracle, test_set), imap(classifier, test_set))
+        return self.generate_ca(imap(self.oracle, test_set), imap(classifier, test_set))
     
     def __generate_result(self, case_base, test_set):
         case_base_size = len(case_base)
         try:
-            classifier = self.classifier_generator(case_base, **self.kwargs)
+            classifier = self.classifier_generator(case_base, oracle=self.oracle, **self.kwargs)
             classification_accuracy = self.generate_ca_of_classifier(classifier, test_set)
         except:
             if case_base_size != 0:
@@ -227,8 +224,10 @@ class SelectionStrategyEvaluator:
         # Order of assignment here important so that **locals has the right info (e.g. the stopping_criteria may care about the oracle)
         case_base = [] 
         
-        selection_strategy = selection_strategy_evaluator.selection_strategy_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
+        data = unlabelled_set
+        
         oracle = selection_strategy_evaluator.oracle_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
+        selection_strategy = selection_strategy_evaluator.selection_strategy_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
         stopping_condition = selection_strategy_evaluator.stopping_condition_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
         
         results.append(selection_strategy_evaluator.__generate_result(case_base, test_set))
@@ -250,6 +249,8 @@ class SelectionStrategyEvaluator:
         
         return results
     
+# TODO: Put classifier stuff in its own class
+
 class ExperimentVariation:
     def __init__(self, classifier_generator, probability_generator, nns_getter_generator, selection_strategy):
         self.classifier_generator = classifier_generator
@@ -259,24 +260,20 @@ class ExperimentVariation:
     
 class Experiment:
     def __init__(self, 
-                 oracle_generator,
-                 true_oracle,
+                 oracle_generator_generator,
                  stopping_condition_generator,
                  training_test_sets_extractor,
                  named_experiment_variations_generator):
-        self.oracle_generator = oracle_generator
-        self.true_oracle = true_oracle
+        self.oracle_generator_generator = oracle_generator_generator
         self.stopping_condition_generator = stopping_condition_generator
         self.training_test_sets_extractor = training_test_sets_extractor
         self.named_experiment_variations_generator = named_experiment_variations_generator
         
-    def execute_on(self, data_distance_constructor_pair, existing_named_variation_results=None): 
+    def execute_on(self, data_info, existing_named_variation_results=None): 
         named_variation_results = ExperimentResult()
-        
-        data, distance_constructor = data_distance_constructor_pair
-        possible_classes = list(set((self.true_oracle(d) for d in data)))
-        
-        named_experiment_variations = self.named_experiment_variations_generator(data)
+
+        named_experiment_variations = self.named_experiment_variations_generator(data_info.data, 
+                                                                                 data_info.oracle)
         
         for (variation_name, variation) in named_experiment_variations.items():
             assert isinstance(variation, ExperimentVariation)
@@ -285,19 +282,18 @@ class Experiment:
                 named_variation_results[variation_name] = existing_named_variation_results[variation_name]
                 continue
 
-            evaluator = SelectionStrategyEvaluator(self.oracle_generator, 
-                                                   self.true_oracle,
+            evaluator = SelectionStrategyEvaluator(self.oracle_generator_generator(data_info.oracle), 
+                                                   data_info.oracle,
                                                    self.stopping_condition_generator,
                                                    variation.selection_strategy,
                                                    variation.classifier_generator,
                                                    probability_generator=variation.probability_generator,
                                                    nns_getter_generator=variation.nns_getter_generator,
-                                                   data=data,
-                                                   distance_constructor=distance_constructor,
-                                                   possible_classes=possible_classes)
+                                                   distance_constructor=data_info.distance_constructor,
+                                                   possible_classes=data_info.possible_classes)
             
             logging.info("Starting evaluation on variation %s" % variation_name)
-            named_variation_results[variation_name] = evaluator.generate_results_from_many(self.training_test_sets_extractor(data))
+            named_variation_results[variation_name] = evaluator.generate_results_from_many(self.training_test_sets_extractor(data_info.data, data_info.oracle))
             logging.info("Finishing evaluation on variation %s" % variation_name)
 
         return named_variation_results

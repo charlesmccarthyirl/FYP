@@ -2,43 +2,6 @@ from __future__ import division
 import itertools
 import functools
 
-class Instance(object):
-    next_instance_no = 1
-    
-    def __init__(self, label, payload):
-        self._label = label
-        self._payload = payload
-        self._instance_no = Instance.next_instance_no
-        Instance.next_instance_no += 1
-    
-    def __eq__(self, other):
-        assert(isinstance(other, Instance))
-        return self._payload == other._payload
-    
-    def __ne__(self, other):
-        return not self.__eq__(other)
-    
-    def __hash__(self, *args, **kwargs):
-        return hash(self._payload)
-    
-    def __lt__(self, other):
-        assert(isinstance(other, Instance))  
-        return self._instance_no < other._instance_no  
-        
-    @property
-    def label(self):
-        return self._label
-    
-    @property
-    def payload(self):
-        return self._payload
-    
-    @staticmethod
-    def first_instantiated(inst1, inst2):
-        assert(isinstance(inst1, Instance))
-        assert(isinstance(inst2, Instance))
-        return min((inst1, inst2))
-
 def max_multiple(the_list, key=None):
     '''
     Finds the list of maximum elements in a given list.
@@ -74,14 +37,14 @@ def existing_takes_precedence_tie_breaker(ties):
     return iter(ties).next()
 
 class KNN:    
-    def __init__(self, data, k, dist_meas, true_oracle, possible_classes, 
+    def __init__(self, data, k, dist_meas, oracle, possible_classes, 
                  distance_weighter=squared_inverse_distance_weighting, 
                  instance_tie_breaker=existing_takes_precedence_tie_breaker,
                  classification_tie_breaker=min):
         self.data = data
         self.k = k
         self.dist_meas = dist_meas
-        self.true_oracle = true_oracle
+        self.oracle = oracle
         self.distance_weighter = distance_weighter
         self.instance_tie_breaker = instance_tie_breaker
         self.classification_tie_breaker = classification_tie_breaker
@@ -148,7 +111,7 @@ class KNN:
     def get_probabilities(self, instance, neighbours=None, exclude_self=True):
         if neighbours is None:
             neighbours = self.find_nearest(instance, exclude_self)
-        classes = map(self.true_oracle, neighbours)
+        classes = map(self.oracle, neighbours)
         weights = [self.distance_weighter(self.dist_meas(instance, n)) for n in neighbours]
         class_weights = KNN.sum_instances(itertools.izip(classes, weights))
         weights_sum = sum(weights)
