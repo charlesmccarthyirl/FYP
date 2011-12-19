@@ -79,5 +79,5 @@ def create_named_data_set_generators(base_data_set_infos):
     base_data_set_infos = [info if isinstance(info, dict) 
                                 else {"base_filename": info} 
                            for info in base_data_set_infos]
-    return [(os.path.splitext(data_set_info["base_filename"])[0], partial(load_data_info, **data_set_info)) 
+    return [((data_set_info["base_filename"]).split(".")[0], partial(load_data_info, **data_set_info)) 
             for data_set_info in base_data_set_infos]

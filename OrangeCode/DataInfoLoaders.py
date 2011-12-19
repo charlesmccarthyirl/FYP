@@ -6,6 +6,7 @@ Created on Dec 19, 2011
 from SelectionStrategyEvaluator import Oracle
 import os
 from PrecomputedDistance import DataInfo
+import gzip
 
 def orange_load(filename, distance_constructor):
     import orange
@@ -28,6 +29,9 @@ def get_data_info(filename, distance_constructor):
         return orange_load(filename, distance_constructor)
     elif ext == ".pcdcd":
         with open(filename) as f:
+            return DataInfo.deserialize(f)
+    elif filename.endswith(".pcdcd.gzip"):
+        with gzip.open(filename, "rb") as f:
             return DataInfo.deserialize(f)
     else:
         raise NotImplementedError("No implementation for ext %s" % ext)

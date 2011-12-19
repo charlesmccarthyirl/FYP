@@ -8,6 +8,7 @@ from DataInfoLoaders import get_data_info
 import sys, os
 import orange
 from PrecomputedDistance import DataInfo
+import gzip
 
 def clean_path(path):
     return os.path.abspath(os.path.expanduser(path))
@@ -20,5 +21,9 @@ if __name__ == '__main__':
     dist_constructor = lambda data: dist_constructor_generator()(list(data))
     data_info = get_data_info(in_file, dist_constructor)
     
-    with open(out_file, "wb") as ofs:
+    do_zip = sys.argv[4] == '1'
+    open_args = (out_file, "wb")
+    open_func = gzip.open if do_zip else open
+    
+    with open_func(*open_args) as ofs:
         data_info.serialize(ofs, DataInfo.get_numeric_str_repr_getter())
