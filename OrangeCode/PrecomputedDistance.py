@@ -119,7 +119,7 @@ class DataInfo:
 
 class PrecomputedDistances:
     def __init__(self, data, distance_measurer):
-        logging.info("Starting pre-computing distance matrix for %s" % data)
+        logging.info("Starting pre-computing distance matrix for %s" % data[:3])
         
         # In case it's shuffled, or whatever. Want the original data to be able to 
         # lookup based on id.
@@ -134,7 +134,7 @@ class PrecomputedDistances:
             row = [distance_measurer(data[row_num], other) for other in row_comp_els]
             dist_matrix.append(row)
 
-        logging.info("Finishing pre-computing distance matrix for %s" % data)
+        logging.info("Finishing pre-computing distance matrix for %s" % data[:3])
         
         self.dist_matrix = dist_matrix
     
