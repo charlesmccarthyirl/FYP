@@ -10,15 +10,14 @@ competence_measure_generator = ClassifierBasedCompetenceMeasure
 margin_sampling_measure_generator = ClassifierBasedMarginSamplingMeasure
 case_profile_measure_generator = CaseProfileBasedCompetenceMeasure
 
-def case_profile_selection_strategy_generator(distance_constructor, *args, **kwargs): 
-    case_profile_builder=CaseProfileBuilder(classifier_generator, distance_constructor, k)
+def case_profile_selection_strategy_generator(*args, **kwargs): 
+    case_profile_builder=CaseProfileBuilder(k, *args, **kwargs)
     return SingleCompetenceSelectionStrategy(
         case_profile_measure_generator, 
         SingleCompetenceSelectionStrategy.take_maximum, 
         *args,
         case_profile_builder=case_profile_builder,
         on_selection_action=lambda example: case_profile_builder.put(example),
-        distance_constructor=distance_constructor,
         **kwargs)
 
 
@@ -41,11 +40,11 @@ maximum_diversity_selection_strategy_generator = lambda *args, **kwargs: SingleC
                                                                                         **kwargs)
 
 named_selection_strategy_generators = {
-                                       "Random Selection": random_selection_strategy_generator,
-                                       "Least Confident Selection": classifier_output_selection_strategy_generator,
-                                       "Margin Sampling": margin_sampling_selection_strategy_generator,
+#                                       "Random Selection": random_selection_strategy_generator,
+#                                       "Least Confident Selection": classifier_output_selection_strategy_generator,
+#                                       "Margin Sampling": margin_sampling_selection_strategy_generator,
 #                                       "Maximum Diversity Sampling": maximum_diversity_selection_strategy_generator,
-#                                       "Competence Based Selection": case_profile_selection_strategy_generator
+                                       "Competence Based Selection": case_profile_selection_strategy_generator
                                        }
 
 named_experiment_variations_generator = create_named_experiment_variations_generator(named_selection_strategy_generators)
