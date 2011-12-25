@@ -29,12 +29,14 @@ def main(experiment, named_data_sets, experiment_directory, do_create_graphs=Tru
         results.write_to_csvs(lambda variation_name: 
                               stream_getter(csv_filename_getter(variation_name, csv_path)))
         
-        g = results.generate_graph(data_set_name)
-        g.writePDFfile(os.path.abspath(csv_path)) # Yes this is intentional, want it in the experiment directory, but with the same name as the folder.
-    
+        try:
+            g = results.generate_graph(data_set_name)
+            g.writePDFfile(os.path.abspath(csv_path)) # Yes this is intentional, want it in the experiment directory, but with the same name as the folder.
+        except ImportError, ex:
+            logging.info("Unable to generate graph for %s data set. Graphing module unavailable in system: %s" %(data_set_name, ex)) 
     
 if __name__ == "__main__":
-    logging.basicConfig(format='%(asctime)s %(message)s',level=logging.INFO)
+    logging.basicConfig(format='%(asctime)s %(message)s',level=logging.DEBUG)
     experiment = __import__(sys.argv[1]).experiment
     named_data_sets = __import__(sys.argv[2]).named_data_sets
     experiment_directory = os.path.expanduser(sys.argv[3])

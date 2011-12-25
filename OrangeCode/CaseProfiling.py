@@ -1,5 +1,7 @@
 from itertools import *
 import logging
+from collections import defaultdict
+from utils import max_multiple
 
 class RcdlCaseProfile:
     def __init__(self, 
@@ -17,6 +19,23 @@ class RcdlCaseProfile:
         self.nearest_neighbours = set(nearest_neighbours)
         self.reverse_nearest_neighbours = set(reverse_nearest_neighbours)
         self.classification = classification
+        
+        self.metainfo = ["reachability_set", "coverage_set", "dissimilarity_set",
+                         "liability_set", "nearest_neighbours", "reverse_nearest_neighbours", 
+                         "classification"]
+    
+    def __eq__(self, other):
+        return all(hasattr(self, a) == hasattr(other, a) 
+            and getattr(self, a) == getattr(other, a) for a in self.metainfo)
+    
+    def __hash__(self):
+        return reduce(lambda a, b: a^b, (hash(getattr(self, m)) for m in self.metainfo))
+    
+    def __str__(self):
+        return ", ".join("%s = %s" % (s, getattr(self, s)) for s in self.metainfo)
+    
+    def __repr__(self):
+        return str(self)
     
     def difference_update(self, other_case_profile):
         for attr in ("reachability_set", "coverage_set", "dissimilarity_set", "liability_set", 
@@ -28,10 +47,49 @@ class RcdlCaseProfile:
                      "nearest_neighbours", "reverse_nearest_neighbours"):
             getattr(self, attr).update(getattr(other_case_profile, attr))
 
+def build_rcdl_profiles_brute_force(case_base, classifier, distance_measure, nns_getter, oracle):
+    case_to_profile_dict = defaultdict(RcdlCaseProfile)
+    
+    # Sort NNs / rNNs
+    for case in case_base:
+        case_rcdl = case_to_profile_dict[case]
+        case_nns = nns_getter(case)
+        case_rcdl.nearest_neighbours.update(case_nns)
+        for nn in case_nns:
+            case_to_profile_dict[nn].reverse_nearest_neighbours.add(case)
+
+    for case in case_base:
+        case_rcdl = case_to_profile_dict[case]
+        case_actual_class = oracle(case)
+        case_classified_class = classifier(case)
+        case_rcdl.classification = case_classified_class
+        
+        if case_actual_class == case_classified_class:
+            helping_cases = [nn for nn in case_rcdl.nearest_neighbours if oracle(nn) == case_actual_class]
+            case_rcdl.reachability_set.update(helping_cases)
+            for hc in helping_cases:
+                case_to_profile_dict[hc].coverage_set.add(case)
+        else:
+            hurting_cases = [nn for nn in case_rcdl.nearest_neighbours if oracle(nn) != case_actual_class]
+            case_rcdl.dissimilarity_set.update(hurting_cases)
+            for hc in hurting_cases:
+                case_to_profile_dict[hc].liability_set.add(case)
+    
+    return case_to_profile_dict
+
 class AddRemovalStore:
     def __init__(self):
         self.added = RcdlCaseProfile()
         self.removed = RcdlCaseProfile()
+    
+    def __eq__(self, other):
+        return self.added == other.added and self.removed == other.removed
+    
+    def __hash__(self):
+        return hash(self.added)^hash(self.removed)
+    
+    def __str__(self):
+        return "Added: %s, Removed: %s" % (self.added, self.removed)
     
     def apply_to(self, profile):
         profile.difference_update(self.removed)
@@ -111,22 +169,23 @@ class CaseProfileBuilder:
             else:
                 # TODO: There is the issue of comparability here. Change to pass distance_measurer to __init__ instead of distance_constructor
                 dist_meas = self.__distance_constructor(other_case_profile.nearest_neighbours)
-                max_ex, max_dist = max(((other_case_nn, dist_meas(other_case, other_case_nn))
+                maxes = max_multiple(((other_case_nn, dist_meas(other_case, other_case_nn))
                                 for other_case_nn 
                                 in other_case_profile.nearest_neighbours), key=lambda el: el[1])
-                
+                #TODO: Bug - change to max multiple. Then == or len of max > 1
+                max_ex, max_dist = maxes[0]
                 case_dist = dist_meas(other_case, case)
                 
                 if case_dist > max_dist:
                     continue
-                elif case_dist == max_dist:
+                elif case_dist == max_dist or len(maxes) > 1:
                     # Unsure - deferreing decision to nn finder for tie breaking
                     other_case_new_nns = self.nns_getter(chain(other_case_profile.nearest_neighbours, (case,)), other_case)
                     if case not in other_case_new_nns:
                         continue
                     
                     difference = set(other_case_profile.nearest_neighbours).difference(other_case_new_nns)
-                    assert(len(difference) <= 1)
+                    assert(len(difference) == 1)
                     shunted = difference.pop()
                 else:
                     other_case_new_nns = [nn for nn in other_case_profile.nearest_neighbours 

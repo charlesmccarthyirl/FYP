@@ -27,6 +27,9 @@ class Instance(object):
     def __ne__(self, other):
         return not self.__eq__(other)
     
+    def __lt__(self, other):
+        return self.id_no < other.id_no
+    
     def __hash__(self, *args, **kwargs):
         return hash(self.id_no)
     
@@ -34,7 +37,7 @@ class Instance(object):
         return repr(self.payload)
     
     def __str__(self, *args, **kwargs):
-        return str(self.payload)
+        return "%s (%s)" % (str(self.payload), self.label)
         
     @property
     def label(self):
