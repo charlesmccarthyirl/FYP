@@ -46,9 +46,10 @@ I hereby declare that:
 }
 \vspace{\fill}
 
+\chapter*{Acknowledgements}
+While much of the work carried out was based on external literature, a great deal of advice and direction were gained from meetings with my project supervisor, Dr. Derek Bridge.
 
-
-
+The impact of casual conversations with classmates P\'{a}draig \'{O}Duinn, Barry Hurley and Kevin Leo should also be acknowledged. P\'{a}draig, in his research, encountered similar issues to myself on occasion, and would often share his insights into how he got around them. Barry was useful in offering Latex help, and was sometimes consulted while I was learning it. Kevin had a great deal of python and general *nix experience, and offered advice and assistance whenever particularly frustrating issues were encountered (which would usually be prompted by me ranting about them during our lunchtime card games).
 
 \tableofcontents
 
@@ -58,12 +59,11 @@ The key concept of Active Learning is that a machine learning program has a say 
 
 This concept fits particularly well in the domain of Case Based Systems. In Case Based Systems, the system has a pool of 'cases' for which it knows the label. When an unlabelled case is presented to the system, the system uses this pool to try to guess the label of the unlabelled case.
 
-The facet of Active Learning we will subsequently consider is based on the idea that there is a large quantity of unlabelled cases available, but getting labels (or more likely, consulting a human oracle) is an expensive process, for which it is undesirable to apply to the entire unlabelled set. The aim for the system is to choose a subset of these unlabelled cases for which to request a label. These are then used as the system's pool of labelled cases which it will consult in future.
+The facet of Active Learning we will subsequently consider is known as Pool Based Sampling in other literature \cite{Settles2010}, and is based on the idea that there is a large quantity of unlabelled cases available, but getting labels (or more likely, consulting a human oracle) is an expensive process, for which it is undesirable to apply to the entire unlabelled set. The aim for the system is to choose a subset of these unlabelled cases for which to request a label. These are then used as the system's pool of labelled cases which it will consult in future.
 
 The system would like to maximize its classification accuracy for future instances, but have to resort to asking the expert external to the system for a minimal number of labels.
 
-For an in-depth review of Active Learning, and some of the recent Active Learning literature, consult \citep{Settles2010}
-
+For an in-depth review of Active Learning, and some of the recent Active Learning literature, consult \citep{Settles2010}.
 
 \section{Importance of Active Learning}
 There are many real-world domains in which a large quantity of unlabelled data is available, but the process of manually labelling all of that data is not feasible. 
@@ -128,7 +128,7 @@ The Oracle is willing to classify only a fixed number of instances.
 The system stops asking the Oracle for classifications after it is capable of achieving a certain classification accuracy on its test set.
 
 \section{Variations / Related Areas}
-Many variations on the concept of Active Learning exist. The following it intended to give just a small subset of examples, as opposed to an exhaustive listing.
+Many variations on the concept of Active Learning exist. The following it intended to give just a small subset of examples, as opposed to an exhaustive listing. Further information can be gleaned from \citep{Settles2010}.
 
 \subsection{Case Base Maintenance}
 Case Base Maintenance is concerned with the task of how to maintain a case base. 
@@ -147,16 +147,39 @@ This notion can sometimes be more useful - but it is unlikely in practice that t
 What is more likely is that the system would keep note of instances it is very unsure of, guess the classification anyway if an immediate response is required, and at the next opportunity, query the oracle in batch regarding the true classification.
 
 \subsection{Batch Learning}
+In practice, it is unlikely that instances would be presented to the Expert one-at-a-time. What is more likely is that batches of instances are presented to the expert.
 
+In our investigation, we do not perform batch learning - instead presenting instances one at a time to the Expert (equivalent to a batch size of 1).
 
+\subsection{Query Synthesis}
+Although it can cause hassle for a human annotator, another variation is known as Query Synthesis, in which the program actually constructs its own unlabelled data instances to present to the Expert (as opposed to the data being actual previously observed).
+
+The program is thus able to actively explore the domain space, as opposed to just waiting for data to try to infer this information.
+
+While unsuitable for many problem areas (in particular text), one could easily see how this model could be useful in the context of scientific experiments. The program may wish to make 'guesses' as to what would be useful data to get 'classified', so that it may further refine it's knowledge of the domain.
+
+\citep{Settles2010} points to a good example involving a "robotic scientist" as described in \citep{King2009}
 
 \subsection{Noisy Oracle}
+A noisy oracle relates to the Expert being wrong in its classification some of the time.
+
+In our investigation, we do not deal with this variation at all, assuming a Perfect Oracle.
+
 \subsection{Classification Cost Variation}
+In many real-world applications, the cost associated with classifying an instance can vary from instance to instance. Some instances can involve much more of an expert's time than others. In text classification, articles vary in length and complexity. Similarly in video and audio.
+
 This paper does not deal with instance classification cost variation, instead assuming a fixed cost.
 
-\subsection{Case Interdependence}
-
 \section{Project outline}
+The project was split into two parts - one on which we worked on during the first half of the academic year, which set the stage for part 2, which was worked on during the second half.
+
+\subsection{Stage 1 - Basic Selection Strategies and Platform Development}
+Initially in the project, we wanted to experiment with basic Selection Strategies from the literature, to learn the basics of the domain, and get a feel for the approaches people take when solving the problem.
+
+The platform developed for running the experiments would also allow for plugging in our own strategies during Stage 2, with the basic strategies serving as useful comparison points.
+
+\subsection{Stage 2 - Competence Model Based Selection Strategy Development}
+In the second stage of the project, we reviewed the work of \cite{Delany2009}, and attempted to develop our own selection strategies from her expansions on the notion of Case Base Competence Models.
 
 \chapter{Literature Review}
 
@@ -169,6 +192,10 @@ Certain concepts very frequently occur in the Active Learning Literature, so the
 \subsection{Solves / Classifies / Contributes}
 Make note of the different definitions.
 \subsection{Clustering}
+
+\section{Core Project Papers / Literature}
+
+\section{Other bits and pieces}
 
 \chapter{Platform Architecture}
 \section{Overview}
@@ -535,27 +562,28 @@ foreach case in the NN/rNN changes:
 
 \section{Competence-based Selection Strategies}
 
+\chapter{Conclusions and Future Work}
 
 \chapter{Appendix}
 \section{Open source Technologies Used}
 \begin{itemize}
-\item python
-\item git
-\item pypy
-\item orange
-\item pyx
-\item matplotlib
-\item Eclipse
-\item Pydev
-\item Aptana
-\item Dia
-\item Latex
-\item TexStudio
-\item Ubuntu
-\item sklearn
-\item cProfile
-\item Run Snake Run
-\item bpython
+	\item python
+	\item git
+	\item pypy
+	\item orange
+	\item pyx
+	\item matplotlib
+	\item Eclipse
+	\item Pydev
+	\item Aptana
+	\item Dia
+	\item Latex
+	\item TexStudio
+	\item Ubuntu
+	\item sklearn
+	\item cProfile
+	\item Run Snake Run
+	\item bpython
 \end{itemize}
 
 
