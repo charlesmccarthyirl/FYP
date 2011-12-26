@@ -6,6 +6,7 @@
 \usepackage{epstopdf}
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage{amsmath}
 
 \title{Using Competence Models in Active Learning}
 \author{Charles McCarthy\\
@@ -47,9 +48,9 @@ I hereby declare that:
 \vspace{\fill}
 
 \chapter*{Acknowledgements}
-While much of the work carried out was based on external literature, a great deal of advice and direction were gained from meetings with my project supervisor, Dr. Derek Bridge.
+While much of the work carried out was based on external literature, a great deal of advice and direction was gained from the weekly meetings with my project supervisor, Dr. Derek Bridge.
 
-The impact of casual conversations with classmates P\'{a}draig \'{O}Duinn, Barry Hurley and Kevin Leo should also be acknowledged. P\'{a}draig, in his research, encountered similar issues to myself on occasion, and would often share his insights into how he got around them. Barry was useful in offering Latex help, and was sometimes consulted while I was learning it. Kevin had a great deal of python and general *nix experience, and offered advice and assistance whenever particularly frustrating issues were encountered (which would usually be prompted by me ranting about them during our lunchtime card games).
+The impact of casual conversations with classmates P\'{a}draig \'{O}'D\'{u}inn, Barry Hurley and Kevin Leo should also be acknowledged. P\'{a}draig, in his research, encountered similar issues to myself on occasion, and would often share his insights into how he got around them. Barry was useful in offering Latex help, and was sometimes consulted while I was learning it. Kevin had a great deal of python and general *nix experience, and offered advice and assistance whenever particularly frustrating issues were encountered (which would usually be prompted by me ranting about them during our lunchtime card games).
 
 \tableofcontents
 
@@ -139,6 +140,22 @@ Another consideration is that some cases may be adversely affecting the system's
 
 Overall, Case Base Maintenance can be summarised as the process of maintaining a case base to a desirable level over time.
 
+\subsection{Seeding in Active Learning}
+Many Selection Strategies have the assumption built in that there are already some cases in the case base from which they may base their judgements. Thus the issue how to initially seed the Case Base crops up.
+
+In our evaluations and experimentation, we don't attempt to initially seed the Case Base. The reasoning for this is twofold: 
+\begin{enumerate}
+	\item The datasets we use are relatively simplistic, which even with random sampling, converge to a relatively high accuracy even after a small number of samples are added. This would make it very difficult to reasonably compare different selection strategies. 
+	\item Adding Seeding would also add another factor for testing, as opposed to primarily testing the variance between different Selection Strategies.
+\end{enumerate}
+
+\subsubsection{Examples of Seeding Strategies}
+\begin{itemize}
+	\item Random Seeding
+	\item K Means
+	\item K Medoids
+\end{itemize}
+
 \subsection{Stream Based Learning}
 In this methodology, the system does not just select at the outset from an unlabelled pool the instances to request classification by the Expert. Instead, It is presented with a stream of instances, and for each instance, it may either itself guess the classification (if it is relatively sure it is correct), or it may defer the decision to the Expert.
 
@@ -178,7 +195,7 @@ Initially in the project, we wanted to experiment with basic Selection Strategie
 
 The platform developed for running the experiments would also allow for plugging in our own strategies during Stage 2, with the basic strategies serving as useful comparison points.
 
-\subsection{Stage 2 - Competence Model Based Selection Strategy Development}
+\subsection{Stage 2 - Competence Model Selection Strategy Development}
 In the second stage of the project, we reviewed the work of \cite{Delany2009}, and attempted to develop our own selection strategies from her expansions on the notion of Case Base Competence Models.
 
 \chapter{Literature Review}
@@ -194,8 +211,137 @@ Make note of the different definitions.
 \subsection{Clustering}
 
 \section{Core Project Papers / Literature}
+At the project outset, certain literature was used as the base for subsequent investigation. As such, they were analysed in greater detail than later literature. The summaries and findings of these papers will now be presented.
 
-\section{Other bits and pieces}
+\subsection{Smyth \& McKenna's Work on Competence Models}
+\subsubsection{Introduction}
+Barry Smyth and Elizabeth McKenna performed interesting research on using a clustering techniques to expand on the work of \citet{Smyth1995} \cite{Smyth1998}.
+
+\subsubsection{Coverage}
+Coverage is defined in terms of the Retrieval and Adaptation Spaces.
+
+\paragraph{Retrieval Space}
+
+These are simply the cases retrieved from the case base for a given case.
+
+\[ RetrievalSpace(c \in C) = \left\{ c \prime \in C : c \prime \text{ is retrieved for c} \right\} \]
+
+\paragraph{Adaptation Space}
+
+\[ AdaptationSpace(c \in C) = \left\{ c \prime \in C : c \prime \text{ can be adapted to solve } c \right\} \]
+
+\paragraph{Coverage}
+
+The Coverage of a case is defined as the intersection between that case's Retrieval and Adaptation Spaces. \footnote{Intersection because all of those that could be adapted to solve this case may not be retrieved, and ones may be retrieved that cannot be adapted (depending on the retrieval mechanism used).}
+
+\[ Coverage(c \in C) = \left\{ c \prime \in C : c \prime \in RetrievalSpace(c) \cap AdaptationSpace(c) \right\} \]
+
+
+\subsubsection{Competence Group}
+The most interesting part of the paper is his notion of a Competence Group. He argues that the fundamental unit of competence should not be at the case level, but instead should be at a cluster level, where clustering is performed by the notion of Shared Coverage.
+
+Two cases exhibit Shared Coverage if their Coverage Sets overlap. A Competence Group is then defined as a maximal  collection  of  cases  exhibiting  shared Coverage \footnote{Of particular note here is that maximal means that it is not necessary that each set intersect directly with every other set - but that each case in the group is simply 'reachable' by means of Shared Coverage links by every other case in the group. In graph terms, we would speak of a maximally connected set of nodes - a complete graph - with an edge between two nodes representing Shared Coverage between those two nodes.}.
+
+%TODO: Find the proper term for the subgraphs.
+
+
+\subsubsection{Case \& Group Density}
+
+Case Density as per Smyth's definition is a case's Average Similarity with the other things in a given group. \footnote{Similarity is taken to be a function that, given 2 cases, computes the similarity between those two cases on a scale from 0 to 1, where 0 is in no way similar, and 1 is exactly the same.}
+
+\[
+CaseDensity(c,G)=\frac{\underset{c'\in G-\{c\}}{\sum}Sim(c,c')}{\left|G\right|-1}
+\]
+
+Group density he defines as the average similarity of each thing in the group with the rest of the group from 0 to 1 - i.e. on average how similar are the things in the group to each another.
+
+\[
+GroupDensity(G)=\frac{\underset{c\in G}{\sum}CaseDensity(c,G)}{\left|G\right|}
+\]
+
+\subsubsection{Group Coverage}
+The competence measure of a group of cases is that of Group Coverage, and is defined as follows:
+
+\[
+GroupCoverage(G)=1+\left[\left|G\right|\bullet(1-GroupDensity(G))\right]
+\]
+
+Intuitively - it's bad to have a lot of redundancy, so we want things to be not too close together - therefore 'goodness' is inversely proportional to average similarity. Larger groups (as long as not dense) give greater coverage - therefore directly proportional to size.
+
+Actual Reasoning could be looked on as follows:
+\begin{itemize}
+	\item GroupDensity gives average similarity within the group (from 0 to 1 - 0 being not at all similar, 1 being exactly the same).
+	\item 1-Group Similarity gives average dissimilarity within the group.
+	\item Multiplying this average by G the total dissimilarity between the members of the group. \footnote{Another way of looking at it - gives a 'strength' of how relevant this group is. (e.g. a group of 2 needs to be taken with a pinch of salt vs a group of 1,000)}
+	\item 1 added for when no dissimilarity (either identical cases or single case in the group), these should still have weighting.
+\end{itemize}
+
+\subsubsection{Case Base Coverage}
+The overall case base coverage (on which case base competence is believed in the paper to follow) as simply the sum of the Group Coverages of all the individual Competence Groups in the case base.
+
+\[
+Coverage(G)=\underset{G_{i}\in G}{\sum}GroupCoverage(G_{j})
+\]
+
+\subsubsection{Experimental Conclusions}
+
+Stuff
+
+\subsection{Sarah Jane Delaney's Work on Competence Models\label{sec:DelaneysWork}}
+\subsubsection{Introduction}
+Delaney, in her work, expanded upon the definitions of Coverage and Reachability sets to include their counterparts, what she terms "Liability" and "Dissimilarity" respectively \cite{Delany2009}. 
+
+In particular, Delaney uses the concepts in investigating Case Base Maintenance strategies.
+
+\subsubsection{RCDL Sets}
+Due to Delaney's research being a very primary part of this project, the RCDL model, along with the model's consequences are gone through in detail in \ref{cha:CompetenceModels}. 
+
+\subsubsection{Case Classifications}
+Through the definitions of the RCDL Sets - Delaney notes the following\cite{Delany2009}:
+
+\begin{enumerate}
+\item Firstly, it is possible to indicate whether the case is correctly or incorrectly classified by the case-base. This is identified by the case having either a reachability set (R) or a dissimilarity set (D).
+\item Secondly, we can consider whether the case is useful, by the existence of a coverage set (C), and
+\item Finally whether the case is harmful and causes damage, by the existence of a liability set (L).
+\end{enumerate}
+
+Through enumeration of the possible RCDL Combinations - 8 possible Profiles exist for a case, using the occurrence of a non-empty set as the 'flag' on which to enumerate\cite{Delany2009}:
+
+\begin{enumerate}
+	\item \emph{R}: A case which is correctly classified but is not used for classifying any other case in the case-base.
+	\item \emph{D}: A case which is misclassified but is not used for classifying any other case in the case-base.
+	\item \emph{RC}: A case which is correctly classified and is useful in that it has contributed to the correct classification of other cases in the case-base. This profile and the R profile are generally the majority case profile types.
+	\item \emph{RL}: A case which is correctly classified but is harmful in the case-base causing damage by contributing to other cases being misclassified.
+	\item \emph{DC}: A case which is misclassified but is useful in the case-base. 
+	\item \emph{DL}: A case which is misclassified and is harmful in the case-base.
+	\item \emph{RCL}: A case which is correctly classified and is both useful and harmful in the case-base.
+	\item \emph{DCL}: A case which is misclassified and is both useful and harmful in the case-base.
+\end{enumerate}
+
+
+\subsubsection{Experimental Conclusions}
+In her experiments, Delaney investigates the effect on case base competence of removing cases with different combinations of RCDL profiles. She also compares the strategies with other Noise-removal strategies, and frames them in RCDL terms.
+
+While the specific results vary between datasets, Delaney notes that there was a consistent improvement with the removal of just DL \& DCL cases from the datasets. 
+
+The reader is recommended to consult \citet{Delany2009} for the thorough analysis.
+
+\subsubsection{Comments}
+The simplicity of the boolean set-non-emptiness characteristic of the case profiles Delaney defines has its serious merits. It is relatively easy to understand and reason about.
+
+In our work, we hope to play with further expanding on these profiles - using them in a non-boolean way, actually factoring in what the sets actually comprise of. 
+
+
+\subsection{Rong Hu's Work on Active Learning}
+\subsubsection{Introduction}
+Rong Hu recently completed her PHD Thesis on "Active Learning for Text Classification" in D.I.T. with Dr. Sarah Jane Delaney as one of her supervisors \cite{Hu2011}. In her thesis, she covers a broad range of topics, but of particular interest to us is her work on "EGAL", and also on using Aggregate Confidence Measures.
+
+\subsubsection{EGAL: Exploration Guided Active Learning}
+\paragraph{Test}
+
+\subsubsection{Using Aggregate Confidence Measures}
+
+\section{Other Interesting Active Learning Literature}
 
 \chapter{Platform Architecture}
 \section{Overview}
@@ -219,8 +365,12 @@ Make note of the different definitions.
 - give basic algorithm in SelectionStrategyEvaluator.
 \section{Outputs}
 (Initially used matplotlib - but non pythonic, etc.)
-\chapter{Competence Models}
+\chapter{Competence Models\label{cha:CompetenceModels}}
 \section{Overview}
+From Delaney's work\cite{Delany2009}, outlined briefly on page \pageref{sec:DelaneysWork},we hope to expand on her boolean RCDL Profile concepts, and attempt to use them in a Active Learning Selection Strategy role, as opposed to a noise reduction / case base maintenance one.
+
+This section outlines the fundamental concepts of RCDL profiles, and describes how we use them in our Selection Strategies.
+
 \section{Fundamentals}
 \subsection{Classifies / Misclassifies}
 \subsubsection{Case Contribution\label{sec:contributes}}
@@ -566,25 +716,24 @@ foreach case in the NN/rNN changes:
 
 \chapter{Appendix}
 \section{Open source Technologies Used}
-\begin{itemize}
-	\item python
-	\item git
-	\item pypy
-	\item orange
-	\item pyx
-	\item matplotlib
-	\item Eclipse
-	\item Pydev
-	\item Aptana
-	\item Dia
-	\item Latex
-	\item TexStudio
-	\item Ubuntu
-	\item sklearn
-	\item cProfile
-	\item Run Snake Run
-	\item bpython
-\end{itemize}
+\subsection*{python}
+\subsection*{git}
+\subsection*{pypy}
+\subsection*{orange}
+\subsection*{pyx}
+\subsection*{matplotlib}
+\subsection*{Eclipse}
+\subsection*{Pydev}
+\subsection*{Aptana}
+\subsection*{Dia}
+\subsection*{Latex}
+\subsection*{TexStudio}
+\subsection*{Ubuntu}
+\subsection*{sklearn}
+\subsection*{cProfile}
+\subsection*{Run Snake Run}
+\subsection*{bpython}
+\subsection*{Lyx}
 
 
 
