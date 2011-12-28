@@ -8,7 +8,7 @@ class Instance(object):
     @staticmethod
     def multiple_from(selections):
         if isinstance(selections, str):
-            ms = Instance.repr_re.findall(selections)
+            ms = Instance.repr_re.finditer(selections)
             return [Instance(int(m.groups()[0]), m.groups()[1]) for m in ms]
         elif isinstance(selections, Instance):
             return [selections]

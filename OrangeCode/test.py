@@ -8,7 +8,7 @@ from functools import partial
 from utils import stream_getter
 
 def csv_filename_getter(variation_name, path):
-    return os.path.join(path, variation_name + '.csv')
+    return os.path.join(path, variation_name + '.tar.gz')
 
 def main(experiment, named_data_sets, experiment_directory, do_create_graphs=True):
     # data_set_name -> example_table (pre-shuffled)
@@ -18,8 +18,8 @@ def main(experiment, named_data_sets, experiment_directory, do_create_graphs=Tru
         
         csv_path = os.path.join(experiment_directory, data_set_name)
         
-        files = glob.glob(os.path.join(csv_path, "*.csv"))
-        name_to_file_stream_getter_pairs = [(splitext(basename(f))[0], partial(open, f, "rb")) for f in files]
+        files = glob.glob(os.path.join(csv_path, "*.tar.gz"))
+        name_to_file_stream_getter_pairs = [(splitext(splitext(basename(f))[0])[0], partial(open, f, "rb")) for f in files]
         
         existing_results = ExperimentResult()
         existing_results.load_from_csvs(name_to_file_stream_getter_pairs)

@@ -8,6 +8,7 @@ from __future__ import division
 import collections
 from cross_validation import KFold
 from PrecomputedDistance import Instance
+from SelectionStrategy import Selection
 try:
     import pyx
 except:
@@ -17,6 +18,8 @@ import logging
 import csv
 from itertools import compress, imap, izip, islice, izip_longest, chain
 import random
+import tarfile, StringIO
+from os.path import splitext
 
 def to_numerically_indexed(sequence):
     index_dict = {}
@@ -50,7 +53,7 @@ class ResultSet(list):
         self.test_set = list(test_set or [])
         list.__init__(self)
     
-    def read_csv(self, stream):
+    def deserialize(self, stream):
         logging.debug("Starting CSV reading from stream %s" % stream)
         
         reader = csv.reader(stream)
@@ -59,14 +62,14 @@ class ResultSet(list):
                                             else cell
                 for cell in row]
                 for row in islice(reader, 1, None) if len(row) > 1)
-        self.extend((Result(*row[:3]) for row in rows if row[0]))
+        self.extend((Result(*row[:3]) for row in rows if row[0] is not None))
         
         self.training_set.extend((Instance.single_from(row[3]) for row in rows if row[3]))
         self.test_set.extend((Instance.single_from(row[4]) for row in rows if row[4]))
         
         logging.debug("Ending CSV reading from stream %s" % stream)
     
-    def write_csv(self, stream):
+    def serialize(self, stream):
         logging.debug("Starting CSV generation on stream %s" % stream)
         
         writer = csv.writer(stream)
@@ -120,8 +123,8 @@ class ResultSet(list):
         return total_area
         
 class MultiResultSet(ResultSet):
-    def __init__(self, all_results):
-        all_results = list(all_results)
+    def __init__(self, all_results=None):
+        all_results = list(all_results or [])
         self.all_results = all_results
         
         aligned_results = zip(*all_results)
@@ -142,6 +145,36 @@ class MultiResultSet(ResultSet):
                                      in aligned_results)
         
         self.extend(averaged_result_instances)
+        
+    def serialize(self, stream):
+        with tarfile.open(mode="w:gz", fileobj=stream) as tar:
+            for (i, resultset) in chain(enumerate(self.all_results), (("summary", self),)):
+                mem_stream = StringIO.StringIO()
+                ResultSet.serialize(resultset, mem_stream)
+                mem_stream.seek(0)
+                
+                info = tar.tarinfo("%s.csv" % i)
+                info.size = len(mem_stream.buf)
+                
+                tar.addfile(info, fileobj=mem_stream)
+        
+    def deserialize(self, stream):
+        
+        with tarfile.open(mode="r", fileobj=stream) as tar:
+            new_all_results = [None] * (len(tar.getnames()) - 1)
+            for info in tar:
+                name = splitext(info.name)[0]
+                if name == "summary":
+                    result_set = self
+                else:
+                    i = int(name)
+                    result_set = ResultSet()
+                    new_all_results[i] = result_set
+                
+                ResultSet.deserialize(result_set, tar.extractfile(info))
+                
+            assert(all(new_all_results))
+            self.all_results.extend(new_all_results)
 
 class StoppingCondition:
     def is_criteria_met(self, case_base, unlabelled_set):
@@ -202,12 +235,10 @@ class SelectionStrategyEvaluator:
         self.kwargs = kwargs
     
     def generate_results_from_many(self, data_test_iterable):
-        all_results = [list(self.generate_results(test_set, unlabelled_set))
+        all_results = [self.generate_results(test_set, unlabelled_set)
                        for (test_set, unlabelled_set) 
                        in data_test_iterable]
-        
-       
-        
+
         return MultiResultSet(all_results)
     
     def generate_ca(self, t, p):
@@ -227,6 +258,9 @@ class SelectionStrategyEvaluator:
         return self.generate_ca(imap(self.oracle, test_set), imap(classifier, test_set))
     
     def __generate_result(self, case_base, test_set, selections):
+        if selections is not None:
+            selections = [sel.selection for sel in selections] # selections are a bunch of Selections - need to just have the underlying objects, not the associated index of the selection aswell
+        
         case_base_size = len(case_base)
         try:
             classifier = self.classifier_generator(case_base, oracle=self.oracle, **self.kwargs)
@@ -331,15 +365,15 @@ class ExperimentResult(dict):
     def load_from_csvs(self, name_to_stream_generator_pairs):
         for (variation_name, stream_generator) in name_to_stream_generator_pairs:
             with stream_generator() as stream:                
-                result_set = ResultSet()
-                result_set.read_csv(stream)
+                result_set = MultiResultSet()
+                result_set.deserialize(stream)
                 self[variation_name] = result_set
                 
     
     def write_to_csvs(self, stream_from_name_getter):
         for (variation_name, result_set) in self.items():
             with stream_from_name_getter(variation_name) as stream:
-                result_set.write_csv(stream)
+                result_set.serialize(stream)
     
     def generate_graph(self, title=None):
         if not sys.modules.has_key('pyx'):
