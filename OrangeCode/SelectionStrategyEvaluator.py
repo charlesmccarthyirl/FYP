@@ -7,6 +7,7 @@ Created on 23 Oct 2011
 from __future__ import division
 import collections
 from cross_validation import KFold
+from PrecomputedDistance import Instance
 try:
     import pyx
 except:
@@ -14,7 +15,7 @@ except:
 import sys
 import logging
 import csv
-from itertools import compress, imap, izip, islice
+from itertools import compress, imap, izip, islice, izip_longest, chain
 import random
 
 def to_numerically_indexed(sequence):
@@ -38,18 +39,30 @@ def n_fold_cross_validation(data, n, true_oracle, random_seed=None):
            for train, test in train_test_bit_maps)
 
 class Result:
-    def __init__(self, case_base_size=0, classification_accuracy=0):
+    def __init__(self, case_base_size=0, classification_accuracy=0, selections=None):
         self.case_base_size = case_base_size
         self.classification_accuracy = classification_accuracy
+        self.selections = Instance.multiple_from(selections) if selections is not None else selections        
 
 class ResultSet(list):
+    def __init__(self, training_set=None, test_set=None):
+        self.training_set = list(training_set or [])
+        self.test_set = list(test_set or [])
+        list.__init__(self)
+    
     def read_csv(self, stream):
         logging.debug("Starting CSV reading from stream %s" % stream)
         
         reader = csv.reader(stream)
-        rows = ((float(cell) if '.' in cell else int(cell)for cell in row) 
+        rows = ([float(cell) if '.' in cell 
+                             else int(cell) if cell.isdigit() 
+                                            else cell
+                for cell in row]
                 for row in islice(reader, 1, None) if len(row) > 1)
-        self.extend((Result(*row) for row in rows))
+        self.extend((Result(*row[:3]) for row in rows if row[0]))
+        
+        self.training_set.extend((Instance.single_from(row[3]) for row in rows if row[3]))
+        self.test_set.extend((Instance.single_from(row[4]) for row in rows if row[4]))
         
         logging.debug("Ending CSV reading from stream %s" % stream)
     
@@ -57,11 +70,18 @@ class ResultSet(list):
         logging.debug("Starting CSV generation on stream %s" % stream)
         
         writer = csv.writer(stream)
-        writer.writerow(("Case base size", "Classification Accuracy"))
+        writer.writerow(("Case base size", "Classification Accuracy", "Selected", "Training Set", "Test Set"))
         orderedResults = sorted(self, key=lambda x: x.case_base_size)
-        writer.writerows(((result.case_base_size, 
-                           result.classification_accuracy) 
+        
+        main_results = list(((result.case_base_size, 
+                           result.classification_accuracy,
+                           repr(result.selections) if result.selections else None) 
                           for result in orderedResults))
+        
+        results_zipped = list(izip_longest(main_results, self.training_set or [], self.test_set or []))
+        results_expanded = (list(chain((res or [None]*3), (train, ), (test, ))) for (res, train, test) in results_zipped)
+        
+        writer.writerows(results_expanded)
         
         logging.debug("Ending CSV generation on stream %s" % stream)
     
@@ -99,7 +119,29 @@ class ResultSet(list):
         
         return total_area
         
+class MultiResultSet(ResultSet):
+    def __init__(self, all_results):
+        all_results = list(all_results)
+        self.all_results = all_results
         
+        aligned_results = zip(*all_results)
+        
+        ResultSet.__init__(self)
+        
+        if not all((all((result is not None and result.case_base_size == aligned_result[0].case_base_size
+                         for result
+                         in aligned_result))
+                    for aligned_result
+                    in aligned_results)):
+            raise Exception("case_base_sizes don't seem aligned")
+        
+        averaged_result_instances = (Result(aligned_result[0].case_base_size, 
+                                            average((result.classification_accuracy 
+                                                     for result in aligned_result))) 
+                                     for aligned_result 
+                                     in aligned_results)
+        
+        self.extend(averaged_result_instances)
 
 class StoppingCondition:
     def is_criteria_met(self, case_base, unlabelled_set):
@@ -164,22 +206,9 @@ class SelectionStrategyEvaluator:
                        for (test_set, unlabelled_set) 
                        in data_test_iterable]
         
-        aligned_results = zip(*all_results)
+       
         
-        if not all((all((result is not None and result.case_base_size == aligned_result[0].case_base_size
-                         for result
-                         in aligned_result))
-                    for aligned_result
-                    in aligned_results)):
-            raise Exception("case_base_sizes don't seem aligned")
-        
-        averaged_result_instances = (Result(aligned_result[0].case_base_size, 
-                                            average((result.classification_accuracy 
-                                                     for result in aligned_result))) 
-                                     for aligned_result 
-                                     in aligned_results)
-        
-        return ResultSet(averaged_result_instances)
+        return MultiResultSet(all_results)
     
     def generate_ca(self, t, p):
         count = 0
@@ -197,7 +226,7 @@ class SelectionStrategyEvaluator:
     def generate_ca_of_classifier(self, classifier, test_set):
         return self.generate_ca(imap(self.oracle, test_set), imap(classifier, test_set))
     
-    def __generate_result(self, case_base, test_set):
+    def __generate_result(self, case_base, test_set, selections):
         case_base_size = len(case_base)
         try:
             classifier = self.classifier_generator(case_base, oracle=self.oracle, **self.kwargs)
@@ -208,10 +237,10 @@ class SelectionStrategyEvaluator:
             # Some classifiers have issues with 0 examples in the training set.
             classification_accuracy = 0
         
-        return Result(case_base_size, classification_accuracy)
+        return Result(case_base_size, classification_accuracy, selections)
     
     def generate_results(self, unlabelled_set, test_set):
-        results = ResultSet()
+        results = ResultSet(unlabelled_set, test_set)
         
         if not isinstance(unlabelled_set, list):
             unlabelled_set = list(unlabelled_set)
@@ -230,7 +259,7 @@ class SelectionStrategyEvaluator:
         selection_strategy = selection_strategy_evaluator.selection_strategy_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
         stopping_condition = selection_strategy_evaluator.stopping_condition_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
         
-        results.append(selection_strategy_evaluator.__generate_result(case_base, test_set))
+        results.append(selection_strategy_evaluator.__generate_result(case_base, test_set, None))
         
         while not stopping_condition.is_criteria_met(case_base, unlabelled_set):
             selections = selection_strategy.select(unlabelled_set)
@@ -243,7 +272,7 @@ class SelectionStrategyEvaluator:
                 case_base.append(selection.selection)
 
             logging.debug("Starting testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set)))
-            result = selection_strategy_evaluator.__generate_result(case_base, test_set)
+            result = selection_strategy_evaluator.__generate_result(case_base, test_set, selections)
             results.append(result)
             logging.debug("Finishing testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set))) 
         

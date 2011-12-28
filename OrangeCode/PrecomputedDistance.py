@@ -1,8 +1,29 @@
 from itertools import islice, imap, chain, izip
 import logging
 import csv
+import re
 
 class Instance(object):
+    
+    @staticmethod
+    def multiple_from(selections):
+        if isinstance(selections, str):
+            ms = Instance.repr_re.findall(selections)
+            return [Instance(int(m.groups()[0]), m.groups()[1]) for m in ms]
+        elif isinstance(selections, Instance):
+            return [selections]
+        else:
+            return selections
+    
+    @staticmethod
+    def single_from(thing):
+        i = Instance.multiple_from(thing)[0]
+        assert isinstance(Instance, i)
+        return i
+         
+    
+    repr_re = re.compile(r"(\d+) \((.+)\)")
+    
     def __init__(self, id_no=None, label=None, payload=None, instance_to_copy=None):
         self._label = None 
         self._payload = None
@@ -34,10 +55,10 @@ class Instance(object):
         return hash(self.id_no)
     
     def __repr__(self, *args, **kwargs):
-        return repr(self.payload)
+        return "%s (%s)" % (str(self.id_no), self.label)
     
     def __str__(self, *args, **kwargs):
-        return "%s (%s)" % (str(self.payload), self.label)
+        return repr(self)
         
     @property
     def label(self):
@@ -50,7 +71,6 @@ class Instance(object):
     @property
     def id_no(self):
         return self._id_no
-
 
 class DataInfo:    
     def __init__(self, data, oracle, distance_constructor, possible_classes=None):
