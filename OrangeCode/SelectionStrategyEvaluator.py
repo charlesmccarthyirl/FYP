@@ -8,15 +8,21 @@ from __future__ import division
 import collections
 from cross_validation import KFold
 from PrecomputedDistance import Instance
-from SelectionStrategy import Selection
+from Knn import KNN
 try:
     import pyx
 except:
     pass
+
+try:
+    import pygraphviz
+except:
+    pass
+
 import sys
 import logging
 import csv
-from itertools import compress, imap, izip, islice, izip_longest, chain
+from itertools import compress, imap, izip, islice, izip_longest, chain, combinations
 import random
 import tarfile, StringIO
 from os.path import splitext
@@ -342,22 +348,23 @@ class Experiment:
             assert isinstance(variation, ExperimentVariation)
             if existing_named_variation_results.has_key(variation_name):
                 logging.info("Already have results for %s. Skipping evaluation." % variation_name)
-                named_variation_results[variation_name] = existing_named_variation_results[variation_name]
-                continue
-
-            evaluator = SelectionStrategyEvaluator(self.oracle_generator_generator(data_info.oracle), 
-                                                   data_info.oracle,
-                                                   self.stopping_condition_generator,
-                                                   variation.selection_strategy,
-                                                   variation.classifier_generator,
-                                                   probability_generator=variation.probability_generator,
-                                                   nns_getter_generator=variation.nns_getter_generator,
-                                                   distance_constructor=data_info.distance_constructor,
-                                                   possible_classes=data_info.possible_classes)
+                variation_result = existing_named_variation_results[variation_name]
+            else:
+                evaluator = SelectionStrategyEvaluator(self.oracle_generator_generator(data_info.oracle), 
+                                                       data_info.oracle,
+                                                       self.stopping_condition_generator,
+                                                       variation.selection_strategy,
+                                                       variation.classifier_generator,
+                                                       probability_generator=variation.probability_generator,
+                                                       nns_getter_generator=variation.nns_getter_generator,
+                                                       distance_constructor=data_info.distance_constructor,
+                                                       possible_classes=data_info.possible_classes)
+                logging.info("Starting evaluation on variation %s" % variation_name)
+                variation_result = evaluator.generate_results_from_many(self.training_test_sets_extractor(data_info.data, data_info.oracle))
+                logging.info("Finishing evaluation on variation %s" % variation_name)
+                
+            named_variation_results[variation_name] = variation_result
             
-            logging.info("Starting evaluation on variation %s" % variation_name)
-            named_variation_results[variation_name] = evaluator.generate_results_from_many(self.training_test_sets_extractor(data_info.data, data_info.oracle))
-            logging.info("Finishing evaluation on variation %s" % variation_name)
 
         return named_variation_results
 
@@ -374,6 +381,74 @@ class ExperimentResult(dict):
         for (variation_name, result_set) in self.items():
             with stream_from_name_getter(variation_name) as stream:
                 result_set.serialize(stream)
+                
+    def write_to_selection_graphs(self, stream_from_name_getter, data_info):
+        if not sys.modules.has_key('pygraphviz'):
+            raise ImportError('pygraphviz not available on this system.')
+        
+        logging.info("Beginning Graph Generation")
+        
+        def add_edge(g, a, b, length):
+            g.add_edge(a, b, len=length)
+            
+        def set_node_as_test(g, n):
+            g.get_node(n).attr['color'] = 'gray'
+        
+        def set_node_as_train(g, n):
+            g.get_node(n).attr['color'] = 'black'
+        
+        def set_node_selected(g, n):
+            g.get_node(n).attr['color'] = 'green'
+
+        
+        logging.debug("Beginning Add Graph Data")
+        
+        dm = data_info.distance_constructor(data_info.data)
+        G = pygraphviz.AGraph(overlap='scalexy')
+        for a in data_info.data:
+            nearest = KNN.s_find_nearest(a, data_info.data, 5, dm)
+            for n in nearest:
+                if G.has_edge(a, n):
+                    continue
+                dist = dm(a, n)
+                add_edge(G, a, n, dist)
+        
+        logging.debug("Ending Add Graph Data")
+        
+        logging.debug("Beginning Graph Layout")
+        G.layout(prog="fdp")
+        logging.debug("Ending Graph Layout")
+
+        for (variation_name, multi_result_set) in self.items():
+            logging.debug("Generating graph for variation %s" % variation_name)
+            with stream_from_name_getter(variation_name) as stream, \
+                tarfile.open(mode="w:gz", fileobj=stream) as tar:
+                for (cv_no, resultset) in enumerate(multi_result_set.all_results):
+                    logging.debug("Generating graph for cv %d" % cv_no)
+                    
+                    for e in resultset.test_set:
+                        set_node_as_test(G, e)
+                    
+                    for (j, result) in enumerate(sorted(resultset, key=lambda r: r.case_base_size)):
+                        _format="svg"
+                        
+                        if result.selections is not None:
+                            for sel in result.selections:
+                                set_node_selected(G, sel)
+                        
+                        mem_stream = StringIO.StringIO()
+                        G.draw(mem_stream, format=_format)
+                        mem_stream.seek(0)
+                        
+                        info = tar.tarinfo("CV%02d_%03d.%s" % (cv_no, j, _format))
+                        info.size = len(mem_stream.buf)
+
+                        tar.addfile(info, fileobj=mem_stream)
+                    
+                    for e in resultset.test_set:
+                        set_node_as_train(G, e)
+                        
+        logging.info("Ending Graph Generation")
     
     def generate_graph(self, title=None):
         if not sys.modules.has_key('pyx'):

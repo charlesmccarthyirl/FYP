@@ -23,15 +23,6 @@ class KNN:
         self.classification_tie_breaker = classification_tie_breaker
         self.possible_classes = possible_classes
     
-    def __key_generator(self):
-        return functools.cmp_to_key(self.__comparer)
-    
-    def __comparer(self, inst_dist1, inst_dist2):
-        inst1, dist1 = inst_dist1
-        inst2, dist2 = inst_dist2
-        
-        return dist1 - dist2
-    
     @staticmethod
     def sum_instances(the_list):
         '''
@@ -52,34 +43,49 @@ class KNN:
                 output[e[0]] = e[1]
         return output.items()
     
-    def find_nearest(self, instance, exclude_self=True):
-        current_nearest_sorted = []
-        cmp_key = self.__key_generator()
+    @staticmethod
+    def _comparer(inst_dist1, inst_dist2):
+        inst1, dist1 = inst_dist1
+        inst2, dist2 = inst_dist2
         
-        for other in self.data:
+        return dist1 - dist2
+    
+    @staticmethod
+    def s_find_nearest(instance, data, k, dist_meas, instance_tie_breaker=min, exclude_self=True):
+        cmp_key = functools.cmp_to_key(KNN._comparer)
+        
+        current_nearest_sorted = []
+        
+        for other in data:
             if other is instance and exclude_self:
                 continue
-            other_dist = self.dist_meas(instance, other)
+            other_dist = dist_meas(instance, other)
             
-            if len(current_nearest_sorted) < self.k \
+            if len(current_nearest_sorted) < k \
                or other_dist <= current_nearest_sorted[-1][1]:
-                current_nearest_sorted.append((other, self.dist_meas(instance, other)))
+                current_nearest_sorted.append((other, dist_meas(instance, other)))
                 current_nearest_sorted.sort(key=cmp_key)
                 
-                if len(current_nearest_sorted) <= self.k:
+                if len(current_nearest_sorted) <= k:
                     continue
                 
                 maxes = max_multiple(current_nearest_sorted, key=cmp_key)
                 
                 current_nearest_sorted = current_nearest_sorted[:-(len(maxes))]
-                while len(current_nearest_sorted) < self.k:
+                while len(current_nearest_sorted) < k:
                     max_instances = [m[0] for m in maxes]
-                    best = self.instance_tie_breaker(max_instances)
+                    best = instance_tie_breaker(max_instances)
                     best_index = max_instances.index(best)
                     current_nearest_sorted.append(maxes[best_index])
                     del(maxes[best_index])
 
         return [nnd[0] for nnd in current_nearest_sorted]
+    
+    def find_nearest(self, instance, exclude_self=True):
+        return KNN.s_find_nearest(instance, self.data, self.k, self.dist_meas, 
+                                  self.instance_tie_breaker, exclude_self)
+        
+        
     
     def get_probabilities(self, instance, neighbours=None, exclude_self=True):
         if neighbours is None:

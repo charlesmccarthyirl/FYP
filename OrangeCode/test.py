@@ -30,6 +30,11 @@ def main(experiment, named_data_sets, experiment_directory, do_create_graphs=Tru
                               stream_getter(csv_filename_getter(variation_name, csv_path)))
         
         try:
+            results.write_to_selection_graphs(lambda variation_name: stream_getter(csv_filename_getter(variation_name+"_selection_graphs", csv_path)), data_set)
+        except ImportError, ex:
+            logging.info("Unable to generate selection graphs for %s data set. Graphing module unavailable in system: %s" %(data_set_name, ex)) 
+        
+        try:
             g = results.generate_graph(data_set_name)
             g.writePDFfile(os.path.abspath(csv_path)) # Yes this is intentional, want it in the experiment directory, but with the same name as the folder.
         except ImportError, ex:
