@@ -7,7 +7,7 @@ def standard_inverse_distance_weighting(distance):
     return 1/(distance+1)
 
 def squared_inverse_distance_weighting(distance):
-    return pow(standard_inverse_distance_weighting(distance), 2)
+    return 1/(pow(distance) + 1)
 
 class KNN:    
     def __init__(self, data, k, dist_meas, oracle, possible_classes, 
