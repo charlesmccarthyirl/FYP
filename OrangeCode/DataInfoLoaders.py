@@ -18,10 +18,9 @@ def orange_load(filename, distance_constructor):
     data = orange.ExampleTable(filename)
     
     dist_meas = distance_constructor(data) # Want global distances always.
-    dist_constructor = lambda data: dist_meas
+    distance_constructor = lambda data: dist_meas
     
     return DataInfo(data, true_oracle, distance_constructor).get_instance_based()
-
 
 def get_data_info(filename, distance_constructor):
     ext = os.path.splitext(filename)[1].lower()
