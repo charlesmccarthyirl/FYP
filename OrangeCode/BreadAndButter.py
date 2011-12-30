@@ -61,7 +61,8 @@ data_files_dict = dict(((os.path.basename(df), df) for df in data_files))
 def load_data_info(
         base_filename, 
         random_seed_generator=random_seed_generator, 
-        distance_constructor=None):
+        distance_constructor=None,
+        **kwargs):
     filename = data_files_dict[base_filename]
     
     data_info = get_data_info(filename, distance_constructor)
@@ -72,12 +73,23 @@ def load_data_info(
         data_info.data = list(data_info.data)
         random_function = random.Random(random_seed).random
         random.shuffle(data_info.data, random_function)
-        
+    
+    for (k, v) in kwargs.items():
+        setattr(data_info, k, v)
+    
     return data_info
 
+def _translate_bit(bit):
+    if isinstance(bit, dict) :
+        return bit
+    elif isinstance(bit, str):
+        return  {"base_filename": bit}
+    elif isinstance(bit, tuple):
+        d = dict(bit[1])
+        d['base_filename'] = bit[0]
+        return d
+
 def create_named_data_set_generators(base_data_set_infos):
-    base_data_set_infos = [info if isinstance(info, dict) 
-                                else {"base_filename": info} 
-                           for info in base_data_set_infos]
+    base_data_set_infos = map(_translate_bit, base_data_set_infos)
     return [((data_set_info["base_filename"]).split(".")[0], partial(load_data_info, **data_set_info)) 
             for data_set_info in base_data_set_infos]

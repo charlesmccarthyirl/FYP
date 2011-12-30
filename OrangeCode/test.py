@@ -6,6 +6,7 @@ import os, sys, glob
 from os.path import basename, splitext
 from functools import partial
 from utils import stream_getter
+import functools
 
 def tgz_filename_getter(variation_name, path):
     if not os.path.exists(path):
@@ -16,8 +17,18 @@ def tgz_filename_getter(variation_name, path):
 def main(experiment, named_data_sets, experiment_directory, do_create_graphs=True):
     # data_set_name -> example_table (pre-shuffled)
     for (data_set_name, data_set_generator) in named_data_sets:
+        l_experiment = experiment.copy()
+        
         logging.info("Beginning processing on %s" % data_set_name)
         data_set = data_set_generator()
+        
+        if hasattr(data_set, 'sc'):
+            sc = getattr(data_set, 'sc')
+            if isinstance(sc, int):
+                i = sc # Can't go using sc in the lambda, and assigning to it. Will be passing a function then.
+                sc = lambda *args, **kwargs: BudgetBasedStoppingCriteria(i)
+                
+            l_experiment.stopping_condition_generator = sc
         
         full_result_path = os.path.join(experiment_directory, data_set_name)
         raw_results_dir = os.path.join(full_result_path, "raw_results")
@@ -29,7 +40,7 @@ def main(experiment, named_data_sets, experiment_directory, do_create_graphs=Tru
         existing_results = ExperimentResult()
         existing_results.load_from_csvs(name_to_file_stream_getter_pairs)
         
-        results = experiment.execute_on(data_set, existing_results)
+        results = l_experiment.execute_on(data_set, existing_results)
         
         results.write_to_csvs(lambda variation_name: 
                               stream_getter(tgz_filename_getter(variation_name, raw_results_dir)))
