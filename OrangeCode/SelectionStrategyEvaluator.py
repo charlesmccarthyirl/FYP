@@ -328,6 +328,12 @@ class ExperimentVariation:
         self.selection_strategy = selection_strategy
     
 class Experiment:
+    def copy(self):
+        return Experiment(self.oracle_generator_generator, 
+                          self.stopping_condition_generator, 
+                          self.training_test_sets_extractor, 
+                          self.named_experiment_variations_generator)
+    
     def __init__(self, 
                  oracle_generator_generator,
                  stopping_condition_generator,
@@ -409,15 +415,13 @@ class ExperimentResult(dict):
         G.edge_attr['color'] = 'gray'
         G.node_attr['style'] = 'filled'
         
-        def m_key(p):
-            d = dm(p[0], p[1])
+        def m_key(d):
             if d == 0:
                 return 1000000
-            
             return d
         
         logging.debug("Calculating min")
-        min_dist = min(combinations(data_info.data, 2), key=m_key)
+        min_dist = min((dm(*p) for p in combinations(data_info.data, 2)), key=m_key)
         logging.debug("Finished Calculating min")
         
         for a in data_info.data:
