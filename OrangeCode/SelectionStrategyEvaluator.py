@@ -17,6 +17,7 @@ except:
 
 try:
     import pygraphviz
+    from pyPdf import PdfFileWriter, PdfFileReader
 except:
     pass
 
@@ -27,6 +28,7 @@ from itertools import compress, imap, izip, islice, izip_longest, chain, combina
 import random
 import tarfile, StringIO
 from os.path import splitext
+
 
 def to_numerically_indexed(sequence):
     index_dict = {}
@@ -447,9 +449,14 @@ class ExperimentResult(dict):
             logging.debug("Generating graph for variation %s" % variation_name)
             with stream_from_name_getter(variation_name) as stream, \
                 tarfile.open(mode="w:gz", fileobj=stream) as tar:
+
                 for (cv_no, resultset) in enumerate(multi_result_set.all_results):
+                    output = PdfFileWriter()
+                    
                     for e in resultset.test_set:
                         set_node_as_test(G, e)
+                    
+                    
                     
                     for (j, result) in enumerate(sorted(resultset, key=lambda r: r.case_base_size)):
                         _format="pdf"
@@ -458,16 +465,22 @@ class ExperimentResult(dict):
                             for sel in result.selections:
                                 set_node_selected(G, sel)
                         
-                        if j == len(resultset) - 1: # Changing to just gen-ing last.
+                        if True:#j == len(resultset) - 1: # Changing to just gen-ing last.
                             logging.debug("Generating graph for cv %d" % cv_no)
                             mem_stream = StringIO.StringIO()
                             G.draw(mem_stream, format=_format)
                             mem_stream.seek(0)
                             
-                            info = tar.tarinfo("CV%02d_%03d.%s" % (cv_no, j, _format))
-                            info.size = len(mem_stream.buf)
-    
-                            tar.addfile(info, fileobj=mem_stream)
+                            input1 = PdfFileReader(mem_stream)
+                            output.addPage(input1.getPage(0))
+                    
+                    mem_stream = StringIO.StringIO()
+                    output.write(mem_stream)
+                    mem_stream.seek(0)    
+                    info = tar.tarinfo("CV%02d.%s" % (cv_no, _format))
+                    info.size = len(mem_stream.buf)
+
+                    tar.addfile(info, fileobj=mem_stream)
                     
                     for e in resultset.test_set:
                         set_node_as_train(G, e)
