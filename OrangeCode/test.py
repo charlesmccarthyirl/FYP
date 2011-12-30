@@ -65,5 +65,5 @@ if __name__ == "__main__":
     do_create_graph = sys.argv[4] != "0"
     if not os.path.exists(experiment_directory):
         os.makedirs(experiment_directory)
-    main(experiment, named_data_sets, experiment_directory)
+    main(experiment, named_data_sets, experiment_directory, do_create_graph)
 #    cProfile.run("main(experiment, named_data_sets, experiment_directory)", "mainProfile")
