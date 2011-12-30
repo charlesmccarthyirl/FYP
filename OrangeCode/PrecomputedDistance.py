@@ -1,4 +1,5 @@
-from itertools import islice, imap, chain, izip
+from __future__ import division
+from itertools import islice, imap, chain, izip, permutations
 import logging
 import csv
 import re
@@ -72,7 +73,12 @@ class Instance(object):
     def id_no(self):
         return self._id_no
 
-class DataInfo:    
+class DataInfo: 
+    def copy(self):
+        di = DataInfo(self.data, self.oracle, self.distance_constructor, self.possible_classes)
+        di._is_precached = self._is_precached
+        return di
+       
     def __init__(self, data, oracle, distance_constructor, possible_classes=None):
         self.data = data
         self.oracle = oracle
@@ -94,13 +100,29 @@ class DataInfo:
         if self._is_precached:
             return self
         
-        precomputed_distances = PrecomputedDistances(self.data, self.distance_constructor(self.data))
+        dm = self.distance_constructor(self.data)
+        precomputed_distances = PrecomputedDistances(self.data, dm)
         
         di = DataInfo(self.data, self.oracle, lambda data: precomputed_distances.get_distance, 
                       possible_classes=self.possible_classes)
         di._is_precached = True
-        return di   
+        return di
     
+    def get_distance_normalized(self):
+        dm = self.distance_constructor(self.data)
+        
+        max_dist = max(dm(*p) for p in permutations(self.data, 2)) #dist should be the same both ways, but just in case
+        
+        di = self.copy()
+        old_dc = di.distance_constructor
+        
+        def new_distance_constructor(data):
+            old_dm = old_dc(data)
+            return lambda ex1, ex2: old_dm(ex1, ex2)/max_dist
+            
+        di.distance_constructor = new_distance_constructor
+        return di
+        
     def serialize(self, stream, str_repr_getter = None):
         str_repr_getter = str_repr_getter or str
         precomputed_distances = PrecomputedDistances(self.data, self.distance_constructor(self.data))
