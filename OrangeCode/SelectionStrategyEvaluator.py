@@ -9,6 +9,7 @@ import collections
 from cross_validation import KFold
 from PrecomputedDistance import Instance
 from Knn import KNN
+import math
 try:
     import pyx
 except:
@@ -165,7 +166,6 @@ class MultiResultSet(ResultSet):
                 tar.addfile(info, fileobj=mem_stream)
         
     def deserialize(self, stream):
-        
         with tarfile.open(mode="r", fileobj=stream) as tar:
             new_all_results = [None] * (len(tar.getnames()) - 1)
             for info in tar:
@@ -404,19 +404,39 @@ class ExperimentResult(dict):
         logging.debug("Beginning Add Graph Data")
         
         dm = data_info.distance_constructor(data_info.data)
-        G = pygraphviz.AGraph(overlap='scalexy')
+        G = pygraphviz.AGraph(overlap='scalexy',  splines='false', aspect='1.333')
+        
+        G.edge_attr['color'] = 'gray'
+        G.node_attr['style'] = 'filled'
+        
+        def m_key(p):
+            d = dm(p[0], p[1])
+            if d == 0:
+                return 1000000
+            
+            return d
+        
+        logging.debug("Calculating min")
+        min_dist = min(combinations(data_info.data, 2), key=m_key)
+        logging.debug("Finished Calculating min")
+        
         for a in data_info.data:
-            nearest = KNN.s_find_nearest(a, data_info.data, 5, dm)
+            nearest = KNN.s_find_nearest(a, data_info.data, int(math.sqrt(len(data_info.data))), dm)
             for n in nearest:
                 if G.has_edge(a, n):
                     continue
                 dist = dm(a, n)
+                if (dist == 0):
+                    dist = min_dist
                 add_edge(G, a, n, dist)
+        
+        for n in G.nodes_iter():
+            set_node_as_train(G, n)
         
         logging.debug("Ending Add Graph Data")
         
         logging.debug("Beginning Graph Layout")
-        G.layout(prog="fdp")
+        G.layout(prog="neato")
         logging.debug("Ending Graph Layout")
 
         for (variation_name, multi_result_set) in self.items():
@@ -424,26 +444,26 @@ class ExperimentResult(dict):
             with stream_from_name_getter(variation_name) as stream, \
                 tarfile.open(mode="w:gz", fileobj=stream) as tar:
                 for (cv_no, resultset) in enumerate(multi_result_set.all_results):
-                    logging.debug("Generating graph for cv %d" % cv_no)
-                    
                     for e in resultset.test_set:
                         set_node_as_test(G, e)
                     
                     for (j, result) in enumerate(sorted(resultset, key=lambda r: r.case_base_size)):
-                        _format="svg"
+                        _format="pdf"
                         
                         if result.selections is not None:
                             for sel in result.selections:
                                 set_node_selected(G, sel)
                         
-                        mem_stream = StringIO.StringIO()
-                        G.draw(mem_stream, format=_format)
-                        mem_stream.seek(0)
-                        
-                        info = tar.tarinfo("CV%02d_%03d.%s" % (cv_no, j, _format))
-                        info.size = len(mem_stream.buf)
-
-                        tar.addfile(info, fileobj=mem_stream)
+                        if j == len(resultset) - 1: # Changing to just gen-ing last.
+                            logging.debug("Generating graph for cv %d" % cv_no)
+                            mem_stream = StringIO.StringIO()
+                            G.draw(mem_stream, format=_format)
+                            mem_stream.seek(0)
+                            
+                            info = tar.tarinfo("CV%02d_%03d.%s" % (cv_no, j, _format))
+                            info.size = len(mem_stream.buf)
+    
+                            tar.addfile(info, fileobj=mem_stream)
                     
                     for e in resultset.test_set:
                         set_node_as_train(G, e)
