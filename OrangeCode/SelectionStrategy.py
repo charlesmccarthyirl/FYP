@@ -5,6 +5,8 @@ Created on 23 Oct 2011
 '''
 
 import random
+from utils import average
+from itertools import permutations, imap
 
 def index_of(collection, needle):
     i = 0
@@ -73,13 +75,16 @@ class ClassifierBasedMarginSamplingMeasure(CompetenceMeasure):
 class DiversityMeasure(CompetenceMeasure):
     def __init__(self, case_base, distance_constructor, *args, **kwargs):
         self._case_base = case_base
-        self._distance_measure = distance_constructor(case_base) if len(case_base) > 0 else None
+        self._distance_constructor = distance_constructor
 
     def measure(self, example):
-        if not self._distance_measure:
+        if len(self._case_base) == 0:
             return 0
         
-        return min((self._distance_measure(example, e) for e in self._case_base))
+        dm = self._distance_constructor(self._case_base)
+        
+        diversity =  min((dm(example, e) for e in self._case_base if e is not example))
+        return diversity
     
 class SingleCompetenceSelectionStrategy(SelectionStrategy):
     @staticmethod

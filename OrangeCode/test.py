@@ -47,7 +47,7 @@ def main(experiment, named_data_sets, experiment_directory, do_create_graphs=Tru
         
         if do_create_graphs:
             try:
-                results.write_to_selection_graphs(lambda variation_name: stream_getter(tgz_filename_getter(variation_name, os.path.join(full_result_path, 'selection_graphs'))), data_set)
+                results.write_to_selection_graphs(lambda variation_name: stream_getter(tgz_filename_getter(variation_name, os.path.join(full_result_path, 'selection_graphs')), True), data_set)
             except ImportError, ex:
                 logging.info("Unable to generate selection graphs for %s data set. Graphing module unavailable in system: %s" %(data_set_name, ex)) 
             

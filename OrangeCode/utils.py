@@ -1,9 +1,13 @@
 import os
 
-def stream_getter(filename):
+def stream_getter(filename, none_on_exists=False):
     path = os.path.dirname(filename)
     if not os.path.exists(path):
         os.makedirs(path)
+        
+    if os.path.exists(filename) and none_on_exists:
+        return None
+    
     return open(filename, 'wb')
 
 def max_multiple(the_list, key=None):
@@ -30,3 +34,12 @@ def max_multiple(the_list, key=None):
         elif thing_key == m_key:
             ms.append(thing)
     return ms
+
+def average(iterable):
+    total = 0
+    length = 0
+    for i in iterable:
+        total += i
+        length += 1
+        
+    return total / length

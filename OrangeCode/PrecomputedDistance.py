@@ -19,7 +19,7 @@ class Instance(object):
     @staticmethod
     def single_from(thing):
         i = Instance.multiple_from(thing)[0]
-        assert isinstance(Instance, i)
+        assert isinstance(i, Instance)
         return i
          
     

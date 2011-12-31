@@ -8,6 +8,7 @@ from __future__ import division
 import collections
 from cross_validation import KFold
 from PrecomputedDistance import Instance
+from SelectionStrategy import Selection
 from Knn import KNN
 import math
 try:
@@ -28,6 +29,7 @@ from itertools import compress, imap, izip, islice, izip_longest, chain, combina
 import random
 import tarfile, StringIO
 from os.path import splitext
+from utils import average
 
 
 def to_numerically_indexed(sequence):
@@ -66,12 +68,12 @@ class ResultSet(list):
         logging.debug("Starting CSV reading from stream %s" % stream)
         
         reader = csv.reader(stream)
-        rows = ([float(cell) if '.' in cell 
+        rows = [[float(cell) if '.' in cell 
                              else int(cell) if cell.isdigit() 
                                             else cell
                 for cell in row]
-                for row in islice(reader, 1, None) if len(row) > 1)
-        self.extend((Result(*row[:3]) for row in rows if row[0] is not None))
+                for row in islice(reader, 1, None) if len(row) > 1]
+        self.extend((Result(*row[:3]) for row in rows if row[0] is not None and row[0] != ""))
         
         self.training_set.extend((Instance.single_from(row[3]) for row in rows if row[3]))
         self.test_set.extend((Instance.single_from(row[4]) for row in rows if row[4]))
@@ -213,14 +215,7 @@ class Oracle:
     def __call__(self, instance):
         return self.classify(instance)
 
-def average(iterable):
-    total = 0
-    length = 0
-    for i in iterable:
-        total += i
-        length += 1
-        
-    return total / length
+
 
 def add_dicts(dict1, dict2):
     result = dict1.copy()
@@ -284,8 +279,8 @@ class SelectionStrategyEvaluator:
     def generate_results(self, unlabelled_set, test_set):
         results = ResultSet(unlabelled_set, test_set)
         
-        if not isinstance(unlabelled_set, list):
-            unlabelled_set = list(unlabelled_set)
+        data = list(unlabelled_set)
+        unlabelled_set = list(unlabelled_set)
         
         classifier_generator = self.classifier_generator # just so it's in locals()
         # hacky Laziness. Just don't want to have to do **locals() myself, but I can't pass self.
@@ -294,9 +289,7 @@ class SelectionStrategyEvaluator:
         
         # Order of assignment here important so that **locals has the right info (e.g. the stopping_criteria may care about the oracle)
         case_base = [] 
-        
-        data = unlabelled_set
-        
+
         oracle = selection_strategy_evaluator.oracle_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
         selection_strategy = selection_strategy_evaluator.selection_strategy_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
         stopping_condition = selection_strategy_evaluator.stopping_condition_generator(**add_dicts(locals(), selection_strategy_evaluator.kwargs))
@@ -310,8 +303,14 @@ class SelectionStrategyEvaluator:
                 selections = [selections]
             
             for selection in selections:
-                del(unlabelled_set[selection.index])
-                case_base.append(selection.selection)
+                if isinstance(selection, Selection):
+                    index = selection.index
+                    selection = selection.selection
+                else:
+                    index = unlabelled_set,index(selection)
+                
+                del(unlabelled_set[index])
+                case_base.append(selection)
 
             logging.debug("Starting testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set)))
             result = selection_strategy_evaluator.__generate_result(case_base, test_set, selections)
@@ -400,7 +399,7 @@ class ExperimentResult(dict):
             g.add_edge(a, b, len=length)
             
         def set_node_as_test(g, n):
-            g.get_node(n).attr['color'] = 'gray'
+            g.get_node(n).attr['color'] = 'white'
         
         def set_node_as_train(g, n):
             g.get_node(n).attr['color'] = 'black'
@@ -447,43 +446,45 @@ class ExperimentResult(dict):
 
         for (variation_name, multi_result_set) in self.items():
             logging.debug("Generating graph for variation %s" % variation_name)
-            with stream_from_name_getter(variation_name) as stream, \
-                tarfile.open(mode="w:gz", fileobj=stream) as tar:
-
-                for (cv_no, resultset) in enumerate(multi_result_set.all_results):
-                    output = PdfFileWriter()
-                    
-                    for e in resultset.test_set:
-                        set_node_as_test(G, e)
-                    
-                    
-                    
-                    for (j, result) in enumerate(sorted(resultset, key=lambda r: r.case_base_size)):
-                        _format="pdf"
+            stream = stream_from_name_getter(variation_name)
+            if stream is None:
+                continue
+            
+            with stream as stream, \
+                 tarfile.open(mode="w:gz", fileobj=stream) as tar:
+    
+                    for (cv_no, resultset) in enumerate(multi_result_set.all_results):
+                        logging.debug("Generating graph for cv %d" % cv_no)
+                        output = PdfFileWriter()
                         
-                        if result.selections is not None:
-                            for sel in result.selections:
-                                set_node_selected(G, sel)
-                        
-                        if True:#j == len(resultset) - 1: # Changing to just gen-ing last.
-                            logging.debug("Generating graph for cv %d" % cv_no)
-                            mem_stream = StringIO.StringIO()
-                            G.draw(mem_stream, format=_format)
-                            mem_stream.seek(0)
+                        for e in resultset.test_set:
+                            set_node_as_test(G, e)
+    
+                        for result in sorted(resultset, key=lambda r: r.case_base_size):
+                            _format="pdf"
                             
-                            input1 = PdfFileReader(mem_stream)
-                            output.addPage(input1.getPage(0))
-                    
-                    mem_stream = StringIO.StringIO()
-                    output.write(mem_stream)
-                    mem_stream.seek(0)    
-                    info = tar.tarinfo("CV%02d.%s" % (cv_no, _format))
-                    info.size = len(mem_stream.buf)
-
-                    tar.addfile(info, fileobj=mem_stream)
-                    
-                    for e in resultset.test_set:
-                        set_node_as_train(G, e)
+                            if result.selections is not None:
+                                for sel in result.selections:
+                                    set_node_selected(G, sel)
+                            
+                            if True:#j == len(resultset) - 1: # Changing to just gen-ing last.
+                                mem_stream = StringIO.StringIO()
+                                G.draw(mem_stream, format=_format)
+                                mem_stream.seek(0)
+                                
+                                input1 = PdfFileReader(mem_stream)
+                                output.addPage(input1.getPage(0))
+                        
+                        mem_stream = StringIO.StringIO()
+                        output.write(mem_stream)
+                        mem_stream.seek(0)    
+                        info = tar.tarinfo("CV%02d.%s" % (cv_no, _format))
+                        info.size = len(mem_stream.buf)
+    
+                        tar.addfile(info, fileobj=mem_stream)
+                        
+                        for e in resultset.test_set:
+                            set_node_as_train(G, e)
                         
         logging.info("Ending Graph Generation")
     
