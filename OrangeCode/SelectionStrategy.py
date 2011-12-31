@@ -79,12 +79,37 @@ class DiversityMeasure(CompetenceMeasure):
 
     def measure(self, example):
         if len(self._case_base) == 0:
-            return 0
+            return 1
         
         dm = self._distance_constructor(self._case_base)
         
         diversity =  min((dm(example, e) for e in self._case_base if e is not example))
         return diversity
+    
+class DensityMeasure(CompetenceMeasure):
+    def __init__(self, data, distance_constructor, *args, **kwargs):
+        dm = distance_constructor(data)
+        get_density = lambda ex: average((dm(ex, o) for o in data))
+        self.density_lookup = dict(((ex, get_density(ex)) for ex in data))
+
+    def measure(self, example):
+        return self.density_lookup[example]
+    
+class DensityTimesDiversityMeasure(CompetenceMeasure):
+    def __init__(self, *args, **kwargs):
+        self.density_measure = DensityMeasure(*args, **kwargs)
+        self.diversity_measure = DiversityMeasure(*args, **kwargs)
+
+    def measure(self, example):
+        return self.density_measure.measure(example) * self.diversity_measure.measure(example)
+
+class DensityPlusDiversityMeasure(CompetenceMeasure):
+    def __init__(self, *args, **kwargs):
+        self.density_measure = DensityMeasure(*args, **kwargs)
+        self.diversity_measure = DiversityMeasure(*args, **kwargs)
+
+    def measure(self, example):
+        return self.density_measure.measure(example) + self.diversity_measure.measure(example)
     
 class SingleCompetenceSelectionStrategy(SelectionStrategy):
     @staticmethod
