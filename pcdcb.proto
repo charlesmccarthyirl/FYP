@@ -1,0 +1,16 @@
+message Instance{
+    optional string payload = 1;
+    required string label = 2; // The true classification of the instance
+  }
+
+message PrecomputedDistanceData{
+  optional string data_set_name = 1;
+  optional string data_set_description = 2;
+  
+  message Entry {
+    required Instance instance = 1;
+    repeated double distance = 2 [packed=true];
+  }
+  
+  repeated Entry entry = 3;
+}
