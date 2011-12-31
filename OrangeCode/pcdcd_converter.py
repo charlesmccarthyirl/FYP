@@ -13,16 +13,16 @@ import gzip
 def clean_path(path):
     return os.path.abspath(os.path.expanduser(path))
 
-if __name__ == '__main__':
-    in_file = clean_path(sys.argv[1])
-    out_file = clean_path(sys.argv[2])
-    dist_constructor_str = sys.argv[3]
-    serialization_method_str = sys.argv[4]
+def main(*argv):
+    in_file = clean_path(argv[1])
+    out_file = clean_path(argv[2])
+    dist_constructor_str = argv[3]
+    serialization_method_str = argv[4]
     dist_constructor_generator = getattr(orange, "ExamplesDistanceConstructor_%s" % dist_constructor_str)
     dist_constructor = lambda data: dist_constructor_generator()(list(data))
     data_info = get_data_info(in_file, dist_constructor)
     
-    do_zip = len(sys.argv) > 5 and sys.argv[5] == '1'
+    do_zip = len(argv) > 5 and int(argv[5]) == '1'
     open_args = (out_file, "wb")
     open_func = gzip.open if do_zip else open
     
@@ -30,3 +30,7 @@ if __name__ == '__main__':
     
     with open_func(*open_args) as ofs:
         data_info.serialize(ofs, serialization_method, DataInfo.get_numeric_str_repr_getter())
+    
+
+if __name__ == '__main__':
+    main(*sys.argv)
