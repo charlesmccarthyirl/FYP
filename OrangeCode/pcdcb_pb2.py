@@ -11,7 +11,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = descriptor.FileDescriptor(
   name='pcdcb.proto',
   package='',
-  serialized_pb='\n\x0bpcdcb.proto\"*\n\x08Instance\x12\x0f\n\x07payload\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x02(\t\"\xb9\x01\n\x17PrecomputedDistanceData\x12\x15\n\rdata_set_name\x18\x01 \x01(\t\x12\x1c\n\x14\x64\x61ta_set_description\x18\x02 \x01(\t\x12-\n\x05\x65ntry\x18\x03 \x03(\x0b\x32\x1e.PrecomputedDistanceData.Entry\x1a:\n\x05\x45ntry\x12\x1b\n\x08instance\x18\x01 \x02(\x0b\x32\t.Instance\x12\x14\n\x08\x64istance\x18\x02 \x03(\x01\x42\x02\x10\x01')
+  serialized_pb='\n\x0bpcdcb.proto\"*\n\x08Instance\x12\x0f\n\x07payload\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x02(\t\"\xba\x01\n\x17PrecomputedDistanceData\x12\x15\n\rdata_set_name\x18\x01 \x01(\t\x12\x1c\n\x14\x64\x61ta_set_description\x18\x02 \x01(\t\x12-\n\x05\x65ntry\x18\x03 \x03(\x0b\x32\x1e.PrecomputedDistanceData.Entry\x1a;\n\x05\x45ntry\x12\x1b\n\x08instance\x18\x01 \x02(\x0b\x32\t.Instance\x12\x15\n\tdistances\x18\x02 \x03(\x01\x42\x02\x10\x01')
 
 
 
@@ -66,7 +66,7 @@ _PRECOMPUTEDDISTANCEDATA_ENTRY = descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
-      name='distance', full_name='PrecomputedDistanceData.Entry.distance', index=1,
+      name='distances', full_name='PrecomputedDistanceData.Entry.distances', index=1,
       number=2, type=1, cpp_type=5, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -82,7 +82,7 @@ _PRECOMPUTEDDISTANCEDATA_ENTRY = descriptor.Descriptor(
   is_extendable=False,
   extension_ranges=[],
   serialized_start=187,
-  serialized_end=245,
+  serialized_end=246,
 )
 
 _PRECOMPUTEDDISTANCEDATA = descriptor.Descriptor(
@@ -123,7 +123,7 @@ _PRECOMPUTEDDISTANCEDATA = descriptor.Descriptor(
   is_extendable=False,
   extension_ranges=[],
   serialized_start=60,
-  serialized_end=245,
+  serialized_end=246,
 )
 
 _PRECOMPUTEDDISTANCEDATA_ENTRY.fields_by_name['instance'].message_type = _INSTANCE

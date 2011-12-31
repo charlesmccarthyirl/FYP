@@ -9,7 +9,7 @@ message PrecomputedDistanceData{
   
   message Entry {
     required Instance instance = 1;
-    repeated double distance = 2 [packed=true];
+    repeated double distances = 2 [packed=true];
   }
   
   repeated Entry entry = 3;
