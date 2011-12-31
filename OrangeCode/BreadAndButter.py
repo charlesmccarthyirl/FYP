@@ -66,7 +66,7 @@ def load_data_info(
     filename = data_files_dict[base_filename]
     
     data_info = get_data_info(filename, distance_constructor)
-    data_info = data_info.get_distance_normalized().get_precached()
+    data_info = data_info.get_precached()
     
     if random_seed_generator is not None:
         random_seed = random_seed_generator()

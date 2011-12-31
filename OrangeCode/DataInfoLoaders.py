@@ -22,18 +22,31 @@ def orange_load(filename, distance_constructor):
     
     return DataInfo(data, true_oracle, distance_constructor).get_instance_based()
 
-def get_data_info(filename, distance_constructor):
+def get_data_info(filename, distance_constructor, do_normalize_distances=True):
     ext = os.path.splitext(filename)[1].lower()
+    di = None
     if ext in [".csv", ".tab", ".arff"]:
-        return orange_load(filename, distance_constructor)
-    elif ext == ".pcdcd":
-        with open(filename) as f:
-            return DataInfo.deserialize(f)
-    elif filename.endswith(".pcdcd.gzip"):
-        with gzip.open(filename, "rb") as f:
-            return DataInfo.deserialize(f)
+        di = orange_load(filename, distance_constructor)
     else:
-        raise NotImplementedError("No implementation for ext %s" % ext)
+        open_op = open
+        if ext == ".gz":
+            open_op = gzip.open
+            ext = os.path.splitext(os.path.splitext(filename)[0])[0].lower()
+                
+        if ext == ".pcdt":
+            method = DataInfo.DeserializationMethod.csv
+        elif ext == ".pcdb":
+            method = DataInfo.DeserializationMethod.proto
+        else:
+            raise NotImplementedError("No implementation for ext %s" % ext)
+        
+        with open_op(filename) as f:
+            di = DataInfo.deserialize(f, method)
+            
+    if do_normalize_distances:
+        di = di.get_distance_normalized()
+    
+    return di
             
         
          

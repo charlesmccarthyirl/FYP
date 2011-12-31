@@ -390,8 +390,8 @@ class ExperimentResult(dict):
                 result_set.serialize(stream)
                 
     def write_to_selection_graphs(self, stream_from_name_getter, data_info):
-        if not sys.modules.has_key('pygraphviz'):
-            raise ImportError('pygraphviz not available on this system.')
+        if not (sys.modules.has_key('pygraphviz') and sys.modules.has_key('pyPdf')):
+            raise ImportError('pygraphviz/pypdf not available on this system.')
         
         logging.info("Beginning Graph Generation")
         

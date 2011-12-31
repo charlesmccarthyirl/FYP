@@ -3,6 +3,37 @@ from itertools import islice, imap, chain, izip, permutations
 import logging
 import csv
 import re
+import pcdcb_pb2
+
+class PrecomputedDistances:
+    def __init__(self, data, distance_measurer):
+        logging.info("Starting pre-computing distance matrix for %s" % data[:3])
+        
+        # In case it's shuffled, or whatever. Want the original data to be able to 
+        # lookup based on id.
+        self.data = list(data)
+        
+        self.instance_to_id_lookup = dict(((b, a) for (a, b) in enumerate(self.data)))
+        
+        dist_matrix = []
+        
+        for row_num in xrange(len(data)):
+            row_comp_els = islice(data, 0, row_num+1)
+            row = [distance_measurer(data[row_num], other) for other in row_comp_els]
+            dist_matrix.append(row)
+
+        logging.info("Finishing pre-computing distance matrix for %s" % data[:3])
+        
+        self.dist_matrix = dist_matrix
+    
+    def get_distance(self, ex1, ex2):
+        id1 = self.instance_to_id_lookup[ex1]
+        id2 = self.instance_to_id_lookup[ex2]
+        
+        if id1 > id2:
+            id2, id1 = id1, id2
+            
+        return self.dist_matrix[id2][id1]
 
 class Instance(object):
     
@@ -122,19 +153,39 @@ class DataInfo:
             
         di.distance_constructor = new_distance_constructor
         return di
+    
+    class SerializationMethod:
+        @staticmethod
+        def csv(stream, pcd_tuples):
+            writer = csv.writer(stream)
+            writer.writerow(("Instance", "Classification", "Computed Distances"))
+            
+            rows = imap(list, imap(lambda d: chain((d[0], d[1]), d[2]), pcd_tuples))
+            
+            writer.writerows(rows)
         
-    def serialize(self, stream, str_repr_getter = None):
+        @staticmethod
+        def proto(stream, pcd_tuples):
+            results = pcdcb_pb2.PrecomputedDistanceData()
+            for (payload, label, distances) in pcd_tuples:
+                entry = results.entry.add()
+                entry.instance.payload = str(payload)
+                entry.instance.label = str(label)
+                entry.distances.extend(imap(float, distances))
+            
+            stream.write(results.SerializeToString())
+
+    
+    def get_pcd_tuples(self, str_repr_getter):
         str_repr_getter = str_repr_getter or str
         precomputed_distances = PrecomputedDistances(self.data, self.distance_constructor(self.data))
         dist_matrix = precomputed_distances.dist_matrix
-        
-        writer = csv.writer(stream)
-        writer.writerow(("Instance", "Classification", "Computed Distances"))
-        
         data_with_classes = ((str_repr_getter(d), self.oracle(d)) for d in self.data) 
         data_with_classes_to_distances = izip(data_with_classes, dist_matrix)
-        rows = imap(list, imap(lambda its: chain(*its), data_with_classes_to_distances))
-        writer.writerows(rows)
+        return ((p, c, ds) for ((p, c), ds) in data_with_classes_to_distances)
+    
+    def serialize(self, stream, serialization_method, str_repr_getter = None):
+        return serialization_method(stream, self.get_pcd_tuples(str_repr_getter))
     
     @staticmethod
     def get_numeric_str_repr_getter():
@@ -146,15 +197,28 @@ class DataInfo:
         
         return str_repr_getter
     
-    @staticmethod
-    def deserialize(stream):
-        logging.info("Beginning deserializing Data Info from %s" % stream)
-        reader = csv.reader(stream)
-        rows = islice(reader, 1, None)
-        row_splits = [(r[0], r[1], map(float, r[2:])) for r in rows]
+    
+    class DeserializationMethod:
+        @staticmethod
+        def csv(stream):
+            
+            reader = csv.reader(stream)
+            rows = islice(reader, 1, None)
+            
+            pcd_tuples = [(r[0], r[1], map(float, r[2:])) for r in rows]
+            return pcd_tuples
         
-        data = [Instance(id_no=en[0], label=en[1][1], payload=en[1][0]) for en in enumerate(row_splits)]
-        dist_matrix = [r[2] for r in row_splits]
+        @staticmethod
+        def proto(stream):
+            results = pcdcb_pb2.PrecomputedDistanceData()
+            results.ParseFromString(stream.read())
+            pcd_tupes = [ (e.instance.payload, e.instance.label, list(e.distances)) for e in results.entry]
+            return pcd_tupes
+    
+    @staticmethod
+    def deserialize_pcd_tuples(pcd_tuples):
+        data = [Instance(id_no=en[0], label=en[1][1], payload=en[1][0]) for en in enumerate(pcd_tuples)]
+        dist_matrix = [r[2] for r in pcd_tuples]
         instance_to_id_lookup = dict(((b, a) for (a, b) in enumerate(data)))
         
         precomputed_distances = PrecomputedDistances([], None)
@@ -165,38 +229,14 @@ class DataInfo:
         di = DataInfo(data, lambda e: e.label, lambda data: precomputed_distances.get_distance)
         di._is_precached = True
         
-        logging.info("Finishing deserializing Data Info from %s" % stream)
         return di
-
-class PrecomputedDistances:
-    def __init__(self, data, distance_measurer):
-        logging.info("Starting pre-computing distance matrix for %s" % data[:3])
-        
-        # In case it's shuffled, or whatever. Want the original data to be able to 
-        # lookup based on id.
-        self.data = list(data)
-        
-        self.instance_to_id_lookup = dict(((b, a) for (a, b) in enumerate(self.data)))
-        
-        dist_matrix = []
-        
-        for row_num in xrange(len(data)):
-            row_comp_els = islice(data, 0, row_num+1)
-            row = [distance_measurer(data[row_num], other) for other in row_comp_els]
-            dist_matrix.append(row)
-
-        logging.info("Finishing pre-computing distance matrix for %s" % data[:3])
-        
-        self.dist_matrix = dist_matrix
     
-    def get_distance(self, ex1, ex2):
-        id1 = self.instance_to_id_lookup[ex1]
-        id2 = self.instance_to_id_lookup[ex2]
-        
-        if id1 > id2:
-            id2, id1 = id1, id2
-            
-        return self.dist_matrix[id2][id1]
+    @staticmethod
+    def deserialize(stream, deserialization_method):
+        logging.info("Beginning deserializing Data Info from %s" % stream)
+        return DataInfo.deserialize_pcd_tuples(deserialization_method(stream))
+        logging.info("Finishing deserializing Data Info from %s" % stream)
+
 
 def generate_precomputed_example_distance_constructor(data, distance_measurer):
     precomputed_distances = PrecomputedDistances(data, distance_measurer)
