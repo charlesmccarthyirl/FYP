@@ -7,6 +7,7 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{amsmath}
+\usepackage[section,subsection,subsubsection]{extraplaceins} %http://lexfridman.com/blogs/research/2011/03/06/prevent-figures-from-floating-outside-sections-in-latex/
 
 \title{Using Competence Models in Active Learning}
 \author{Charles McCarthy\\
@@ -204,11 +205,20 @@ In the second stage of the project, we reviewed the work of \cite{Delany2009}, a
 Certain concepts very frequently occur in the Active Learning Literature, so these will be outlined first.
 
 \subsection{Similarity/Distance}
+The notion of Similarity or Distance between pairs of data instances is often core in many Selection Strategies. As one would expect - the Similarity between two data instances is a numerical figure which represents how similar the instances are to one another.
+
+Distance is simply the inverse of Similarity, representing numerically how far two data instances are away from each other.
+
 \subsection{Density}
+(Mention to variations on density - global and local. Give references)
+
 \subsection{Diversity}
+
 \subsection{Solves / Classifies / Contributes}
 Make note of the different definitions.
+
 \subsection{Clustering}
+
 
 \section{Core Project Papers / Literature}
 At the project outset, certain literature was used as the base for subsequent investigation. As such, they were analysed in greater detail than later literature. The summaries and findings of these papers will now be presented.
@@ -284,8 +294,7 @@ Coverage(G)=\underset{G_{i}\in G}{\sum}GroupCoverage(G_{j})
 \]
 
 \subsubsection{Experimental Conclusions}
-
-Stuff
+Smyth and McKenna found a close correspondence between their Case Base Coverage competence model, and the true competence of the case base against the test sets\cite{Smyth1998}.
 
 \subsection{Sarah Jane Delaney's Work on Competence Models\label{sec:DelaneysWork}}
 \subsubsection{Introduction}
@@ -297,12 +306,12 @@ In particular, Delaney uses the concepts in investigating Case Base Maintenance 
 Due to Delaney's research being a very primary part of this project, the RCDL model, along with the model's consequences are gone through in detail in \ref{cha:CompetenceModels}. 
 
 \subsubsection{Case Classifications}
-Through the definitions of the RCDL Sets - Delaney notes the following\cite{Delany2009}:
+Through the definitions of the RCDL Sets - Delaney notes the following\cite{Delany2009}\footnote{The two enumerations following of profile analysis are taken verbatim from the cited paper. They gives a good break-down of the possibilities, and are simply useful to keep in mind when considering the rest of the RCDL approach - hence their inclusion.}:
 
 \begin{enumerate}
-\item Firstly, it is possible to indicate whether the case is correctly or incorrectly classified by the case-base. This is identified by the case having either a reachability set (R) or a dissimilarity set (D).
-\item Secondly, we can consider whether the case is useful, by the existence of a coverage set (C), and
-\item Finally whether the case is harmful and causes damage, by the existence of a liability set (L).
+	\item Firstly, it is possible to indicate whether the case is correctly or incorrectly classified by the case-base. This is identified by the case having either a reachability set (R) or a dissimilarity set (D).
+	\item Secondly, we can consider whether the case is useful, by the existence of a coverage set (C), and
+	\item Finally whether the case is harmful and causes damage, by the existence of a liability set (L).
 \end{enumerate}
 
 Through enumeration of the possible RCDL Combinations - 8 possible Profiles exist for a case, using the occurrence of a non-empty set as the 'flag' on which to enumerate\cite{Delany2009}:
@@ -332,16 +341,187 @@ The simplicity of the boolean set-non-emptiness characteristic of the case profi
 In our work, we hope to play with further expanding on these profiles - using them in a non-boolean way, actually factoring in what the sets actually comprise of. 
 
 
-\subsection{Rong Hu's Work on Active Learning}
+\subsection{Rong Hu's Work on EGAL: Exploration Guided Active Learning}
 \subsubsection{Introduction}
-Rong Hu recently completed her PHD Thesis on "Active Learning for Text Classification" in D.I.T. with Dr. Sarah Jane Delaney as one of her supervisors \cite{Hu2011}. In her thesis, she covers a broad range of topics, but of particular interest to us is her work on "EGAL", and also on using Aggregate Confidence Measures.
+Many Selection Strategies have firm dependencies on a type of Classifier confidence score (what Hu terms Exploitation Strategies), while also incorporating measures such as Density and Diversity (what Hu terms Exploration Strategies).
 
-\subsubsection{EGAL: Exploration Guided Active Learning}
-\paragraph{Test}
+Hu, in her work on EGAL, experiments with developing an Exploration only strategy by using only a combined measures of Density and Diversity\footnote{Rong Hu recently completed her PHD Thesis on "Active Learning for Text Classification" in D.I.T. with Dr. Sarah Jane Delaney as one of her supervisors \cite{Hu2011}. In her thesis, she covers a broad range of topics, but of particular interest to us is her work on "EGAL", and also on using Aggregate Confidence Measures.}.
 
-\subsubsection{Using Aggregate Confidence Measures}
+While some of the formula specifics feel slightly odd, the overall attempt on using an Exploration only strategy is pretty interesting. 
 
-\section{Other Interesting Active Learning Literature}
+\subsubsection{Density}
+\[
+density(x_{i})=\underset{x_{r}\in N_{i}}{\sum}sim(x_{i},x_{r})
+\]
+
+\[
+N_{i}=\left\{ x_{r}\in D\mid sim(x_{i},x_{r})\geq\alpha\right\} 
+\]
+
+$\alpha=\mu-0.5\times\delta$ where $\mu$ is the mean, and $\delta$ is the standard deviation of the similarities. This value for $\alpha$ is somewhat arbitrary, in that it just seemed to work well in Hu's experiments.
+
+Of particular note is that the density measure is calculated across the entire dataset (i.e. unlabelled + labelled). This being in contrast to the upcoming Diversity measure - which is measured just on the labelled instances.
+
+\subsubsection{Diversity}
+
+\[
+diversity(x_{i})=\frac{1.0}{max_{x_{r}\in L}sim(x_{i},x_{r})}
+\]
+
+It's inverted because distance is inverse of similarity. So diversity is really the 'distance' to the nearest neighbour in the Labelled set.
+
+\subsubsection{Combining Density and Diversity}
+
+\paragraph{Candidate Set}
+\[
+CS=\left\{ \exists x_{i}\in U\mid diversity(x_{i})\geq\frac{1}{\beta}\right\} 
+\]
+
+This is presented in a slightly expanded (but equivalent) form in Hu's paper dedicated to EGAL\cite{Hu2010}. Really, $\beta$ represents the maximum similarity allowed to its nearest neighbour. This formula forms the set of cases which do not have any other cases within a distance of $\frac{1}{\beta}$.
+
+It will be from the Candidate set that instances will be selected - but more on that below.
+
+\paragraph{Generating the Max Similarity Sets}
+
+Firstly, for each item in the Unlabelled set, the similarity to the 'closest' element in the labelled set is calculated and stored. \footnote{Diversity is the distance to the closest element. The inverse of distance gives similarity. Thus the inverse of diversity is the Similarity of an element to its closest element.}
+
+\[
+S=\left\{ s_{i}=\frac{1}{diversity(x_{i})}\mid x_{i}\in U\right\} 
+\]
+
+\paragraph{Determining $\beta$}
+A proportion $w$ is chosen from experimentation. It will represent the proportion of the top-most diverse elements to include in the Candidate Set.
+
+\[
+S_{1}=\left\{ s_{i}\in S\mid s_{i}\leq s_{w}\right\} 
+\]
+
+\[
+S_{2}=\left\{ s_{j}\in S\mid s_{j}>s_{w}\right\} 
+\]
+
+\[
+\left|S_{1}\right|=\left\lfloor \left(w\times\left|S\right|\right)\right\rfloor +1,\hphantom{}0\leq w\leq 1
+\]
+
+It does this by choosing a similarity value $s_{w}$ that would give that proportion. $\beta$ is then set to that $s_{w}$ value.
+
+\paragraph{Algorithm Outline}
+\begin{enumerate}
+	\item Initially $\beta$ is simply set to $\alpha$, but is updated according to the formula above each time to candidate set becomes empty.
+	\item The candidate is sorted from highest density to lowest density, and items are taken in order until the stopping condition is reached.
+\end{enumerate}
+
+\paragraph{Factor Summaries}
+\begin{itemize}
+	\item $\beta$ relates to the minimum distance  that labelled examples should be from an unlabelled example for it to be thought of as 'diverse', and thus should be included in the 'candidate set'. 
+	
+	This is represented in terms of similarity - the maximum similarity.
+
+	\item $\alpha$ relates to the 'distance' (really similarity) within which to define the neighbourhood of an instance for the purpose of calculating the density (total pairwise similarity) of the instance. 
+	
+	This is represented in terms of similarity - the minimum similarity value instances should have to be within the neighbourhood.
+	
+\end{itemize}
+
+\paragraph{$w$ as a Density/Diversity Balancing factor}
+Hu explains that $w$ is a balancing factor between Density and Diversity\cite{Hu2010}. 
+
+\begin{itemize}
+	\item When $w=0$, a pure diversity-sampling approach occurs. 
+	\item When $w=1$, a pure density-sampling approach occurs. 
+	\item When $w$ is set to values between $0$ and $1$, a mixture of density and diversity sampling occurs.
+\end{itemize}
+
+\subsubsection{Experimental Results}
+In \citet{Hu2011}, Hu finds that w=$0.25$ gives the best results for the data sets she used. She also finds that 
+
+Hu also finds that the EGAL strategy with $w=0.25$ compares favourably with Random Sampling, and also beats Diversity-only and Density-only sampling.
+
+For comparison with other Active Learning strategies, Hu finds that EGAL performs generally better than the other strategies at the initial stages of the Active Learning process.
+
+\subsubsection{Comments}
+Even though $w=0$ gives a diversity-only approach, and $w=1$ gives a density-only approach, it is unclear the exact effect of having values in between the $0$ to $1$ range.
+
+\subsection{Rong Hu's Work on Using Aggregate Confidence Measures}
+\subsubsection{Introduction}
+
+\subsubsection{Model \& Measures}
+
+In \citet{Delany2005} - Delany proposes 5 confidence measures. Hu chooses the 3 of these which she determines experimentally to have the least correlation.
+
+For the 3, the following metrics are needed:
+\begin{itemize}
+	\item $N_{i}(t)$ denotes the ith nearest neighbour of example t.
+	\item $NLN_{i}(t)$ denotes the ith nearest like neighbour to example t.
+	\item $NUN_{i}(t)$ denotes the ith nearest unlike neighbour to example t.
+\end{itemize}
+
+\paragraph{Average NUN Index}
+
+\[
+AvgNUNIndex(t,k)=\frac{\sum_{i=1}^{k}IndexOfNUN_{i}(t)}{k}
+\]
+
+where:
+\begin{itemize}
+	\item $IndexOfNUN_{i}(t)$ is the index of the ith nearest unlike neighbour of target example t, the index being the ordinal ranking of the example in the list of NNs
+\end{itemize}
+
+\paragraph{Similarity Ratio}
+\[
+SimRatio(t,k)=\frac{\sum_{i=1}^{k}Sim(t,NLN_{i}(t))+\epsilon}{\sum_{i=1}^{k}Sim(t,NUN_{i}(t))+\epsilon}
+\]
+
+where:
+\begin{itemize}
+	\item $Sim(a, b)$ is the similarity between examples $a$ and $b$ 
+	\item $\epsilon$ is a smoothing value to allow for situations where an example may have no NLNs or NUNs ($\epsilon$ = 0.0001 is used in all of her evaluations). Top and bottom have this value to give a ratio of 1 when no NLNs or NUNs, since technically the ratio is 0:0 - a ratio of 1.
+\end{itemize}
+
+\paragraph{Similarity Ratio Within K}
+\[
+SimRatioK(t,k)=\frac{\sum_{i=1}^{k}Sim(t,NN_{i}(t))\delta_{t,NN_{i}(t)}}{\epsilon+\sum_{i=1}^{k}Sim(t,NN_{i}(t))(1-\delta_{t,NN_{i}(t)})}
+\]
+
+where:
+\begin{itemize}
+	\item $Sim(a, b)$ is as above, 
+	\item $\delta_{a, b}$ is Kronecker's delta where $\delta_{a, b}=1$ if the class of $a$ is the same as the class of $b$ and $0$ otherwise. 
+	\item $\epsilon$ is a smoothing value to allow for situations where an example may have no NUNs ($\epsilon = 0.0001$ is used). \footnote{It's unclear the reason for the inconsistency between the use of $\epsilon$ on the bottom only here, but on top and bottom above.}
+\end{itemize}
+
+
+\subsubsection{Combining the confidence Measures}
+\paragraph{Initializing the Case Base}
+Before the main algorithm which combines the confidence measures is initiated, the Case Base is initially seeded with a Deterministic variation on Furthest-First Initialization, as presented in \citet{Greene2007}
+
+\paragraph{Confidence Measure Threshold Initialization}
+For \textbf{each} measure, the confidence threshold needs to identified for \textbf{each} class.
+
+For each measure, predictions with confidence values higher than the predicted class's threshold are considered confident for that measure, while those with values below are considered non-confident for that measure.
+
+Details surrounding how exactly these thresholds are set can be found in \citet{Delany2005}, but roughly, values are chosen on a per-dataset basis through experimentation. The experimentation, for binary classification give, maximize the correct classifications, while keeping the false-positives zero.
+
+\paragraph{Operation}
+The algorithm essentially operates on (repeatedly) building 2 sets - the Confident Set, and the Non-Confident Set - from the Unlabelled data.
+
+The Confident Set is composed of instances for which any their Confidence Measures exceeded the Measure's Confidence Threshold. The 'score' associated with each instance is the maximum of all the confidence measures for that instance.
+
+The Non-Confident Set is composed of instances which do not appear in the Confident Set, but the 'score' associated with each instance is the minimum of all the confidence measures for that instance. 
+
+This min-max combination was chosen as it performed the best in Hu's preliminary experiments when she considered multiple variations.\footnote{I really question this approach . . .}. Measures for each instance "are normalised using statistical normalisation after performing a log transformation to correct those with skewed distributions"\cite{Hu2011}.
+
+After the Confident and Non-Confident sets are built, selection begins. First elements in the Non-Confident Set are selected, and once it is expended, elements from the Confident Set are selected. Selection occurs from each of the sets in a lowest-score-first order. A batch size which is an input to the algorithm indicates how many should be selected in this 'batch', before restarting the entire process, and beginning the selection of a new batch from the start again.
+
+\begin{figure}[h!]
+\includegraphics{./Others/Hu2011AggregrateAlgorithm}
+\caption{Hu's Algorithm for the Aggregated Confidence Measures Selection Strategy}
+\end{figure}
+
+\subsubsection{Experiment Results}
+
+\subsubsection{Comments}
 
 \chapter{Platform Architecture}
 \section{Overview}
@@ -379,9 +559,8 @@ Both Classifies and Misclassifies are subsequently defined in terms of \emph{Cas
 A case $c$ contributes to another case $c\prime$'s classification if $c$ is retrieved as a nearest neighbour of $c\prime$ and $c$ aids 'positively' to $c\prime$'s classification (i.e. is the same class as $c\prime$ if $c\prime$ is correctly, or is a different class to  $c\prime$ if  $c\prime$ is incorrectly classified).
 \subsubsection{Classifies}
 \begin{quote}
-$ Classifies(t, c) $ means that case c contributes to the correct classification of target case t. This means that target case t is successfully classified and case c is returned as a nearest neighbour of case t and has the same classification as case t.
+$ Classifies(t, c) $ means that case c contributes to the correct classification of target case t. This means that target case t is successfully classified and case c is returned as a nearest neighbour of case t and has the same classification as case t.\cite{Delany2009}
 \end{quote}
-\citet{Delany2009}
 
 Therefore, for $ Classifies(t, c) $:
 \begin{enumerate}
@@ -393,9 +572,9 @@ Therefore, for $ Classifies(t, c) $:
 \subsubsection{Misclassifies}
 
 \begin{quote}
-$ Misclassifies(t, c ) $ means that case c contributes in some way to the incorrect classification of target case t. In effect this means that when target case t is misclassified by the case-base, case c is returned as a neighbour of t but has a different classification to case t.
+$ Misclassifies(t, c ) $ means that case c contributes in some way to the incorrect classification of target case t. In effect this means that when target case t is misclassified by the case-base, case c is returned as a neighbour of t but has a different classification to case t.\cite{Delany2009}
 \end{quote}
-\citet{Delany2009}
+
 
 Therefore, for $ Misclassifies(t, c) $:
 \begin{enumerate}
@@ -405,7 +584,9 @@ Therefore, for $ Misclassifies(t, c) $:
 \end{enumerate}
 
 \subsubsection{Example}
-\includegraphics[width=5cm]{EqualDistanceMisclassifiesEg}
+\begin{figure}[h!]
+\includegraphics[width=5cm]{./Drawn/EqualDistanceMisclassifiesEg}
+\end{figure}
 
 e.g  in the above example, the circled case 'x' is incorrectly classified as red by the case base (with k=6). Here, the 3 reds (c2, c3 and c4) and the 1 blue (c1) contribute to the incorrect classification, and thus:
 \begin{itemize}
@@ -425,7 +606,9 @@ For a case c, $ NNs(c) $ is the set of cases within the k nearest neighbours of 
 For a case c, $ rNNs(c) $ is the set of cases that have c in their NNs set.
 
 \subsubsection{Example}
-\includegraphics[width=5cm]{RcdlNnRnnEg}
+\begin{figure}[h!]
+\includegraphics[width=5cm]{./Drawn/RcdlNnRnnEg}
+\end{figure}
 
 For $k=3$:
 \begin{itemize}
@@ -439,7 +622,7 @@ Overall Reachability and Coverage relate to cases being correctly classified by 
 Reachability and Dissimilarity are concerned with the neighbouring cases of a case, whereas Coverage and Liability are concerned with the cases to which a case is a neighbour.
 
 \subsubsection{Reachability Set}
-\[ ReachabilitySet(c \in C) = \left\lbrace t \in C : Classifies(c, t) \right\rbrace \] \cite{Delany2009}
+\[ ReachabilitySet(c \in C) = \left\lbrace t \in C : Classifies(c, t) \right\rbrace \] 
 If c is correctly classified by the case base, these are all the cases in $ NNs(c) $ that have the same class as c. Otherwise, this set is empty (and the Dissimilarity set is instead populated).
 
 \subsubsection{Coverage Set}
@@ -447,11 +630,11 @@ If c is correctly classified by the case base, these are all the cases in $ NNs(
 These are all the cases $ t \in rNNs(c) $ such that t is correctly classified by the case base and the class of t is the same as the class of c.
 
 \subsubsection{Dissimilarity Set}
-\[ DissimilaritySet(c \in C) = \left\lbrace t \in C : Misclassifies(c, t) \right\rbrace \]  \cite{Delany2009}
+\[ DissimilaritySet(c \in C) = \left\lbrace t \in C : Misclassifies(c, t) \right\rbrace \]  
 If c is incorrectly classified by the case base, these are all the cases in $ NNs(c) $ that have a different class than the actual class of c. Otherwise, this set is empty (and the reachability set is instead populated).
 
 \subsubsection{Liability Set}
-\[ LiabilitySet(c \in C) = \left\lbrace t \in C : Misclassifies(t, c) \right\rbrace \]  \cite{Delany2009}
+\[ LiabilitySet(c \in C) = \left\lbrace t \in C : Misclassifies(t, c) \right\rbrace \]  
 These are all the cases $ t \in rNNs(c) $ such that t is incorrectly classified by the case base, and the class of c is different from the class of t.
 
 \section{RCDL Consequences}
@@ -602,7 +785,11 @@ This can be seen in the truth table above. Because we're only dealing with a new
 This allows us to not worry about, at the stage of dealing with NN removals, if the removal caused the class to change, because we'll be dealing with that scenario anyway in the corresponding add.
 
 \subparagraph{A NN removal might affect R/D of me, C/L of other}
-\includegraphics[width=5cm]{NnMightAffectEg}
+
+\begin{figure}[h!]
+\includegraphics[width=5cm]{./Drawn/NnMightAffectEg}
+\end{figure}
+
 
 In the above example,
 \begin{itemize}
@@ -701,6 +888,20 @@ foreach case in the NN/rNN changes:
 \section{Competence Based Selection Strategies}
 \chapter{Experimental Analysis}
 \section{Datasets Used}
+\subsection{Non-Textual}
+\subsubsection*{Breathalyzer}\label{sec:breathalyzer}
+\subsubsection*{Dermatology}\label{sec:dermatology}
+\subsubsection*{Glass}\label{sec:glass}
+\subsubsection*{Haberman}\label{sec:haberman}
+\subsubsection*{Heart Disease}\label{sec:heart_disease}
+\subsubsection*{Hepatitis}\label{sec:hepatitis}
+\subsubsection*{Iris}\label{sec:iris}
+\subsubsection*{Lung Cancer}\label{sec:lung_cancer}
+\subsubsection*{TA Evaluation}\label{sec:taevaluation}
+\subsubsection*{Wine}\label{sec:wine}
+\subsubsection*{Zoo}\label{sec:zoo}
+\subsection{Textual}
+
 \section{Basic Selection Strategies}
 \subsection{Random Sampling}
 \subsection{Uncertainty Sampling}
@@ -711,6 +912,68 @@ foreach case in the NN/rNN changes:
 \subsection{Information Gain}
 
 \section{Competence-based Selection Strategies}
+
+\section{Results}
+Results are presented using a learning curve (Accuracy vs Case-Base Size). The AULC figure is also calculated.
+
+\subsection{Non-Textual Datasets}
+
+\begin{figure}[h!]
+\includegraphics{./Plots/breathalyzer}
+\caption{Learning Curve Plots for "Breathalyzer" Dataset (\ref{sec:breathalyzer})}
+\end{figure}
+
+\begin{figure}[h!]
+\includegraphics{./Plots/dermatology}
+\caption{Learning Curve Plots for "Dermatology" Dataset (\ref{sec:dermatology})}
+\end{figure}
+
+\begin{figure}[h!]
+\includegraphics{./Plots/glass}
+\caption{Learning Curve Plots for "Glass" Dataset (\ref{sec:glass})}
+\end{figure}
+
+\begin{figure}[h!]
+\includegraphics{./Plots/haberman}
+\caption{Learning Curve Plots for "Haberman" Dataset (\ref{sec:haberman})}
+\end{figure}
+
+\begin{figure}[h!]
+\includegraphics{./Plots/heart_disease}
+\caption{Learning Curve Plots for "Heart Disease" Dataset (\ref{sec:heart_disease})}
+\end{figure}
+
+\begin{figure}[h!]
+\includegraphics{./Plots/hepatitis}
+\caption{Learning Curve Plots for "Hepatitis" Dataset (\ref{sec:hepatitis})}
+\end{figure}
+
+\begin{figure}[h!]
+\includegraphics{./Plots/iris}
+\caption{Learning Curve Plots for "Iris" Dataset (\ref{sec:iris})}
+\end{figure}
+
+\begin{figure}[h!]
+\includegraphics{./Plots/lung-cancer}
+\caption{Learning Curve Plots for "Lung Cancer" Dataset (\ref{sec:lung_cancer})}
+\end{figure}
+
+\begin{figure}[h!]
+\includegraphics{./Plots/tae}
+\caption{Learning Curve Plots for "TA Evaluation" Dataset (\ref{sec:taevaluation})}
+\end{figure}
+
+\begin{figure}[h!]
+\includegraphics{./Plots/wine}
+\caption{Learning Curve Plots for "Wine" Dataset (\ref{sec:wine})}
+\end{figure}
+
+\begin{figure}[h!]
+\includegraphics{./Plots/zoo}
+\caption{Learning Curve Plots for "Zoo" Dataset (\ref{sec:zoo})}
+\end{figure}
+
+\subsection{Textual Datasets}
 
 \chapter{Conclusions and Future Work}
 
@@ -734,7 +997,20 @@ foreach case in the NN/rNN changes:
 \subsection*{Run Snake Run}
 \subsection*{bpython}
 \subsection*{Lyx}
+\subsection*{Graphviz}
+\subsection*{PyGraphviz}
+\subsection*{PyPdf}
+\subsection*{Google Protocol Buffers}
+\subsection*{PdfRider}
+http://pdfrider.codeplex.com
+Extracting pages
+\subsection*{Briss}
+http://sourceforge.net/projects/briss/ - pdf cropping
+\subsection*{csvtools}
+Deprecated (but useful!) latex package to import CSVs.
 
+\subsection*{extraplaceins}
+http://lexfridman.com/blogs/research/2011/03/06/prevent-figures-from-floating-outside-sections-in-latex/
 
 
 \bibliographystyle{plain}
