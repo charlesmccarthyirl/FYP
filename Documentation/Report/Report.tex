@@ -210,15 +210,33 @@ The notion of Similarity or Distance between pairs of data instances is often co
 Distance is simply the inverse of Similarity, representing numerically how far two data instances are away from each other.
 
 \subsection{Density}
-(Mention to variations on density - global and local. Give references)
+The notion of Density is extremely common. It simply represents how dense a region is within a group.
+
+Density is usually measured across the entire data set (i.e. both the unlabelled and labelled pool), as it is of less use to know of dense regions within the labelled dataset when trying to choose instances from the unlabelled data to request a label for\footnote{This at least is the case when building the case base. For case-base maintenance tasks, dense regions within the case-base might indicate redundancy.}. 
+
+The reasoning is that the entire data-set is hopefully representative of real-world instances, of which new instances will appear with similar ranges and distributions. If one selects from a dense region of the unlabelled dataset, it would be hoped that it would cover a large range of input problems.
+
+Even with the commonality of the Density notion, there is variance in the literature around how density is actually measured. Two relatively straightforward measures:
+\begin{enumerate}
+	\item \textbf{Global Density}: Represented as the average distance from an instance to every other instance in the data set.
+	\item \textbf{Local kNN Density}: Represented as the average distance to its k nearest neighbours within the data set.
+\end{enumerate}
+
+Density is also sometimes measured for groups as opposed to on a case-by-case basis\cite{Smyth1998}.
 
 \subsection{Diversity}
+
+Diversity (usually also mentioned with Density) is another common measure used. It simply represents how different a case is compared to other cases in a group.
+
+In contrast to density, diversity is usually not measured across the entire data-set, but instead just across the actual Case Base\footnote{Again, this might not be the case when one is dealing with Case Base Maintenance.}. The reasoning for this is that it would be beneficial to select new instances that are diverse from what is already present in the Case Base, in hopes that a larger range of the domain may be solved using the Case Base. 
 
 \subsection{Solves / Classifies / Contributes}
 Make note of the different definitions.
 
-\subsection{Clustering}
+\subsection{(Nearest) Neighbours / Neighbourhood}
 
+\subsection{Clustering}
+Clustering is sometimes performed on the data set. Cluster-centres from dense regions are sometimes used as initial seeds for the case base.
 
 \section{Core Project Papers / Literature}
 At the project outset, certain literature was used as the base for subsequent investigation. As such, they were analysed in greater detail than later literature. The summaries and findings of these papers will now be presented.
@@ -250,10 +268,7 @@ The Coverage of a case is defined as the intersection between that case's Retrie
 \subsubsection{Competence Group}
 The most interesting part of the paper is his notion of a Competence Group. He argues that the fundamental unit of competence should not be at the case level, but instead should be at a cluster level, where clustering is performed by the notion of Shared Coverage.
 
-Two cases exhibit Shared Coverage if their Coverage Sets overlap. A Competence Group is then defined as a maximal  collection  of  cases  exhibiting  shared Coverage \footnote{Of particular note here is that maximal means that it is not necessary that each set intersect directly with every other set - but that each case in the group is simply 'reachable' by means of Shared Coverage links by every other case in the group. In graph terms, we would speak of a maximally connected set of nodes - a complete graph - with an edge between two nodes representing Shared Coverage between those two nodes.}.
-
-%TODO: Find the proper term for the subgraphs.
-
+Two cases exhibit Shared Coverage if their Coverage Sets overlap. A Competence Group is then defined as a maximal  collection  of  cases  exhibiting  shared Coverage \footnote{Of particular note here is that maximal means that it is not necessary that each set intersect directly with every other set - but that each case in the group is simply 'reachable' by means of Shared Coverage links by every other case in the group. In graph terms, we would speak of the graph's components - each component a maximally connected set of nodes - with an edge between two nodes representing Shared Coverage between those two nodes.}.
 
 \subsubsection{Case \& Group Density}
 
@@ -296,6 +311,13 @@ Coverage(G)=\underset{G_{i}\in G}{\sum}GroupCoverage(G_{j})
 \subsubsection{Experimental Conclusions}
 Smyth and McKenna found a close correspondence between their Case Base Coverage competence model, and the true competence of the case base against the test sets\cite{Smyth1998}.
 
+\subsubsection{Comments}
+Smyth and McKenna's general argument on how it is difficult to establish an individual case's competence seems valid. It is much more natural to define competence characteristics based on groups of cases. 
+
+Traditionally, when talking about grouping, it seems to have been done through clustering, or simply at the case level by having the notion of a case's neighbourhood (which can be defined in various ways - such as within a radius, the k nearest, etc.).
+
+The notion of defining competence groups through graph-style application of maximally connected components is an interesting one. Here, specifically, edges are based on Shared Coverage, but one can easily see how this approach could be applied based on other criteria to represent an edge.
+
 \subsection{Sarah Jane Delaney's Work on Competence Models\label{sec:DelaneysWork}}
 \subsubsection{Introduction}
 Delaney, in her work, expanded upon the definitions of Coverage and Reachability sets to include their counterparts, what she terms "Liability" and "Dissimilarity" respectively \cite{Delany2009}. 
@@ -336,9 +358,32 @@ While the specific results vary between datasets, Delaney notes that there was a
 The reader is recommended to consult \citet{Delany2009} for the thorough analysis.
 
 \subsubsection{Comments}
-The simplicity of the boolean set-non-emptiness characteristic of the case profiles Delaney defines has its serious merits. It is relatively easy to understand and reason about.
+The simplicity of the boolean set-non-emptiness characteristic of the case profiles Delaney defines has its serious merits. It is relatively easy to understand and reason about. 
 
-In our work, we hope to play with further expanding on these profiles - using them in a non-boolean way, actually factoring in what the sets actually comprise of. 
+Though it does throw away much potentially useful information:
+
+\begin{itemize}
+	\item It does not try to do any reasoning about the contents of the sets.
+	\item A case either has a Reachability set, or Dissimilarity set - never both. This either-or nature is convenient for Delany's binary-style analysis, but throws away all information about the 'competing' set (be it Reachability, or Dissimilarity).
+	
+	e.g. for Classes {y, n}, if:
+	\begin{itemize}
+		\item $class(case_{1})=y$ 
+		\item $k = 3$
+		\item $class(NN_{1}(case_{1})) = y$ 
+		\item $class(NN_{2}(case_{1})) = y$
+		\item $class(NN_{3}(case_{1})) = x$  
+	\end{itemize}
+	and non-weighted voting is used, then it is correctly classified 'y' and:
+	\begin{itemize}
+		\item $reachability(case_{1})=\left\{ NN_{1}(case_{1}),\hphantom{}NN_{2}(case_{1})\right\} $
+		\item $dissimilarity(case_{1})=\left\{ \right\} $
+	\end{itemize}
+	
+	Here, no knowledge of $NN_{3}(case_{1})$ is maintained. I believe it would be more natural to have the Dissimilarity Set to include cases that were 'fighting' against the correct classification, even if the case was correctly classified.
+\end{itemize} 
+
+In our work, we hope to play with further expanding on these profiles - using them in a non-boolean way, instead factoring in what the sets actually comprise of. 
 
 
 \subsection{Rong Hu's Work on EGAL: Exploration Guided Active Learning}
@@ -451,13 +496,13 @@ Even though $w=0$ gives a diversity-only approach, and $w=1$ gives a density-onl
 In \citet{Delany2005} - Delany proposes 5 confidence measures. Hu chooses the 3 of these which she determines experimentally to have the least correlation.
 
 For the 3, the following metrics are needed:
-\begin{itemize}
+\begin{itemize} 
 	\item $N_{i}(t)$ denotes the ith nearest neighbour of example t.
 	\item $NLN_{i}(t)$ denotes the ith nearest like neighbour to example t.
 	\item $NUN_{i}(t)$ denotes the ith nearest unlike neighbour to example t.
 \end{itemize}
 
-\paragraph{Average NUN Index}
+\paragraph{Average NUN Index} \footnote{The measure is based just on indexes. It seems slightly strange to just use indexes, not considering the density, etc. of the neighbours. The validity / appropriateness of this approach will not be considered further though - since this particular paper - and the piece of interest to us - is that of aggregating confidence measures.}
 
 \[
 AvgNUNIndex(t,k)=\frac{\sum_{i=1}^{k}IndexOfNUN_{i}(t)}{k}
@@ -501,7 +546,7 @@ For \textbf{each} measure, the confidence threshold needs to identified for \tex
 
 For each measure, predictions with confidence values higher than the predicted class's threshold are considered confident for that measure, while those with values below are considered non-confident for that measure.
 
-Details surrounding how exactly these thresholds are set can be found in \citet{Delany2005}, but roughly, values are chosen on a per-dataset basis through experimentation. The experimentation, for binary classification give, maximize the correct classifications, while keeping the false-positives zero.
+Details surrounding how exactly these thresholds are set can be found in \citet{Delany2005}, but roughly, values are chosen on a per-dataset basis through experimentation. The experimentation, for binary classification, maximize the correct classifications, while keeping the false-positives zero.
 
 \paragraph{Operation}
 The algorithm essentially operates on (repeatedly) building 2 sets - the Confident Set, and the Non-Confident Set - from the Unlabelled data.
@@ -520,8 +565,56 @@ After the Confident and Non-Confident sets are built, selection begins. First el
 \end{figure}
 
 \subsubsection{Experiment Results}
+Hu finds that using the aggregated confidence measure performs marginally (though not significantly) better than using any one of the confidence measures alone and also than Uncertainty Sampling.
+
 
 \subsubsection{Comments}
+I am unconvinced about the validity of the min-max style of aggregating the confidence measures.
+
+The paper and thesis section seem rather unspecific about how the measures are normalised. I'm guessing there are broadly two possibilities :
+
+\begin{enumerate}
+	\item \textbf{Measure Threshold Normalization}
+	
+	In this case, measures would be normalized so that their thresholds would be the same.
+	
+	I don't think this was the case. If the thresholds alone were normalized, the measure ranges' maximum possible values would be different. As a result the maximum measure scores would definitely not be directly comparable.
+	
+	\item \textbf{Measure Range Normalization}
+	
+	In this case, the range of values over which the measure falls is normalized - giving the same minimum and maximum value possible for each measure. I don't think the measure threshold could then also be normalized, leading to different measures very likely having different thresholds. 
+	
+	If any measures pass their respective thresholds though, the maximum measure's value is chosen as the case's score, but this score may have nothing to do with the measure that actually caused the case to fail to be classed as confident. Scores are subsequently compared with other scores
+	
+	e.g. for a given class, 
+	\begin{itemize}
+		\item $thres(M1) = 0.8$
+		\item $thres(M2) = 0.2$
+	\end{itemize}
+	and for a given case $case_{1}$ for that class:
+	\begin{itemize}
+		\item $m1 = 0.7$
+		\item $m2 = 0.3$
+	\end{itemize}  
+	
+	Because $m2 > thres(M2)$, the case will be put in the Confident set, and as such, the maximum of the measures will be taken - $m1=0.7$. Really the confidence measure that passed the threshold was $m2$ with a value of $0.3$.
+	
+	Now, imagine a different case $case_{2}$, but for the same class as above\footnote{The reason I'm specifying the same class is just to emphasize that the same thresholds apply. If it were a different class, different thresholds may apply - since thresholds are on a class-by-class basis - thus adding unnecessary complication to the example.}:
+	\begin{itemize}
+		\item $m1 = 0.1$
+		\item $m2 = 0.6$
+	\end{itemize}
+	Again, because $m2 > thres(M2)$, the case will be put in the Confident set, but the maximum measure will be $m2 = 0.6$. 
+	
+	$case_{1}$ (with a score of $0.7$) will be treated as more 'confident' than $case_{2}$ (which has a score of $0.6$), even though $case_{2}$ was actually more confident than $case_{1}$ in the measure that actually caused it to be confident ($M2$).
+	
+\end{enumerate}
+
+Whichever was the actual case - both seem flawed. The underlying fact remains that the different confidence measures aren't directly comparable, and the relatively simplistic manner in which the presented Aggregation Strategy deals with them - simply taking the maximum of all of them when any one is confident - does not appear to take this into account. Similarly with taking the minimum for the non-confident set.
+
+It's possible there was some fancy-maths way to do the normalization which might hope to account for both range and threshold normalization, but I can't see how it could change the fact that a score is being assigned based on possibly a different confidence measure than the one which actually achieved confidence.
+
+As a result of the above, we decided not to proceed with using Hu's aggregation strategy.
 
 \chapter{Platform Architecture}
 \section{Overview}
@@ -909,7 +1002,6 @@ foreach case in the NN/rNN changes:
 \subsection{Diversity Only}
 \subsection{Density Only}
 \subsection{Density + Diversity}
-\subsection{Information Gain}
 
 \section{Competence-based Selection Strategies}
 
@@ -976,6 +1068,15 @@ Results are presented using a learning curve (Accuracy vs Case-Base Size). The A
 \subsection{Textual Datasets}
 
 \chapter{Conclusions and Future Work}
+
+\section{Closing Opinions}
+\subsection{Backing Source Code should always accompany Experimental Results}
+
+\section{Possible Future Work Areas} \footnote{I'm staying away from simply saying "Future Work", since I have little to no intention of actually doing any of the following, unless it's actually something I want to progress in any future projects.}
+
+
+
+(Start a revolution in the research community - code should always accompany the paper)
 
 \chapter{Appendix}
 \section{Open source Technologies Used}
