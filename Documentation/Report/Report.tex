@@ -209,6 +209,9 @@ The notion of Similarity or Distance between pairs of data instances is often co
 
 Distance is simply the inverse of Similarity, representing numerically how far two data instances are away from each other.
 
+\subsection{(Nearest) Neighbours / Neighbourhood}
+%TODO
+
 \subsection{Density}
 The notion of Density is extremely common. It simply represents how dense a region is within a group.
 
@@ -216,10 +219,10 @@ Density is usually measured across the entire data set (i.e. both the unlabelled
 
 The reasoning is that the entire data-set is hopefully representative of real-world instances, of which new instances will appear with similar ranges and distributions. If one selects from a dense region of the unlabelled dataset, it would be hoped that it would cover a large range of input problems.
 
-Even with the commonality of the Density notion, there is variance in the literature around how density is actually measured. Two relatively straightforward measures:
+Even with the commonality of the Density notion, there is variance in the literature around how density is actually measured. Two examples of relatively straightforward measures:
 \begin{enumerate}
-	\item \textbf{Global Density}: Represented as the average distance from an instance to every other instance in the data set.
-	\item \textbf{Local kNN Density}: Represented as the average distance to its k nearest neighbours within the data set.
+	\item \textbf{Global Density}: Represented as the average distance from an instance to every  instance in the data set\cite{Xu2007}.
+	\item \textbf{Local kNN Based Density}: Represented as the average distance to its k nearest neighbours within the data set.\cite{Zhu2008}.
 \end{enumerate}
 
 Density is also sometimes measured for groups as opposed to on a case-by-case basis\cite{Smyth1998}.
@@ -228,15 +231,18 @@ Density is also sometimes measured for groups as opposed to on a case-by-case ba
 
 Diversity (usually also mentioned with Density) is another common measure used. It simply represents how different a case is compared to other cases in a group.
 
-In contrast to density, diversity is usually not measured across the entire data-set, but instead just across the actual Case Base\footnote{Again, this might not be the case when one is dealing with Case Base Maintenance.}. The reasoning for this is that it would be beneficial to select new instances that are diverse from what is already present in the Case Base, in hopes that a larger range of the domain may be solved using the Case Base. 
+In contrast to density, diversity is usually not measured across the entire data-set, but instead just across the actual Case Base\footnote{Again, this might not be the case when one is dealing with Case Base Maintenance.}. The reasoning for this is that it would be beneficial to select new instances that are diverse from what is already present in the Case Base, in hopes that a larger range of the domain may be solved as a result. 
 
 \subsection{Solves / Classifies / Contributes}
+
+%TODO
+
 Make note of the different definitions.
 
-\subsection{(Nearest) Neighbours / Neighbourhood}
+highlights the interesting point that there are subtle but definitely significant differences to what different researchers mean when they use the terms. Often, they seem to be glossed over quickly in literature due to their apparent obviousness, but are often core to the algorithms presented.
 
 \subsection{Clustering}
-Clustering is sometimes performed on the data set. Cluster-centres from dense regions are sometimes used as initial seeds for the case base.
+Somewhat related to Density, Clustering is sometimes performed on the data set. Usage of clustering varies massively, but one relatively common use is to use Cluster-centres from dense regions as initial seeds for the case base.
 
 \section{Core Project Papers / Literature}
 At the project outset, certain literature was used as the base for subsequent investigation. As such, they were analysed in greater detail than later literature. The summaries and findings of these papers will now be presented.
@@ -618,26 +624,225 @@ As a result of the above, we decided not to proceed with using Hu's aggregation 
 
 \chapter{Platform Architecture}
 \section{Overview}
-- Python, orange, Weka initially investigated. Intended for evaluating Selection Strategies.
+\subsection{Purpose}
+The purpose of the system is the allow evaluation of and comparison between different Selection Strategies in a Pool-Based learning context.
 
-\section{Selection Strategy Evaluation}
+It achieves this by executing each of the Selection Strategies on several data sets from an initially empty Case Base. At each Selection Strategy Selection, it runs a KNN based Classifier on the Case Base, evaluating its capability to correctly classify the instances in a test set.
 
-\section{Core Classes}
-\subsection{k Nearest Neighbour Functionality}
+\subsection{Technologies}
+Weka\cite{prog:weka}, a Java based Machine Learning framework, was initially briefly investigated, but due to my familiarity with Python, Orange\cite{prog:orange} was used as the core Machine Learning component. It provided useful facilities to quickly get a basic evaluation platform up and running. As the platform progressed, most Orange dependencies were removed in favour of custom implementations due to the need for greater control, and a memory-management related bug which existed in Orange with regards its Python bindings for its C++ backend. Orange was subsequently just used for data loading, and distance computations.
+
+For plotting, matplotlib\cite{prog:matplotlib} was initially used, but due to its very non-pythonic interface, we changed to using PyX\cite{prog:pyx}, which also provided much better support for LaTeX style file formats.
+
 \section{Inputs}
 \subsection{Data Files}
+Data Files provide a table of instances, each instance consisting of attributes and a label. Orange provides support for loading many common formats, and also is capable of performing distance computation between instances based on their attributes.
+
+For ease, Orange was used to perform initial data loading, and distance computation between instances. The instances, and the pair-wise distances were then serialized to a new data file to allow running on platforms (and runtimes) for which Orange wasn't present.
+
 \subsubsection{Orange Supported}
+Orange's primary data format is that of tabular, delimited text - such as CSV or TSV. Optionally, markup can be placed in the header rows of these files to help Orange know of the properties of each of the attributes - e.g. if the attribute represents the label for the instance, if the attribute is Discrete or Continuous, etc., but Orange is surprisingly good at figuring most of it out on its own - occasionally just needing slight nudging in the right direction.
 
-\subsubsection{Custom Pre-computed distance Format}
+Orange also supports some of the formats commonly used in other Machine Learning platforms - e.g. ARFF (as found in Weka) and correctly formatted .names, .data file pairs as sometimes found in the UCI Machine Learning Repository\cite{web:uci}\footnote{It should be noted that the majority of .data/.name pairs are not in the strict format necessary, thus some prior manipulation of the files present there may be needed to load them with Orange.}.
 
-(Also note - for compression, and due to text based method used as opposed to binary. This format was chosen for ease of human readability and given that the datasets we use are relatively small).
+\subsubsection{Custom Pre-computed Distance Format}
+
+The $n \times n$ distance matrix for a data-set can really be stored in a Symmetrical Matrix\footnote{This is assuming that the distance function is in fact symmetric, i.e. $d(a, b)\equiv d(b, a)$. In our distance function, this property does hold.}. Thus, when storing the distances for all pairs in the file, the space may essentially be halved by storing only one half of the $n \times n$ matrix\footnote{Technically, the distances between instances and themselves need not be stored, because by definition the distance between an instance and itself will be 0. Though this minor optimization is not performed in my code}.
+
+\medskip
+
+\begin{tabular}{ c c c c c c }
+	Instance ID & \multicolumn{5}{c}{Distances} \\
+	0 & $d(i_{0},i_{0})$ &  &  &  & \\
+	1 & $d(i_{1},i_{0})$ & $d(i_{1},i_{1})$ &  &  &  \\
+	2 & $d(i_{2},i_{0})$ & $d(i_{2},i_{1})$ & $d(i_{2},i_{2})$ &  & \\ 
+	... & ... & ... & ... & ... & \\ 
+	j & $d(i_{j},i_{0})$ & $d(i_{j},i_{1})$ & $d(i_{j},i_{2})$ & ... & $d(i_{j},i_{j})$ \\ 
+\end{tabular}
+
+\medskip
+
+In addition to storing the distances, the label and a textual human-readable Payload/Instance Descriptor is also stored along with each Instance ID.
+
+\paragraph{CSV}
+The initial file type used for storing the precomputed distances along with the data was CSV (Comma Separated Values). The first line contains a header row. Subsequent lines contain the data rows. The first data row represents instance ID 0, the second represents instance ID 1, and so on. Each data row is organized as follows, where distances are stored in $n \times n$ matrix as described above:
+\medskip
+
+\begin{tabular}{ |c| |c| |c| }
+	Textual Instance Description & Instance Label & Distances \\
+\end{tabular}
+
+\medskip
+
+These files may also be gzipped - resulting in an extension .csv.gz, and this will be automatically uncompressed by the platform. The reason support for compression was added was due to the large file-sizes that resulted from the textual representation of the distances.
+
+CSV was chosen due to it being quite trivial to produce irrespective of the programming language. It also allowed for easy debugging, and would also potentially allow other Machine Learning systems to be used for distance computation.
+
+\paragraph{Google's Protocol Buffers\cite{prog:protocolbuffers}}
+
+Google's blurb for Protocol Buffers is ``think XML, but smaller, faster, and simpler''\cite{prog:protocolbuffers}. It is binary format for which a proxy can be automatically generated for Python (among many other languages). It is used as the preferred method of loading data with precomputed distances in the presented platform, due to its compact representation, and efficient loading.
+
+These files store essentially the same information in a similar method as the CSV style presented above. The devised protocol specification is as follows:
+\begin{verbatim}
+message Instance{
+    optional string payload = 1;
+    required string label = 2;
+  }
+
+message PrecomputedDistanceData{
+  optional string data_set_name = 1;
+  optional string data_set_description = 2;
+  
+  message Entry {
+    required Instance instance = 1;
+    repeated double distances = 2 [packed=true];
+  }
+  
+  repeated Entry entry = 3;
+}
+\end{verbatim}
+
+Most bits to the protocol are self explanatory. The number following each field is simply the field ID. In the Protocol Buffers specification, each field must have an integer ID, with each ID unique within its local namespace. The ``[packed=true]'' section is simply an optimization that allows the Protocol Buffers engine store the repeated numeric values in as compact a representation as it can.
+
 
 \subsection{Experiment Definitions}
+The definitions for the experiments to run need to be provided to the platform. Each experiment instance consists of data\footnote{ The data is provided as (training set, test set) pairs to allow for Cross-Validation, etc.} and the Selection Strategies to run on the data.
 
-\section{Experiment Running}
-- give basic algorithm in SelectionStrategyEvaluator.
+\subsection{Existing Results}
+Existing results for Selection Strategies executed on the Data may also optionally be provided with the Experiment. When the Experiment is being executed, if it can find the results for a Selection Strategy within the provided existing results, these will be used as opposed to re-running that Selection Strategy again.
+
+This allows for new Selection Strategies to be added and run, without re-computing previous strategies, but still having all outputs such as plots include the previous strategies' results.
+
+It also allows for the graphs, etc. to be generated separately from the main experiment running\footnote{This can be useful, as then all the plotting/graphing dependencies need not be installed on all machines/platforms the experiment is being executed on.}, and due to ease of re-combining existing results, allows the experiment to be split, and different Selection Strategies be evaluated on separate machines concurrently.
+
+\section{Experiment Execution}
+
+\subsection{Selection Strategy Evaluation}
+\subsubsection{Overview}
+In Selection Strategy evaluation, the purpose is to execute a Selection Strategy against unlabelled training data\footnote{It's not really unlabelled - it's just from the perspective of the Selection Strategy it's unlabelled.}, to choose instances from the set and put them in the Case Base until the Stopping Condition is satisfied.
+
+After each Selection, a KNN based classifier is given the Case Base as training data, and run on the test set, and the Classification Accuracy recorded.
+
+The motivation is to judge how good each Selection Strategy is at selecting instances to maximize the ability of the Case Base to classify unseen instances.
+
+\subsubsection{Selection Strategy}
+
+A Selection Strategy in the platform is responsible for selecting instances to consult the Oracle for, given knowledge of what is already in the Case Base, and a pool of unlabelled instances to select from.
+
+\subsubsection{KNN Classifier}
+A K Nearest Neighbours based Classifier is used in the evaluation, with 
+\begin{itemize}
+	\item $k=5$\footnote{This was indeed arbitrary - it simply being an apparently relatively common k to use in the literature. Due to distance weighted voting being used - it isn't really of much importance.} 
+	\item Euclidean Distance after Attribute Normalization\footnote {This functionality was provided entirely by Orange.}
+	\item Distance Weighted Voting. The distance function used is:
+	
+	\[
+	\frac{1}{distance^{2}+10^{-10}}
+	\]
+	
+	where $distance$ is normalized between $0$ and $1$, and the $10^{-10}$ is simply to account for $distance$ being $0$, giving a high weighting to when this happens.
+	
+	
+\end{itemize}
+
+An overview of KNN Classification can be found online.\cite{web:knntut}.
+
+\subsubsection{Cross Validation}
+
+10-Fold Cross Validation is used for training/testing against the data. Initially Orange was used to provide Stratified Folds, but later, during the Orange-dependency-removal stage - a simplistic non-stratified implementation was adapted from the SciKit Learn library\cite{prog:sklearn}.
+
+Many walkthroughs of K-Fold Cross Validation exist online\cite{web:kfolddemo}, but the basic approach is to split the data into k sets, followed by iteratively choosing one of the sets as the test set, and the union of the remaining sets as the training set. Thus, the testing is repeated k times. The results of the k tests are then averaged to produce a single result.
+
+\subsubsection{Basic Evaluation Algorithm}
+\begin{samepage}
+\begin{verbatim}
+let result_sets = {}
+for each (training_set, test_set) in the CV Sets:
+  let unlabelled_set = training_set
+  let case_base = {}
+  let result_set = {}
+  while the stopping criteria is not met:
+    let selections = select instances from the 
+                     unlabelled_set using the 
+                     selection strategy.
+    ask oracle for labels for all of selections
+    remove the selection from unlabelled_set
+    add selections to case_base with their label
+  
+    let result = Result from testing the classifier
+                 built using case_base on test_set
+    add result to result_set
+  add result_set to result_sets
+\end{verbatim}
+\end{samepage}
+
+\subsection{Experiment Outcome Representation}
+\subsubsection{Result}
+An individual result consists of:
+\begin{itemize}
+	\item Size of the Case Base
+	\item Classification Accuracy of the Case Base
+	\item Selections from the Selection Strategy that were just added.
+\end{itemize}
+
+\subsubsection{Result Set}
+A Collection of Results, which also provides the capability to generate the AULC of the results. For convenience and completeness, a Result Set also has knowledge of the Training Set and the Test Set that was used in generating the contained Results.
+
+\subsubsection{Multi Result Set}
+A collection of Result Sets, which provides averaging of Results grouped by Case Base size, which can subsequently act as a standard Result Set based on the averaged results.
+
+\subsection{Summarising The Results}
+\subsubsection{Learning Curve}\label{sec:multiresultset}
+A commonly presented representation of Selection Strategy Evaluation is the Learning Curve - a plot of Classification Accuracy vs Case Base Size.
+
+\subsubsection{Area Under the Learning Curve}
+A metric to summarise the progression, and allow for comparison among different Selection Strategies against the same data set and same starting and finishing Case Base size is AULC (Area Under the Learning Curve). As can be expected, this is simply the area under the Learning Curve.
+
 \section{Outputs}
-(Initially used matplotlib - but non pythonic, etc.)
+
+\subsection{Raw Selection Strategy Results}
+The primary and non-optional outputs of the platform are the raw Selection Strategy results for all the provided data sets. From these, the other outputs can be calculated. It is also these raw results which can be provided to another run of an experiment so that they need not be re-computed if they are needed by the experiment. 
+
+For space efficiency, and ease of manipulation, each set of Selection Strategy results for a data set are stored in a compressed archive.
+
+These Raw Results represent the Serialized form of a Multi Result Set as presented on page \pageref{sec:multiresultset}. When the Raw Results are provided to the program, it is to a Multi Result Set it is Deserialized to.
+
+\subsubsection{Individual Cross Validation Results}
+For each data-set and subsequently for each Selection Strategy - the evaluation on each Selection Strategy is carried out multiple times due to the k-Fold Cross Validation Methodology used. As such, there will be k different sets of results. 
+
+Within the compressed Selection Strategy Results Archive, these are labelled 0.csv, 1.csv, etc. with each corresponding to the fold number in the Cross Validation splits of the data set.
+
+Each csv contains essentially 3 items. \footnote{The format of these 3 items is somewhat hacky, and was went for purely in laziness. Splitting into separate files would have added unnecessary complexity when so many other aspects of the project needed time.}
+
+\begin{enumerate}
+	\item Results for various Case Base sizes, with each Result instance denoted with:
+		\begin{itemize}
+			\item The Case Base Size
+			\item The Classification Accuracy
+			\item The list of Selections that were made by the Selection Strategy just prior to this test.
+		\end{itemize}
+	\item The Training Set used for this Cross Validation
+	\item The Test Set used for this Cross Validation
+\end{enumerate}
+
+\subsubsection{Summary Results}
+Summary Results are also saved\footnote{Technically, these Summary Results are unnecessary, as they can simply be recomputed using the raw individual Cross Validation Results. They are simply there for user ease.}, and are similar to the CSV style of Raw Cross Validation Results except do not contain lists of Selections, or the Test Set or Training Set, but are in a file named ``summary.csv''.
+
+\subsection{Learning Curve Plots}
+PyX\cite{prog:pyx} is used to generate a PDF file of plots of the Average Learning Curves for all of the Selection Strategies\footnote{Initially - matplotlib\cite{prog:matplotlib} was used to generate the graphs - but its interface was somewhat messy and non-pythonic.}. One PDF is generated for each Data Set.
+
+\subsection{Selection Graphs}
+Node/Edge style graphs are also generated for each of the Selection Strategies. The distance matrix for the entire Data Set is used to generate a Spring-graph of all the instances, where each instance has an edge to its 5 Nearest Neighbours, with a force proportional to the distance. Graphviz\cite{prog:graphviz} was used to perform this graph generation, with PyGraphviz\cite{prog:pygraphviz} as the interface to Python.
+
+Instances which a given Selection Strategy chooses are highlighted at each Selection iteration. These are then output to a PDF file, with each page representing an iteration in the Selection Strategy.
+
+Because Selections can't really be averaged across the different Folds in the Cross Validation, a PDF file is generated for each Cross Validation fold. Grey Nodes represent Test Instances, Black Nodes represent Unlabelled Instances, and Green Nodes represent Nodes selected by the Selection Strategy.
+
+Due to the flattening of varying dimensionality Data Sets, the usefulness of these graphs vary widely depending on the Data Sets used, so it is not useful in all instances.
+
+\subsection{Experiments Summary}
+A summary CSV file is also output for the Experiments executed during a run of the platform. It simply gives tabular breakdown of Data Set vs Selection Strategy of AULC values.
+
 \chapter{Competence Models\label{cha:CompetenceModels}}
 \section{Overview}
 From Delaney's work\cite{Delany2009}, outlined briefly on page \pageref{sec:DelaneysWork},we hope to expand on her boolean RCDL Profile concepts, and attempt to use them in a Active Learning Selection Strategy role, as opposed to a noise reduction / case base maintenance one.
@@ -735,7 +940,7 @@ These are all the cases $ t \in rNNs(c) $ such that t is incorrectly classified 
 \subsection{Either-or nature of Reachability and Dissimilarity Sets}
 If a case has a non empty reachability set then it has been classified correctly by the case-base and, as such, will have an empty dissimilarity set and vice versa.
 
-Intuitively – these sets simply represent the set of cases that are 'responsible' for / contribute to a case's classification (with the notion of 'contributes' as outlined above on page \pageref{sec:contributes}). 
+Intuitively – these sets simply represent the set of cases that contribute to a case's classification (with the notion of 'contributes' as outlined above on page \pageref{sec:contributes}). 
 
 If the case is correctly classified, this set is said to be the Reachability set, whereas if incorrectly classified, it is termed the Dissimilarity set.
 
@@ -1093,7 +1298,7 @@ Results are presented using a learning curve (Accuracy vs Case-Base Size). The A
 \subsection*{Latex}
 \subsection*{TexStudio}
 \subsection*{Ubuntu}
-\subsection*{sklearn}
+\subsection*{SciKit Learn}
 \subsection*{cProfile}
 \subsection*{Run Snake Run}
 \subsection*{bpython}
