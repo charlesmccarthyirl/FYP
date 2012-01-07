@@ -68,7 +68,7 @@ The key concept of Active Learning is that a machine learning program has a say 
 
 This concept fits particularly well in the domain of Case Based Reasoning Systems. In Case Based Reasoning Systems, the system has a pool of cases for which it knows the label. When an unlabelled case is presented to the system, the system uses this pool to try to guess the label of the unlabelled case.
 
-The facet of Active Learning we will subsequently consider is known as Pool Based Sampling in other literature \cite{Settles2010}, and is based on the idea that there is a large quantity of unlabelled cases available, but getting labels (or more likely, consulting a \emph{Human Expert}) is an expensive process, for which it is undesirable to apply to the entire unlabelled set. The aim for the system is to choose a subset of these unlabelled cases for which to request a label. These are then used as the system's pool of labelled cases which it will consult in future.
+The facet of Active Learning we will subsequently consider is known as Pool Based Sampling in other literature \cite{Settles2010}, and is based on the idea that there is a large quantity of unlabelled cases available, but getting labels (or more likely, consulting a Human Expert) is an expensive process, for which it is undesirable to apply to the entire unlabelled set. The aim for the system is to choose a subset of these unlabelled cases for which to request a label. These are then used as the system's pool of labelled cases which it will consult in future.
 
 The system would like to maximize its classification accuracy for future instances, but have to resort to asking the Oracle external to the system for a minimal number of labels.
 
@@ -77,7 +77,7 @@ For an in-depth review of Active Learning, and some of the recent Active Learnin
 \section{Importance of Active Learning}
 There are many real-world domains in which a large quantity of unlabelled data is available, but the process of manually labelling all of that data is not feasible. 
 
-A \emph{Human Expert} is often needed to label instances of the data. This human factor limits the quantity of data which can be labelled. The financial cost can be significant, and the availability of such an expert can also be a limiting factor.
+A Human Expert is often needed to label instances of the data. This human factor limits the quantity of data which can be labelled. The financial cost can be significant, and the availability of such an expert can also be a limiting factor.
 
 Often the labelling process is in itself exceedingly slow compared to either the amount of unlabelled data available, or the rate at which new data is being generated. 
 
@@ -110,18 +110,30 @@ Vast quantities of textual data are often available for the target domain, thoug
 
 Speech recognition is one area that can bring immense benefit to users, but for which manual labelling requires expert skills, and is painstakingly slow even with a trained expert's involvement. For such systems, it is highly desirable to reduce the quantity of data that must be manually labelled to bring the system to an acceptable rate.
 
-%TODO A more explicit presentation of a) Case-Based classification using kNN and b) Pool-Based Sampling and other assumptions that you made might be useful here, along with their descriptions. Then, section 1.4 can explicity contrast variations with 1.3
-
 \section{Fundamental Concepts}
+\subsection{Pool Based Active Learning}
+In particular, we concern ourselves with \emph{Pool Based Active Learning}, and it is in this context that further concepts should be taken.
+
+In Pool Based Active Learning, a Pool of Unlabelled Cases are available, from which the System may choose Instances to request a Label for. The System uses these Labelled Instances to train a Classifier.
+
+\begin{figure}[h!]
+\includegraphics[width=10cm]{./Others/Settles2010PoolBasedImage}
+\caption{Pool Based Active Learning Cycle Diagram found in \citep{Settles2010}}
+\end{figure}
+
 \subsection{Case Base}
 The Case Base is the labelled pool of data which the overall system consults when a new unlabelled instance is presented for classification.
 
-While not essential, a kNN approach fits the Case Base concept quite well.
+\subsection{Case-Based Classification using kNN}
+
+A k Nearest Neighbours approach fits the Case Base concept quite well. When a new unseen Instance is presented to the Classifier, the Classifier can simply walk through the Case Base to find Cases which are similar to the presented Case. It can then use these Labelled Cases in some sort of Voting fashion to Classify the presented Case.
+
+When new data is added to the Case Base, there is no real cost in re-training the Classifier, since re-training simply involves adding the new data to the set in which the kNN walks through (which can simply be the Case Base itself).
 
 \subsection{Oracle}
-The \emph{Oracle} is the entity which the system may consult if it wishes to determine the true label for an instance.
+The Oracle is the entity which the system may consult if it wishes to determine the true label for an instance.
 
-Often, the \emph{Oracle} is a \emph{Human Expert} familiar with the domain who must manually classify the instance. Though the \emph{Oracle} may also just be another system, but for which there is some expense in using to determine a class. \footnote{Here, we use the word `expense' in its broadest possible meaning. It may be financially expensive, computationally expensive, or simply take an exceedingly long amount of time to run. In any event, `expense' refers to some undesirable operation for which we want to minimise the number of calls.}
+Often, the Oracle is a Human Expert familiar with the domain who must manually classify the instance. Though the Oracle may also just be another system, but for which there is some expense in using to determine a class. \footnote{Here, we use the word `expense' in its broadest possible meaning. It may be financially expensive, computationally expensive, or simply take an exceedingly long amount of time to run. In any event, `expense' refers to some undesirable operation for which we want to minimise the number of calls.}
 
 \subsection{Selection Strategy}
 While the term Selection Strategy can have slightly different meanings given the type of Active Learning being considered, we will subsequently use the phrase to mean the algorithmic approach taken to determine which unlabelled instances to query with the Oracle for the true label.
@@ -134,7 +146,7 @@ The Stopping Condition of the system is the point at which the system must stop 
 The Oracle is willing to classify only a fixed number of instances.
 
 \paragraph{Desired Classification Accuracy} 
-The system stops asking the \emph{Oracle} for a \emph{Label} after it is capable of achieving a certain classification accuracy on its test set.
+The system stops asking the Oracle for a Label after it is capable of achieving a certain classification accuracy on its test set.
 
 \section{Variations / Related Areas}
 Many variations on the concept of Active Learning exist. The following is intended to give just a small subset of examples, as opposed to an exhaustive listing. Further information can be gleaned from \citep{Settles2010}.
@@ -146,12 +158,12 @@ Over time, as new instances are added, the case base size increases. This can ha
 
 Another consideration is that some cases may be adversely affecting the system's classification accuracy. It may be that these instances were initially misclassified by the Oracle, the underlying data was noisy, or it could be that the nature of the domain has changed and that similar instances now actually have a different label. The detection of these cases is therefore an important part to long-running Case Based Reasoning Systems.
 
-Overall, Case Base Maintenance can be summarised as the process of maintaining a case base to a desirable level over time.
+Overall, Case Base Maintenance can be summarised as the process of maintaining a case base to a desirable level over time. This contrasts to what we will concern ourselves with - how to build a Case Base.
 
 \subsection{Seeding in Active Learning}
 Many Selection Strategies have the assumption built in that there are already some cases in the case base from which they may base their judgements. Thus the issue how to initially seed the Case Base crops up.
 
-In our evaluations and experimentation, we don't attempt to initially seed the Case Base. The reasoning for this is twofold: 
+In our evaluations and experimentation, we don't attempt to initially seed the Case Base - instead starting with an empty Case Base. The reasoning for this is twofold: 
 \begin{enumerate}
 	\item The datasets we use are relatively simplistic, which even with random sampling, converge to a relatively high accuracy even after a small number of samples are added. This would make it very difficult to reasonably compare different selection strategies. 
 	\item Adding Seeding would also add another factor for testing, as opposed to primarily testing the variance between different Selection Strategies.
@@ -165,33 +177,35 @@ In our evaluations and experimentation, we don't attempt to initially seed the C
 \end{itemize}
 
 \subsection{Stream Based Learning}
-In this methodology, the system does not just select at the outset from an unlabelled pool the instances to request classification by the Oracle. Instead, It is presented with a stream of instances, and for each instance, it may either itself guess the classification (if it is relatively sure it is correct), or it may defer the decision to the \emph{Oracle}.
+In this methodology, the system does not just select at the outset from an unlabelled pool the instances to request classification by the Oracle. Instead, It is presented with a stream of instances, and for each instance, it may either itself guess the classification (if it is relatively sure it is correct), or it may defer the decision to the Oracle.
 
-This notion can sometimes be more useful - but it is unlikely in practice that the system would query at any arbitrary time for a \emph{Label} from the \emph{Oracle}, since with the usual case of requiring human involvement, the \emph{Oracle} may not be available at all times.
+This notion can sometimes be more useful - but it is unlikely in practice that the system would query at any arbitrary time for a Label from the Oracle, since with the usual case of requiring human involvement, the Oracle may not be available at all times.
 
 What is more likely is that the system would keep note of instances it is very unsure of, guess the classification anyway if an immediate response is required, and at the next opportunity, query the oracle in batch regarding the true classification.
 
-\subsection{Batch Learning}
-In practice, it is unlikely that instances would be presented to the \emph{Oracle} one-at-a-time. What is more likely is that batches of instances are presented to the \emph{Oracle}.
-
-In our investigation, we do not perform batch learning - instead presenting instances one at a time to the \emph{Oracle} (equivalent to a batch size of 1).
-
 \subsection{Query Synthesis}
-Although it can cause hassle for a human annotator, another variation is known as Query Synthesis, in which the program actually constructs its own unlabelled data instances to present to the \emph{Oracle} (as opposed to the data being actual previously observed).
+Although it can cause hassle for a human annotator, another variation is known as Query Synthesis, in which the program actually constructs its own unlabelled data instances to present to the Oracle (as opposed to the data being actual previously observed).
 
 The program is thus able to actively explore the domain space, as opposed to just waiting for data to try to infer this information.
 
 While unsuitable for many problem areas (in particular text), one could easily see how this model could be useful in the context of scientific experiments. The program may wish to make \emph{guesses} as to what would be useful data to get \emph{classified}, so that it may further refine it's knowledge of the domain.
 
-\citep{Settles2010} points to a good example involving a ``robotic scientist'' as described in \citep{King2009}
+\citep{Settles2010} points to a good example involving a ``robotic scientist'' as described in \citep{King2009}.
+
+Query Synthesis is not really necessary in tradition Pool Based Sampling areas - since a large pool of truly observed (and therefore valid) unlabelled examples are present that should be representative of the type and distribution of problems which will be later presented to the system.
+
+\subsection{Batch Learning}
+In practice, it is unlikely that instances would be presented to the Oracle one-at-a-time. What is more likely is that batches of instances are presented to the Oracle.
+
+In our investigation, we do not perform batch learning - instead presenting instances one at a time to the Oracle (equivalent to a batch size of 1).
 
 \subsection{Noisy Oracle}
-A \emph{Noisy Oracle} relates to the \emph{Oracle} being wrong in its classification some of the time.
+A \emph{Noisy Oracle} relates to the Oracle being wrong in its classification some of the time.
 
 In our investigation, we do not deal with this variation at all, assuming a Perfect Oracle.
 
 \subsection{Classification Cost Variation}
-In many real-world applications, the cost associated with classifying an instance can vary from instance to instance. Some instances can involve much more time to determine a \emph{Label} for than others. In text classification, articles vary in length and complexity. Similarly in video and audio.
+In many real-world applications, the cost associated with classifying an instance can vary from instance to instance. Some instances can involve much more time to determine a Label for than others. In text classification, articles vary in length and complexity. Similarly in video and audio.
 
 This paper does not deal with instance classification cost variation, instead assuming a fixed cost.
 
@@ -210,7 +224,11 @@ The notion of Similarity or Distance between pairs of data instances is often co
 Distance is simply the inverse of Similarity, representing numerically how far two data instances are away from each other.
 
 \subsection{(Nearest) Neighbours / Neighbourhood}
-%TODO Write This
+It is common to define a group of cases relative to an individual case that in some fashion relate more strongly to the case than other cases in the Case Base - cases that \emph{neighbour} that case by means of the relation.
+
+Nearest Neighbours follow fluidly from the use of k-Nearest Neighbour style classification approaches that often go along with Case Based Reasoning Systems, and are sometimes used for additional purposes.
+
+Neighbourhoods based on other characteristics such as Shared Coverage can also be defined.
 
 \subsection{Density}
 The notion of Density is extremely common. It simply represents how dense a region is within a group.
@@ -225,7 +243,7 @@ Even with the commonality of the Density notion, there is variance in the litera
 	\item \textbf{Local kNN Based Density}: Represented as the average distance to its k nearest neighbours within the data set.\cite{Zhu2008}.
 \end{enumerate}
 
-Density is also sometimes measured for groups as opposed to on a case-by-case basis\cite{Smyth1998}.
+Density is also sometimes measured for groups as opposed to on a case-by-case basis\cite{Smyth1998}, and often involves the sum of the pair-wise Similarities for the cases in the group.
 
 \subsection{Diversity}
 
