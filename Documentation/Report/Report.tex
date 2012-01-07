@@ -1,7 +1,7 @@
 \documentclass[a4paper,11pt]{report}
 
 \usepackage{times}
-\usepackage{natbib}
+\usepackage[numbers]{natbib}
 \usepackage[pdftex]{graphicx}
 \usepackage{epstopdf}
 \usepackage{algorithm}
@@ -15,6 +15,13 @@
   \texttt{cmmc1@student.cs.ucc.ie}
   \\Supervisor: Dr. Derek Bridge}
 \date{March 2012}
+
+\usepackage{hyperref} % Taken from Barry Hurley
+\hypersetup{colorlinks,%
+	    citecolor=black,%
+	    filecolor=black,%
+	    linkcolor=black,%
+	    urlcolor=black}
 
 \begin{document}
 
@@ -59,7 +66,7 @@ The impact of casual conversations with classmates P\'{a}draig \'{O}'D\'{u}inn, 
 \section{Active Learning Overview}
 The key concept of Active Learning is that a machine learning program has a say in its own learning process, by being capable of choosing the data from which it learns. 
 
-This concept fits particularly well in the domain of Case Based Systems. In Case Based Systems, the system has a pool of 'cases' for which it knows the label. When an unlabelled case is presented to the system, the system uses this pool to try to guess the label of the unlabelled case.
+This concept fits particularly well in the domain of Case Based Systems. In Case Based Systems, the system has a pool of cases for which it knows the label. When an unlabelled case is presented to the system, the system uses this pool to try to guess the label of the unlabelled case.
 
 The facet of Active Learning we will subsequently consider is known as Pool Based Sampling in other literature \cite{Settles2010}, and is based on the idea that there is a large quantity of unlabelled cases available, but getting labels (or more likely, consulting a human oracle) is an expensive process, for which it is undesirable to apply to the entire unlabelled set. The aim for the system is to choose a subset of these unlabelled cases for which to request a label. These are then used as the system's pool of labelled cases which it will consult in future.
 
@@ -72,13 +79,13 @@ There are many real-world domains in which a large quantity of unlabelled data i
 
 A human expert is often needed to label instances of the data. This human factor limits the quantity of data which can be labelled. The financial cost can be significant, and the availability of such an expert can also be a limiting factor.
 
-Often - the 'expert' labelling process is in itself exceedingly slow compared to either the amount of unlabelled data available, or the rate at which new data is being generated. 
+Often - the labelling process is in itself exceedingly slow compared to either the amount of unlabelled data available, or the rate at which new data is being generated. 
 
 Machine Learning seems a clear answer for these type of scenarios, but for Machine Learning, one still needs training instances to initially train the system.
 
 \subsection{Examples of Active Learning Domains}
 \subsubsection{Recommendation Engines}
-In recommendation engines, the user can be thought of as the "expert". It is based on their feedback (either implicit or explicit) that the recommendation engine can know if an item was relevant to the user or not. It is likely that there is a vast library from which a recommendation can come, but the quantity of user feedback may be limited.
+In recommendation engines, the user can be thought of as the Oracle. It is based on their feedback (either implicit or explicit) that the recommendation engine can know if an item was relevant to the user or not. It is likely that there is a vast library from which a recommendation can come, but the quantity of user feedback may be limited.
 
 What is sometimes done in these systems is that the engine includes some results it is relatively certain will be relevant to the user, but others of which it is uncertain, but would like to gain feedback on from the user. Only comparatively few of these instances can be given to the user for feedback, as doing otherwise would negatively impact the user's experience.
 
@@ -114,7 +121,7 @@ While not essential, a kNN approach fits the Case Base concept quite well.
 \subsection{Oracle/Expert}
 The Oracle (or Expert) is the entity which the system may consult if it wishes to determine the true label for an instance.
 
-Often, the Expert is a human familiar with the domain who must manually classify the instance. Though the Expert may also just be another system, but for which there is some expense in using to determine a class. \footnote{Here, we use the word "expense" in its broadest possible meaning. It may be financially expensive, computationally expensive, or simply take an exceedingly long amount of time to run. In any event, "expense" refers to some undesirable operation for which we want to minimise the number of calls.}
+Often, the Expert is a human familiar with the domain who must manually classify the instance. Though the Expert may also just be another system, but for which there is some expense in using to determine a class. \footnote{Here, we use the word `expense' in its broadest possible meaning. It may be financially expensive, computationally expensive, or simply take an exceedingly long amount of time to run. In any event, `expense' refers to some undesirable operation for which we want to minimise the number of calls.}
 
 \subsection{Selection Strategy}
 While the term Selection Strategy can have slightly different meanings given the type of Active Learning being considered, we will subsequently use the phrase to mean the algorithmic approach taken to determine which unlabelled instances to query with the Oracle for the true label.
@@ -137,7 +144,7 @@ Case Base Maintenance is concerned with the task of how to maintain a case base.
 
 Over time, as new instances are added, the case base size increases. This can have an adverse effect on system performance, thus it can be desirable to have the case base be as minimal as possible, while maintaining classification accuracy.
 
-Another consideration is that some cases may be adversely affecting the system's classification accuracy. It may be that these instances were initially misclassified by the 'expert', the underlying data was noisy, or it could be that the nature of the domain has changed and that similar instances now actually have a different label. The detection of these cases is therefore an important part to long-running Case Based Systems.
+Another consideration is that some cases may be adversely affecting the system's classification accuracy. It may be that these instances were initially misclassified by the Oracle, the underlying data was noisy, or it could be that the nature of the domain has changed and that similar instances now actually have a different label. The detection of these cases is therefore an important part to long-running Case Based Systems.
 
 Overall, Case Base Maintenance can be summarised as the process of maintaining a case base to a desirable level over time.
 
@@ -174,9 +181,9 @@ Although it can cause hassle for a human annotator, another variation is known a
 
 The program is thus able to actively explore the domain space, as opposed to just waiting for data to try to infer this information.
 
-While unsuitable for many problem areas (in particular text), one could easily see how this model could be useful in the context of scientific experiments. The program may wish to make 'guesses' as to what would be useful data to get 'classified', so that it may further refine it's knowledge of the domain.
+While unsuitable for many problem areas (in particular text), one could easily see how this model could be useful in the context of scientific experiments. The program may wish to make \emph{guesses} as to what would be useful data to get \emph{classified}, so that it may further refine it's knowledge of the domain.
 
-\citep{Settles2010} points to a good example involving a "robotic scientist" as described in \citep{King2009}
+\citep{Settles2010} points to a good example involving a ``robotic scientist'' as described in \citep{King2009}
 
 \subsection{Noisy Oracle}
 A noisy oracle relates to the Expert being wrong in its classification some of the time.
@@ -191,13 +198,7 @@ This paper does not deal with instance classification cost variation, instead as
 \section{Project outline}
 The project was split into two parts - one on which we worked on during the first half of the academic year, which set the stage for part 2, which was worked on during the second half.
 
-\subsection{Stage 1 - Basic Selection Strategies and Platform Development}
-Initially in the project, we wanted to experiment with basic Selection Strategies from the literature, to learn the basics of the domain, and get a feel for the approaches people take when solving the problem.
-
-The platform developed for running the experiments would also allow for plugging in our own strategies during Stage 2, with the basic strategies serving as useful comparison points.
-
-\subsection{Stage 2 - Competence Model Selection Strategy Development}
-In the second stage of the project, we reviewed the work of \cite{Delany2009}, and attempted to develop our own selection strategies from her expansions on the notion of Case Base Competence Models.
+%TODO Give basic outline of remaining sections
 
 \chapter{Literature Review}
 
@@ -235,172 +236,32 @@ In contrast to density, diversity is usually not measured across the entire data
 
 \subsection{Solves / Classifies / Contributes}
 
-%TODO
+...highlights the interesting point that there are subtle but definitely significant differences to what different researchers mean when they use the terms. Often, they seem to be glossed over quickly in literature due to their apparent obviousness, but are often core to the algorithms presented.
 
-Make note of the different definitions.
-
-highlights the interesting point that there are subtle but definitely significant differences to what different researchers mean when they use the terms. Often, they seem to be glossed over quickly in literature due to their apparent obviousness, but are often core to the algorithms presented.
+%TODO: Make note of the different definitions.
 
 \subsection{Clustering}
 Somewhat related to Density, Clustering is sometimes performed on the data set. Usage of clustering varies massively, but one relatively common use is to use Cluster-centres from dense regions as initial seeds for the case base.
 
-\section{Core Project Papers / Literature}
-At the project outset, certain literature was used as the base for subsequent investigation. As such, they were analysed in greater detail than later literature. The summaries and findings of these papers will now be presented.
+%TODO: Outline Strategies
 
-\subsection{Smyth \& McKenna's Work on Competence Models}
-\subsubsection{Introduction}
-Barry Smyth and Elizabeth McKenna performed interesting research on using a clustering techniques to expand on the work of \citet{Smyth1995} \cite{Smyth1998}.
+\section{Basic Selection Strategies}
+\subsection{Random Sampling}
+\subsection{Uncertainty Sampling}
+\subsection{Margin Sampling}
+\subsection{Diversity Only}
+\subsection{Density Only}
+\subsection{Density + Diversity}
 
-\subsubsection{Coverage}
-Coverage is defined in terms of the Retrieval and Adaptation Spaces.
-
-\paragraph{Retrieval Space}
-
-These are simply the cases retrieved from the case base for a given case.
-
-\[ RetrievalSpace(c \in C) = \left\{ c \prime \in C : c \prime \text{ is retrieved for c} \right\} \]
-
-\paragraph{Adaptation Space}
-
-\[ AdaptationSpace(c \in C) = \left\{ c \prime \in C : c \prime \text{ can be adapted to solve } c \right\} \]
-
-\paragraph{Coverage}
-
-The Coverage of a case is defined as the intersection between that case's Retrieval and Adaptation Spaces. \footnote{Intersection because all of those that could be adapted to solve this case may not be retrieved, and ones may be retrieved that cannot be adapted (depending on the retrieval mechanism used).}
-
-\[ Coverage(c \in C) = \left\{ c \prime \in C : c \prime \in RetrievalSpace(c) \cap AdaptationSpace(c) \right\} \]
-
-
-\subsubsection{Competence Group}
-The most interesting part of the paper is his notion of a Competence Group. He argues that the fundamental unit of competence should not be at the case level, but instead should be at a cluster level, where clustering is performed by the notion of Shared Coverage.
-
-Two cases exhibit Shared Coverage if their Coverage Sets overlap. A Competence Group is then defined as a maximal  collection  of  cases  exhibiting  shared Coverage \footnote{Of particular note here is that maximal means that it is not necessary that each set intersect directly with every other set - but that each case in the group is simply 'reachable' by means of Shared Coverage links by every other case in the group. In graph terms, we would speak of the graph's components - each component a maximally connected set of nodes - with an edge between two nodes representing Shared Coverage between those two nodes.}.
-
-\subsubsection{Case \& Group Density}
-
-Case Density as per Smyth's definition is a case's Average Similarity with the other things in a given group. \footnote{Similarity is taken to be a function that, given 2 cases, computes the similarity between those two cases on a scale from 0 to 1, where 0 is in no way similar, and 1 is exactly the same.}
-
-\[
-CaseDensity(c,G)=\frac{\underset{c'\in G-\{c\}}{\sum}Sim(c,c')}{\left|G\right|-1}
-\]
-
-Group density he defines as the average similarity of each thing in the group with the rest of the group from 0 to 1 - i.e. on average how similar are the things in the group to each another.
-
-\[
-GroupDensity(G)=\frac{\underset{c\in G}{\sum}CaseDensity(c,G)}{\left|G\right|}
-\]
-
-\subsubsection{Group Coverage}
-The competence measure of a group of cases is that of Group Coverage, and is defined as follows:
-
-\[
-GroupCoverage(G)=1+\left[\left|G\right|\bullet(1-GroupDensity(G))\right]
-\]
-
-Intuitively - it's bad to have a lot of redundancy, so we want things to be not too close together - therefore 'goodness' is inversely proportional to average similarity. Larger groups (as long as not dense) give greater coverage - therefore directly proportional to size.
-
-Actual Reasoning could be looked on as follows:
-\begin{itemize}
-	\item GroupDensity gives average similarity within the group (from 0 to 1 - 0 being not at all similar, 1 being exactly the same).
-	\item 1-Group Similarity gives average dissimilarity within the group.
-	\item Multiplying this average by G the total dissimilarity between the members of the group. \footnote{Another way of looking at it - gives a 'strength' of how relevant this group is. (e.g. a group of 2 needs to be taken with a pinch of salt vs a group of 1,000)}
-	\item 1 added for when no dissimilarity (either identical cases or single case in the group), these should still have weighting.
-\end{itemize}
-
-\subsubsection{Case Base Coverage}
-The overall case base coverage (on which case base competence is believed in the paper to follow) as simply the sum of the Group Coverages of all the individual Competence Groups in the case base.
-
-\[
-Coverage(G)=\underset{G_{i}\in G}{\sum}GroupCoverage(G_{j})
-\]
-
-\subsubsection{Experimental Conclusions}
-Smyth and McKenna found a close correspondence between their Case Base Coverage competence model, and the true competence of the case base against the test sets\cite{Smyth1998}.
-
-\subsubsection{Comments}
-Smyth and McKenna's general argument on how it is difficult to establish an individual case's competence seems valid. It is much more natural to define competence characteristics based on groups of cases. 
-
-Traditionally, when talking about grouping, it seems to have been done through clustering, or simply at the case level by having the notion of a case's neighbourhood (which can be defined in various ways - such as within a radius, the k nearest, etc.).
-
-The notion of defining competence groups through graph-style application of maximally connected components is an interesting one. Here, specifically, edges are based on Shared Coverage, but one can easily see how this approach could be applied based on other criteria to represent an edge.
-
-\subsection{Sarah Jane Delaney's Work on Competence Models\label{sec:DelaneysWork}}
-\subsubsection{Introduction}
-Delaney, in her work, expanded upon the definitions of Coverage and Reachability sets to include their counterparts, what she terms "Liability" and "Dissimilarity" respectively \cite{Delany2009}. 
-
-In particular, Delaney uses the concepts in investigating Case Base Maintenance strategies.
-
-\subsubsection{RCDL Sets}
-Due to Delaney's research being a very primary part of this project, the RCDL model, along with the model's consequences are gone through in detail in \ref{cha:CompetenceModels}. 
-
-\subsubsection{Case Classifications}
-Through the definitions of the RCDL Sets - Delaney notes the following\cite{Delany2009}\footnote{The two enumerations following of profile analysis are taken verbatim from the cited paper. They gives a good break-down of the possibilities, and are simply useful to keep in mind when considering the rest of the RCDL approach - hence their inclusion.}:
-
-\begin{enumerate}
-	\item Firstly, it is possible to indicate whether the case is correctly or incorrectly classified by the case-base. This is identified by the case having either a reachability set (R) or a dissimilarity set (D).
-	\item Secondly, we can consider whether the case is useful, by the existence of a coverage set (C), and
-	\item Finally whether the case is harmful and causes damage, by the existence of a liability set (L).
-\end{enumerate}
-
-Through enumeration of the possible RCDL Combinations - 8 possible Profiles exist for a case, using the occurrence of a non-empty set as the 'flag' on which to enumerate\cite{Delany2009}:
-
-\begin{enumerate}
-	\item \emph{R}: A case which is correctly classified but is not used for classifying any other case in the case-base.
-	\item \emph{D}: A case which is misclassified but is not used for classifying any other case in the case-base.
-	\item \emph{RC}: A case which is correctly classified and is useful in that it has contributed to the correct classification of other cases in the case-base. This profile and the R profile are generally the majority case profile types.
-	\item \emph{RL}: A case which is correctly classified but is harmful in the case-base causing damage by contributing to other cases being misclassified.
-	\item \emph{DC}: A case which is misclassified but is useful in the case-base. 
-	\item \emph{DL}: A case which is misclassified and is harmful in the case-base.
-	\item \emph{RCL}: A case which is correctly classified and is both useful and harmful in the case-base.
-	\item \emph{DCL}: A case which is misclassified and is both useful and harmful in the case-base.
-\end{enumerate}
-
-
-\subsubsection{Experimental Conclusions}
-In her experiments, Delaney investigates the effect on case base competence of removing cases with different combinations of RCDL profiles. She also compares the strategies with other Noise-removal strategies, and frames them in RCDL terms.
-
-While the specific results vary between datasets, Delaney notes that there was a consistent improvement with the removal of just DL \& DCL cases from the datasets. 
-
-The reader is recommended to consult \citet{Delany2009} for the thorough analysis.
-
-\subsubsection{Comments}
-The simplicity of the boolean set-non-emptiness characteristic of the case profiles Delaney defines has its serious merits. It is relatively easy to understand and reason about. 
-
-Though it does throw away much potentially useful information:
-
-\begin{itemize}
-	\item It does not try to do any reasoning about the contents of the sets.
-	\item A case either has a Reachability set, or Dissimilarity set - never both. This either-or nature is convenient for Delany's binary-style analysis, but throws away all information about the 'competing' set (be it Reachability, or Dissimilarity).
-	
-	e.g. for Classes {y, n}, if:
-	\begin{itemize}
-		\item $class(case_{1})=y$ 
-		\item $k = 3$
-		\item $class(NN_{1}(case_{1})) = y$ 
-		\item $class(NN_{2}(case_{1})) = y$
-		\item $class(NN_{3}(case_{1})) = x$  
-	\end{itemize}
-	and non-weighted voting is used, then it is correctly classified 'y' and:
-	\begin{itemize}
-		\item $reachability(case_{1})=\left\{ NN_{1}(case_{1}),\hphantom{}NN_{2}(case_{1})\right\} $
-		\item $dissimilarity(case_{1})=\left\{ \right\} $
-	\end{itemize}
-	
-	Here, no knowledge of $NN_{3}(case_{1})$ is maintained. I believe it would be more natural to have the Dissimilarity Set to include cases that were 'fighting' against the correct classification, even if the case was correctly classified.
-\end{itemize} 
-
-In our work, we hope to play with further expanding on these profiles - using them in a non-boolean way, instead factoring in what the sets actually comprise of. 
-
-
-\subsection{Rong Hu's Work on EGAL: Exploration Guided Active Learning}
-\subsubsection{Introduction}
+\section{Rong Hu's Work on EGAL: Exploration Guided Active Learning}
+\subsection{Introduction}
 Many Selection Strategies have firm dependencies on a type of Classifier confidence score (what Hu terms Exploitation Strategies), while also incorporating measures such as Density and Diversity (what Hu terms Exploration Strategies).
 
-Hu, in her work on EGAL, experiments with developing an Exploration only strategy by using only a combined measures of Density and Diversity\footnote{Rong Hu recently completed her PHD Thesis on "Active Learning for Text Classification" in D.I.T. with Dr. Sarah Jane Delaney as one of her supervisors \cite{Hu2011}. In her thesis, she covers a broad range of topics, but of particular interest to us is her work on "EGAL", and also on using Aggregate Confidence Measures.}.
+Hu, in her work on EGAL, experiments with developing an Exploration only strategy by using only a combined measures of Density and Diversity\footnote{Rong Hu recently completed her PHD Thesis on ``Active Learning for Text Classification'' in D.I.T. with Dr. Sarah Jane Delaney as one of her supervisors \cite{Hu2011}. In her thesis, she covers a broad range of topics, but of particular interest to us is her work on ``EGAL'', and also on using Aggregate Confidence Measures.}.
 
 While some of the formula specifics feel slightly odd, the overall attempt on using an Exploration only strategy is pretty interesting. 
 
-\subsubsection{Density}
+\subsection{Density}
 \[
 density(x_{i})=\underset{x_{r}\in N_{i}}{\sum}sim(x_{i},x_{r})
 \]
@@ -413,17 +274,17 @@ $\alpha=\mu-0.5\times\delta$ where $\mu$ is the mean, and $\delta$ is the standa
 
 Of particular note is that the density measure is calculated across the entire dataset (i.e. unlabelled + labelled). This being in contrast to the upcoming Diversity measure - which is measured just on the labelled instances.
 
-\subsubsection{Diversity}
+\subsection{Diversity}
 
 \[
 diversity(x_{i})=\frac{1.0}{max_{x_{r}\in L}sim(x_{i},x_{r})}
 \]
 
-It's inverted because distance is inverse of similarity. So diversity is really the 'distance' to the nearest neighbour in the Labelled set.
+It's inverted because distance is inverse of similarity. So diversity is really the distance to the nearest neighbour in the Labelled set.
 
-\subsubsection{Combining Density and Diversity}
+\subsection{Combining Density and Diversity}
 
-\paragraph{Candidate Set}
+\subsubsection{Candidate Set}
 \[
 CS=\left\{ \exists x_{i}\in U\mid diversity(x_{i})\geq\frac{1}{\beta}\right\} 
 \]
@@ -432,15 +293,15 @@ This is presented in a slightly expanded (but equivalent) form in Hu's paper ded
 
 It will be from the Candidate set that instances will be selected - but more on that below.
 
-\paragraph{Generating the Max Similarity Sets}
+\subsubsection{Generating the Max Similarity Sets}
 
-Firstly, for each item in the Unlabelled set, the similarity to the 'closest' element in the labelled set is calculated and stored. \footnote{Diversity is the distance to the closest element. The inverse of distance gives similarity. Thus the inverse of diversity is the Similarity of an element to its closest element.}
+Firstly, for each item in the Unlabelled set, the similarity to the \emph{closest} element in the labelled set is calculated and stored. \footnote{Diversity is the distance to the closest element. The inverse of distance gives similarity. Thus the inverse of diversity is the Similarity of an element to its closest element.}
 
 \[
 S=\left\{ s_{i}=\frac{1}{diversity(x_{i})}\mid x_{i}\in U\right\} 
 \]
 
-\paragraph{Determining $\beta$}
+\subsubsection{Determining $\beta$}
 A proportion $w$ is chosen from experimentation. It will represent the proportion of the top-most diverse elements to include in the Candidate Set.
 
 \[
@@ -457,25 +318,25 @@ S_{2}=\left\{ s_{j}\in S\mid s_{j}>s_{w}\right\}
 
 It does this by choosing a similarity value $s_{w}$ that would give that proportion. $\beta$ is then set to that $s_{w}$ value.
 
-\paragraph{Algorithm Outline}
+\subsubsection{Algorithm Outline}
 \begin{enumerate}
 	\item Initially $\beta$ is simply set to $\alpha$, but is updated according to the formula above each time to candidate set becomes empty.
 	\item The candidate is sorted from highest density to lowest density, and items are taken in order until the stopping condition is reached.
 \end{enumerate}
 
-\paragraph{Factor Summaries}
+\subsubsection{Factor Summaries}
 \begin{itemize}
-	\item $\beta$ relates to the minimum distance  that labelled examples should be from an unlabelled example for it to be thought of as 'diverse', and thus should be included in the 'candidate set'. 
+	\item $\beta$ relates to the minimum distance  that labelled examples should be from an unlabelled example for it to be thought of as \emph{diverse}, and thus should be included in the \emph{Candidate Set}.
 	
 	This is represented in terms of similarity - the maximum similarity.
 
-	\item $\alpha$ relates to the 'distance' (really similarity) within which to define the neighbourhood of an instance for the purpose of calculating the density (total pairwise similarity) of the instance. 
+	\item $\alpha$ relates to the distance (really similarity) within which to define the neighbourhood of an instance for the purpose of calculating the density (total pairwise similarity) of the instance. 
 	
 	This is represented in terms of similarity - the minimum similarity value instances should have to be within the neighbourhood.
 	
 \end{itemize}
 
-\paragraph{$w$ as a Density/Diversity Balancing factor}
+\subsubsection{$w$ as a Density/Diversity Balancing factor}
 Hu explains that $w$ is a balancing factor between Density and Diversity\cite{Hu2010}. 
 
 \begin{itemize}
@@ -484,20 +345,20 @@ Hu explains that $w$ is a balancing factor between Density and Diversity\cite{Hu
 	\item When $w$ is set to values between $0$ and $1$, a mixture of density and diversity sampling occurs.
 \end{itemize}
 
-\subsubsection{Experimental Results}
+\subsection{Experimental Results}
 In \citet{Hu2011}, Hu finds that w=$0.25$ gives the best results for the data sets she used. She also finds that 
 
 Hu also finds that the EGAL strategy with $w=0.25$ compares favourably with Random Sampling, and also beats Diversity-only and Density-only sampling.
 
 For comparison with other Active Learning strategies, Hu finds that EGAL performs generally better than the other strategies at the initial stages of the Active Learning process.
 
-\subsubsection{Comments}
+\subsection{Comments}
 Even though $w=0$ gives a diversity-only approach, and $w=1$ gives a density-only approach, it is unclear the exact effect of having values in between the $0$ to $1$ range.
 
-\subsection{Rong Hu's Work on Using Aggregate Confidence Measures}
-\subsubsection{Introduction}
+\section{Rong Hu's Work on Using Aggregate Confidence Measures}
+\subsection{Introduction}
 
-\subsubsection{Model \& Measures}
+\subsection{Model \& Measures}
 
 In \citet{Delany2005} - Delany proposes 5 confidence measures. Hu chooses the 3 of these which she determines experimentally to have the least correlation.
 
@@ -508,7 +369,7 @@ For the 3, the following metrics are needed:
 	\item $NUN_{i}(t)$ denotes the ith nearest unlike neighbour to example t.
 \end{itemize}
 
-\paragraph{Average NUN Index} \footnote{The measure is based just on indexes. It seems slightly strange to just use indexes, not considering the density, etc. of the neighbours. The validity / appropriateness of this approach will not be considered further though - since this particular paper - and the piece of interest to us - is that of aggregating confidence measures.}
+\subsubsection{Average NUN Index} \footnote{The measure is based just on indexes. It seems slightly strange to just use indexes, not considering the density, etc. of the neighbours. The validity / appropriateness of this approach will not be considered further though - since this particular paper - and the piece of interest to us - is that of aggregating confidence measures.}
 
 \[
 AvgNUNIndex(t,k)=\frac{\sum_{i=1}^{k}IndexOfNUN_{i}(t)}{k}
@@ -519,7 +380,7 @@ where:
 	\item $IndexOfNUN_{i}(t)$ is the index of the ith nearest unlike neighbour of target example t, the index being the ordinal ranking of the example in the list of NNs
 \end{itemize}
 
-\paragraph{Similarity Ratio}
+\subsubsection{Similarity Ratio}
 \[
 SimRatio(t,k)=\frac{\sum_{i=1}^{k}Sim(t,NLN_{i}(t))+\epsilon}{\sum_{i=1}^{k}Sim(t,NUN_{i}(t))+\epsilon}
 \]
@@ -530,7 +391,7 @@ where:
 	\item $\epsilon$ is a smoothing value to allow for situations where an example may have no NLNs or NUNs ($\epsilon$ = 0.0001 is used in all of her evaluations). Top and bottom have this value to give a ratio of 1 when no NLNs or NUNs, since technically the ratio is 0:0 - a ratio of 1.
 \end{itemize}
 
-\paragraph{Similarity Ratio Within K}
+\subsubsection{Similarity Ratio Within K}
 \[
 SimRatioK(t,k)=\frac{\sum_{i=1}^{k}Sim(t,NN_{i}(t))\delta_{t,NN_{i}(t)}}{\epsilon+\sum_{i=1}^{k}Sim(t,NN_{i}(t))(1-\delta_{t,NN_{i}(t)})}
 \]
@@ -543,38 +404,38 @@ where:
 \end{itemize}
 
 
-\subsubsection{Combining the confidence Measures}
-\paragraph{Initializing the Case Base}
+\subsection{Combining the confidence Measures}
+\subsubsection{Initializing the Case Base}
 Before the main algorithm which combines the confidence measures is initiated, the Case Base is initially seeded with a Deterministic variation on Furthest-First Initialization, as presented in \citet{Greene2007}
 
-\paragraph{Confidence Measure Threshold Initialization}
+\subsubsection{Confidence Measure Threshold Initialization}
 For \textbf{each} measure, the confidence threshold needs to identified for \textbf{each} class.
 
 For each measure, predictions with confidence values higher than the predicted class's threshold are considered confident for that measure, while those with values below are considered non-confident for that measure.
 
 Details surrounding how exactly these thresholds are set can be found in \citet{Delany2005}, but roughly, values are chosen on a per-dataset basis through experimentation. The experimentation, for binary classification, maximize the correct classifications, while keeping the false-positives zero.
 
-\paragraph{Operation}
+\subsubsection{Operation}
 The algorithm essentially operates on (repeatedly) building 2 sets - the Confident Set, and the Non-Confident Set - from the Unlabelled data.
 
-The Confident Set is composed of instances for which any their Confidence Measures exceeded the Measure's Confidence Threshold. The 'score' associated with each instance is the maximum of all the confidence measures for that instance.
+The Confident Set is composed of instances for which any their Confidence Measures exceeded the Measure's Confidence Threshold. The \emph{score} associated with each instance is the maximum of all the confidence measures for that instance.
 
-The Non-Confident Set is composed of instances which do not appear in the Confident Set, but the 'score' associated with each instance is the minimum of all the confidence measures for that instance. 
+The Non-Confident Set is composed of instances which do not appear in the Confident Set, but the \emph{score} associated with each instance is the minimum of all the confidence measures for that instance. 
 
-This min-max combination was chosen as it performed the best in Hu's preliminary experiments when she considered multiple variations.\footnote{I really question this approach . . .}. Measures for each instance "are normalised using statistical normalisation after performing a log transformation to correct those with skewed distributions"\cite{Hu2011}.
+This min-max combination was chosen as it performed the best in Hu's preliminary experiments when she considered multiple variations.\footnote{I really question this approach . . .}. Measures for each instance ``are normalised using statistical normalisation after performing a log transformation to correct those with skewed distributions''\cite{Hu2011}.
 
-After the Confident and Non-Confident sets are built, selection begins. First elements in the Non-Confident Set are selected, and once it is expended, elements from the Confident Set are selected. Selection occurs from each of the sets in a lowest-score-first order. A batch size which is an input to the algorithm indicates how many should be selected in this 'batch', before restarting the entire process, and beginning the selection of a new batch from the start again.
+After the Confident and Non-Confident sets are built, selection begins. First elements in the Non-Confident Set are selected, and once it is expended, elements from the Confident Set are selected. Selection occurs from each of the sets in a lowest-score-first order. A batch size which is an input to the algorithm indicates how many should be selected in this \emph{batch}, before restarting the entire process, and beginning the selection of a new batch from the start again.
 
 \begin{figure}[h!]
 \includegraphics{./Others/Hu2011AggregrateAlgorithm}
 \caption{Hu's Algorithm for the Aggregated Confidence Measures Selection Strategy}
 \end{figure}
 
-\subsubsection{Experiment Results}
+\subsection{Experiment Results}
 Hu finds that using the aggregated confidence measure performs marginally (though not significantly) better than using any one of the confidence measures alone and also than Uncertainty Sampling.
 
 
-\subsubsection{Comments}
+\subsection{Comments}
 I am unconvinced about the validity of the min-max style of aggregating the confidence measures.
 
 The paper and thesis section seem rather unspecific about how the measures are normalised. I'm guessing there are broadly two possibilities :
@@ -612,7 +473,7 @@ The paper and thesis section seem rather unspecific about how the measures are n
 	\end{itemize}
 	Again, because $m2 > thres(M2)$, the case will be put in the Confident set, but the maximum measure will be $m2 = 0.6$. 
 	
-	$case_{1}$ (with a score of $0.7$) will be treated as more 'confident' than $case_{2}$ (which has a score of $0.6$), even though $case_{2}$ was actually more confident than $case_{1}$ in the measure that actually caused it to be confident ($M2$).
+	$case_{1}$ (with a score of $0.7$) will be treated as more \emph{confident} than $case_{2}$ (which has a score of $0.6$), even though $case_{2}$ was actually more confident than $case_{1}$ in the measure that actually caused it to be confident ($M2$).
 	
 \end{enumerate}
 
@@ -845,9 +706,12 @@ A summary CSV file is also output for the Experiments executed during a run of t
 
 \chapter{Competence Models\label{cha:CompetenceModels}}
 \section{Overview}
-From Delaney's work\cite{Delany2009}, outlined briefly on page \pageref{sec:DelaneysWork},we hope to expand on her boolean RCDL Profile concepts, and attempt to use them in a Active Learning Selection Strategy role, as opposed to a noise reduction / case base maintenance one.
 
-This section outlines the fundamental concepts of RCDL profiles, and describes how we use them in our Selection Strategies.
+Delaney, in her work, expanded upon the definitions of Coverage and Reachability sets to include their counterparts, what she terms ``Liability'' and ``Dissimilarity'' respectively \cite{Delany2009}. She subsequently uses these concepts in defining Case Profiles, which she uses Case Base Maintenance strategies.
+
+From Delaney's work, we hope to expand on her boolean RCDL Profile concepts, and attempt to use them in an Active Learning Selection Strategy role.
+
+This chapter first outlines the fundamental concepts involved in RCDL profiles as presented by Delaney, and subsequently expands on these to describe how we use them in our Selection Strategy context.
 
 \section{Fundamentals}
 \subsection{Classifies / Misclassifies}
@@ -886,7 +750,7 @@ Therefore, for $ Misclassifies(t, c) $:
 \includegraphics[width=5cm]{./Drawn/EqualDistanceMisclassifiesEg}
 \end{figure}
 
-e.g  in the above example, the circled case 'x' is incorrectly classified as red by the case base (with k=6). Here, the 3 reds (c2, c3 and c4) and the 1 blue (c1) contribute to the incorrect classification, and thus:
+e.g  in the above example, the circled case $x$ is incorrectly classified as red by the case base (with k=6). Here, the 3 reds (c2, c3 and c4) and the 1 blue (c1) contribute to the incorrect classification, and thus:
 \begin{itemize}
 	\item $ Misclassifies(x, c1) $
 	\item $ Misclassifies(x, c2) $
@@ -935,12 +799,51 @@ If c is incorrectly classified by the case base, these are all the cases in $ NN
 \[ LiabilitySet(c \in C) = \left\lbrace t \in C : Misclassifies(t, c) \right\rbrace \]  
 These are all the cases $ t \in rNNs(c) $ such that t is incorrectly classified by the case base, and the class of c is different from the class of t.
 
+\section{Delaney's Analysis}
+
+\subsection{Case Classifications}
+Through the definitions of the RCDL Sets - Delaney notes the following\cite{Delany2009}\footnote{The two enumerations following of profile analysis are taken verbatim from the cited paper. They gives a good break-down of the possibilities, and are simply useful to keep in mind when considering the rest of the RCDL approach - hence their inclusion.}:
+
+\begin{enumerate}
+	\item Firstly, it is possible to indicate whether the case is correctly or incorrectly classified by the case-base. This is identified by the case having either a reachability set (R) or a dissimilarity set (D).
+	\item Secondly, we can consider whether the case is useful, by the existence of a coverage set (C), and
+	\item Finally whether the case is harmful and causes damage, by the existence of a liability set (L).
+\end{enumerate}
+
+Through enumeration of the possible RCDL Combinations - 8 possible Profiles exist for a case, using the occurrence of a non-empty set as the \emph{flag} on which to enumerate\cite{Delany2009}:
+
+\begin{enumerate}
+	\item \emph{R}: A case which is correctly classified but is not used for classifying any other case in the case-base.
+	\item \emph{D}: A case which is misclassified but is not used for classifying any other case in the case-base.
+	\item \emph{RC}: A case which is correctly classified and is useful in that it has contributed to the correct classification of other cases in the case-base. This profile and the R profile are generally the majority case profile types.
+	\item \emph{RL}: A case which is correctly classified but is harmful in the case-base causing damage by contributing to other cases being misclassified.
+	\item \emph{DC}: A case which is misclassified but is useful in the case-base. 
+	\item \emph{DL}: A case which is misclassified and is harmful in the case-base.
+	\item \emph{RCL}: A case which is correctly classified and is both useful and harmful in the case-base.
+	\item \emph{DCL}: A case which is misclassified and is both useful and harmful in the case-base.
+\end{enumerate}
+
+
+\subsection{Experimental Conclusions}
+In her experiments, Delaney investigates the effect on case base competence of removing cases with different combinations of RCDL profiles. She also compares the strategies with other Noise-removal strategies, and frames them in RCDL terms.
+
+While the specific results vary between datasets, Delaney notes that there was a consistent improvement with the removal of just DL \& DCL cases from the datasets. 
+
+The reader is recommended to consult \citet{Delany2009} for the thorough analysis.
+
+\section{Continuing From Delaney's Work}
+The simplicity of the boolean set-non-emptiness characteristic of the case profiles Delaney defines has its serious merits. It is relatively easy to understand and reason about. 
+
+Though it does throw away much potentially useful information. It does not try to do any reasoning about the contents of the set
+
+In our work, we hope to play with further expanding on these profiles - using them in a non-boolean way, instead factoring in what the sets actually comprise of.
+
 \section{RCDL Consequences}
 
 \subsection{Either-or nature of Reachability and Dissimilarity Sets}
 If a case has a non empty reachability set then it has been classified correctly by the case-base and, as such, will have an empty dissimilarity set and vice versa.
 
-Intuitively – these sets simply represent the set of cases that contribute to a case's classification (with the notion of 'contributes' as outlined above on page \pageref{sec:contributes}). 
+Intuitively – these sets simply represent the set of cases that contribute to a case's classification (with the notion of \emph{contributes} as outlined above on page \pageref{sec:contributes}). 
 
 If the case is correctly classified, this set is said to be the Reachability set, whereas if incorrectly classified, it is termed the Dissimilarity set.
 
@@ -977,13 +880,15 @@ This can simply be derived through the definitions above, but of primary note is
 \end{itemize}
 
 \subsection{Max Size of Reachability and Dissimilarity Sets bounded to K}
-Given that the Reachability and Dissimilarity of a case are always subsets of that case's NNs, the maximum size is the size of the NNs set – K. (This is assuming that a 'strict' kNN is used, where at max k neighbours are used even when ties exist).
+Given that the Reachability and Dissimilarity of a case are always subsets of that case's NNs, the maximum size is the size of the NNs set – K. (This is assuming that a \emph{strict} kNN is used, where at max k neighbours are used even when ties exist).
 
 \section{An Incremental Strategy to RCDL}
-\subsection{Justification}
-For developing new Competence-based Selection Strategies, it would be useful to be able to determine what RCDL changes would occur in the RCDL profiles if a new case was added with a given class. If this were to be done for each unlabelled case when selecting a case to add to the case base, it would be very expensive to re-build the entire set of RCDL profiles for the case base each time.
+\subsection{Justification} 
+In Delaney's work, it was sufficient to calculate the Case Base RCDL profiles in a brute-force manner, since it was the most efficient way for use in her Case Base Maintenance investigation on existing Case Bases. In our case for Selection Strategies, this would not be the case, since the profiles would be need to be inferred many times for a changing Case Base.
 
-Thus, an incremental strategy, in which the changes can also be inferred in linear time before actually 'adding' a case, would be very useful.
+It would also be useful to be able to determine what RCDL changes would occur in the RCDL profiles if a new case was added with a given class. If this were to be done for each unlabelled case when selecting a case to add to the case base, it would be very expensive to re-build the entire set of RCDL profiles for the case base each time.
+
+Thus, we decided to create incremental strategy, in which the changes can also be inferred in linear time before actually \emph{adding} a case.
 
 \subsection{Desired Algorithm Structure}
 \subsubsection{Inputs}
@@ -993,7 +898,7 @@ Thus, an incremental strategy, in which the changes can also be inferred in line
 	\item RCDL, NN, and rNN profiles for each of the cases
 \end{itemize}
 
-For the remainder of this algorithm description, the term 'profile' is used to denote the RCDL profile plus NNs plus rNNs. i.e. 
+For the remainder of this algorithm description, the term `profile' is used to denote the RCDL profile plus NNs plus rNNs. i.e. 
 \begin{verbatim}
 CaseProfile:  
   Reachability Set:  {…}
@@ -1043,7 +948,7 @@ Unfortunately, each case in the case base needs to be examined to determine if i
 The maximum NN distance in the cached NN list need only be compared to the distance of the new case (with consideration for tie breaking as in the kNN classifier if they're equal).
 
 \subparagraph{Get or create Change in all\_changes for x}
-This is simply a shorthand for first checking if there already is a change in all\_changes for 'x', and if so, retrieving it – otherwise creating a new blank Change in all\_changes for 'x', and returning the new Change.
+This is simply a shorthand for first checking if there already is a change in all\_changes for $x$, and if so, retrieving it – otherwise creating a new blank Change in all\_changes for $x$, and returning the new Change.
 
 \subparagraph{Duality of NN/rNN changes (both added and removed)}
 If a case has a Nearest Neighbour added, then for that Nearest Neighbour, it will get a Reversed Nearest Neighbour added. Thus, for any NN add, there is a corresponding rNN add. Similarly for remove.
@@ -1056,7 +961,7 @@ Figure out the new case's NNs, and for each NN, add the new case to their rNNs
 Figure out the existing cases that would have the new case as a NN, and for each:
   Add the existing case to the new case's rNNs
   Add the new case to the existing case's NNs.
-  If the new case 'shunted' is an NN of the existing case:
+  If the new case `shunted' is an NN of the existing case:
     Remove the shunted case from the existing case's NNs
     Remove the existing case from the shunted case's rNNs.
 \end{verbatim}
@@ -1067,7 +972,7 @@ Figure out the existing cases that would have the new case as a NN, and for each
 Due to the NN/rNN Duality property described above with regards NN changes, any NN add is guaranteed to have an rNN add, and similarly with remove. This allows us to consider only NN changes, and while dealing with the NN change, deal with the corresponding rNN change.
 
 \subparagraph{Permutations of NN changes}
-Because of the previous note, we only really need to deal with the added and removed nearest neighbours. So – the permutations of NN changes for a single case, following 'supposing' the addition of a single case:
+Because of the previous note, we only really need to deal with the added and removed nearest neighbours. So – the permutations of NN changes for a single case, following `supposing' the addition of a single case:
 
 \begin{tabular}{ | c | c | p{5cm} |}
 	NN Added & NN Removed & Notes \\ \hline
@@ -1078,7 +983,7 @@ Because of the previous note, we only really need to deal with the added and rem
 \end{tabular}
 
 \subparagraph{A NN Removal Guarantees an NN Add} \footnote{in the case of Supposing a case is added}
-This can be seen in the truth table above. Because we're only dealing with a new case being added, the effect of the new case can never cause a NN removal without causing a corresponding NN add of the new case. (Because of having a shorter distance to the target case than the furthest-distance NN, the new case will have 'shunted' that NN – causing a NN removal).
+This can be seen in the truth table above. Because we're only dealing with a new case being added, the effect of the new case can never cause a NN removal without causing a corresponding NN add of the new case. (Because of having a shorter distance to the target case than the furthest-distance NN, the new case will have \emph{shunted} that NN – causing a NN removal).
 
 This allows us to not worry about, at the stage of dealing with NN removals, if the removal caused the class to change, because we'll be dealing with that scenario anyway in the corresponding add.
 
@@ -1095,10 +1000,10 @@ In the above example,
 	\item $x$ is the case of interest whose NNs  we'll talk about
 	\item $y$ is the new case added to the case base
 	\item $c1$, $c2$, $c3$ are the NNs of $x$ prior to $y$ being added
-	\item $c1$ is the 'shunted' case which is removed from NNs(x) after $y$ is added.
+	\item $c1$ is the \emph{shunted} case which is removed from NNs(x) after $y$ is added.
 \end{itemize}
 
-$c1$ was an NN of $x$, and $x$ was an rNN of $c1$. As described previously in \ref{sec:RdWithNnClWithRnn}, a case's NNs can affect its Reachability / Dissimilarity sets, whereas a case's rNNs can affect its Coverage / Liability sets. So the removal of $c1$ as an NN of $x$ (and the corresponding removal of $x$ as an rNN of $c1$) might affect $c1$'s Reachability / Dissimilarity set, and $x$'s Coverage / Liability set, because when $c1$ is removed as a NN, it can't contribute either positively or negatively any more to $x$'s classification.\footnote{Note that it is not guaranteed that $c1$ was in $x$'s Reachability / Dissimilarity set, or that, equivalently, $x$ was in $c1$'s Coverage / Liability set. The sets will only be affected if $c1$ was a 'contributor' of $x$'s classification by the case base. Hence the usage of "might affect".}
+$c1$ was an NN of $x$, and $x$ was an rNN of $c1$. As described previously in \ref{sec:RdWithNnClWithRnn}, a case's NNs can affect its Reachability / Dissimilarity sets, whereas a case's rNNs can affect its Coverage / Liability sets. So the removal of $c1$ as an NN of $x$ (and the corresponding removal of $x$ as an rNN of $c1$) might affect $c1$'s Reachability / Dissimilarity set, and $x$'s Coverage / Liability set, because when $c1$ is removed as a NN, it can't contribute either positively or negatively any more to $x$'s classification.\footnote{Note that it is not guaranteed that $c1$ was in $x$'s Reachability / Dissimilarity set, or that, equivalently, $x$ was in $c1$'s Coverage / Liability set. The sets will only be affected if $c1$ was a \emph{contributor} of $x$'s classification by the case base. Hence the usage of ``might affect''.}
 
 All this leads to a simple way to dealing with an NN removal \footnote{The corresponding NN addition will be dealt with separately}:
 \begin{itemize}
@@ -1118,28 +1023,28 @@ If a case is correctly classified by the case base, its Reachability set will be
 \subparagraph{Effect of a correct-classification-status changing}
 Firstly, we need only worry about if the correct-classification-status of a case changes with the addition of a new case, as opposed to if the classification alone changes.
 
-E.g. if a case's actual class was 'green', it was previously classified 'blue', and with the addition of the new case, it's classified 'red', it has still been incorrectly classified both before and after the addition of the new case, therefore we do not need to worry about scrubbing.
+E.g. if a case's actual class was `green', it was previously classified `blue', and with the addition of the new case, it's classified `red', it has still been incorrectly classified both before and after the addition of the new case, therefore we do not need to worry about scrubbing.
 
-If however the correct-classification-status of a case does change, we need to perform 'scrubbing ' on some of the RCDL sets.
+If however the correct-classification-status of a case does change, we need to perform \emph{scrubbing} on some of the RCDL sets.
 
 If it went from correctly classified to incorrectly classified:
 \begin{itemize}
 	\item The case's Reachability set needs to be scrubbed (all items removed).
-	\item For each 'scrubbed' case from the Reachability set, the scrubbed case needs to have 'case' removed from its Coverage set.
+	\item For each \emph{scrubbed} case from the Reachability set, the scrubbed case needs to have `case' removed from its Coverage set.
 	\item The case's Dissimilarity set needs to be populated with the elements in its new NNs that have a different class to its actual class.
-	\item For each thing put in the Dissimilarity set, their Liability sets need to have 'case' added.
+	\item For each thing put in the Dissimilarity set, their Liability sets need to have `case' added.
 \end{itemize}
 
 Similarly, if it went from incorrectly classified to correctly classified:
 \begin{itemize}
 	\item The case's Dissimilarity set needs to be scrubbed (all items removed).
-	\item For each 'scrubbed' case from the Dissimilarity set, the scrubbed case needs to have 'case' removed from its Liability set.
+	\item For each \emph{scrubbed} case from the Dissimilarity set, the scrubbed case needs to have `case' removed from its Liability set.
 	\item The case's Reachability set needs to be populated with the elements in its new NNs that have the same class as its actual class.
-	\item For each thing put in the Reachability set, their Coverage sets need to have 'case' added.
+	\item For each thing put in the Reachability set, their Coverage sets need to have `case' added.
 \end{itemize}
 
 \subparagraph{Not allowing supposing of an already present case}
-The algorithm presented does not allow for an already present case in the case base to be 'supposed' (e.g. if x is in the case base with class 'blue', what would happen if x was actually 'red').
+The algorithm presented does not allow for an already present case in the case base to be \emph{supposed} (e.g. if x is in the case base with class `blue', what would happen if x was actually `red').
 
 \subparagraph{Not allowing for supposing the removal of a case}
 The algorithm presented does not allow for supposing the removal of a case from the case base (e.g. what would happen if I removed x from the case base?), though it could be updated to support this scenario.
@@ -1164,14 +1069,14 @@ foreach case in the NN/rNN changes:
   
   if the case's new correct-classification-status is different from before:
     // Need to scrub appropriate RCDL sets
-    foreach r in the case's old 'contributors' list (Reachability/Dissimilar):
+    foreach r in the case's old `contributors' list (Reachability/Dissimilar):
       if the case's old class was the correct classification:
         Remove r from case's Reachability set
         Remove case from r's Coverage set
       else:
         Remove r from case's Dissimilarity set
         Remove case from r's Liability set
-  foreach c in the case's new 'contributors' list:
+  foreach c in the case's new `contributors' list:
     if the case's new class is the correct classification:
       Add c to case's Reachability set
       Add case to c's Coverage set
@@ -1201,12 +1106,7 @@ foreach case in the NN/rNN changes:
 \subsection{Textual}
 
 \section{Basic Selection Strategies}
-\subsection{Random Sampling}
-\subsection{Uncertainty Sampling}
-\subsection{Margin Sampling}
-\subsection{Diversity Only}
-\subsection{Density Only}
-\subsection{Density + Diversity}
+
 
 \section{Competence-based Selection Strategies}
 
@@ -1217,57 +1117,57 @@ Results are presented using a learning curve (Accuracy vs Case-Base Size). The A
 
 \begin{figure}[h!]
 \includegraphics{./Plots/breathalyzer}
-\caption{Learning Curve Plots for "Breathalyzer" Dataset (\ref{sec:breathalyzer})}
+\caption{Learning Curve Plots for `Breathalyzer' Dataset (\ref{sec:breathalyzer})}
 \end{figure}
 
 \begin{figure}[h!]
 \includegraphics{./Plots/dermatology}
-\caption{Learning Curve Plots for "Dermatology" Dataset (\ref{sec:dermatology})}
+\caption{Learning Curve Plots for `Dermatology' Dataset (\ref{sec:dermatology})}
 \end{figure}
 
 \begin{figure}[h!]
 \includegraphics{./Plots/glass}
-\caption{Learning Curve Plots for "Glass" Dataset (\ref{sec:glass})}
+\caption{Learning Curve Plots for `Glass' Dataset (\ref{sec:glass})}
 \end{figure}
 
 \begin{figure}[h!]
 \includegraphics{./Plots/haberman}
-\caption{Learning Curve Plots for "Haberman" Dataset (\ref{sec:haberman})}
+\caption{Learning Curve Plots for `Haberman' Dataset (\ref{sec:haberman})}
 \end{figure}
 
 \begin{figure}[h!]
 \includegraphics{./Plots/heart_disease}
-\caption{Learning Curve Plots for "Heart Disease" Dataset (\ref{sec:heart_disease})}
+\caption{Learning Curve Plots for `Heart Disease' Dataset (\ref{sec:heart_disease})}
 \end{figure}
 
 \begin{figure}[h!]
 \includegraphics{./Plots/hepatitis}
-\caption{Learning Curve Plots for "Hepatitis" Dataset (\ref{sec:hepatitis})}
+\caption{Learning Curve Plots for `Hepatitis' Dataset (\ref{sec:hepatitis})}
 \end{figure}
 
 \begin{figure}[h!]
 \includegraphics{./Plots/iris}
-\caption{Learning Curve Plots for "Iris" Dataset (\ref{sec:iris})}
+\caption{Learning Curve Plots for `Iris' Dataset (\ref{sec:iris})}
 \end{figure}
 
 \begin{figure}[h!]
 \includegraphics{./Plots/lung-cancer}
-\caption{Learning Curve Plots for "Lung Cancer" Dataset (\ref{sec:lung_cancer})}
+\caption{Learning Curve Plots for `Lung Cancer' Dataset (\ref{sec:lung_cancer})}
 \end{figure}
 
 \begin{figure}[h!]
 \includegraphics{./Plots/tae}
-\caption{Learning Curve Plots for "TA Evaluation" Dataset (\ref{sec:taevaluation})}
+\caption{Learning Curve Plots for `TA Evaluation' Dataset (\ref{sec:taevaluation})}
 \end{figure}
 
 \begin{figure}[h!]
 \includegraphics{./Plots/wine}
-\caption{Learning Curve Plots for "Wine" Dataset (\ref{sec:wine})}
+\caption{Learning Curve Plots for `Wine' Dataset (\ref{sec:wine})}
 \end{figure}
 
 \begin{figure}[h!]
 \includegraphics{./Plots/zoo}
-\caption{Learning Curve Plots for "Zoo" Dataset (\ref{sec:zoo})}
+\caption{Learning Curve Plots for `Zoo' Dataset (\ref{sec:zoo})}
 \end{figure}
 
 \subsection{Textual Datasets}
@@ -1277,7 +1177,7 @@ Results are presented using a learning curve (Accuracy vs Case-Base Size). The A
 \section{Closing Opinions}
 \subsection{Backing Source Code should always accompany Experimental Results}
 
-\section{Possible Future Work Areas} \footnote{I'm staying away from simply saying "Future Work", since I have little to no intention of actually doing any of the following, unless it's actually something I want to progress in any future projects.}
+\section{Possible Future Work Areas} \footnote{I'm staying away from simply saying ``Future Work'', since I have little to no intention of actually doing any of the following, unless it's actually something I want to progress in any future projects.}
 
 
 
@@ -1318,7 +1218,103 @@ Deprecated (but useful!) latex package to import CSVs.
 \subsection*{extraplaceins}
 http://lexfridman.com/blogs/research/2011/03/06/prevent-figures-from-floating-outside-sections-in-latex/
 
+\section{Cut Sections}
+\subsection{Criticism against Reachability/Dissimilarity Sets}
+A case either has a Reachability set, or Dissimilarity set - never both. This either-or nature is convenient for Delany's binary-style analysis, but throws away all information about the \emph{competing} set (be it Reachability, or Dissimilarity).
 
-\bibliographystyle{plain}
+e.g. for Classes {y, n}, if:
+\begin{itemize}
+	\item $class(case_{1})=y$ 
+	\item $k = 3$
+	\item $class(NN_{1}(case_{1})) = y$ 
+	\item $class(NN_{2}(case_{1})) = y$
+	\item $class(NN_{3}(case_{1})) = x$  
+\end{itemize}
+and non-weighted voting is used, then it is correctly classified `y' and:
+\begin{itemize}
+	\item $reachability(case_{1})=\left\{ NN_{1}(case_{1}),\hphantom{}NN_{2}(case_{1})\right\} $
+	\item $dissimilarity(case_{1})=\left\{ \right\} $
+\end{itemize}
+
+Here, no knowledge of $NN_{3}(case_{1})$ is maintained. I believe it would be more natural to have the Dissimilarity Set to include cases that were \emph{fighting} against the correct classification, even if the case was correctly classified.
+
+\subsection{Smyth \& McKenna's Work on Competence Models}
+\subsubsection{Introduction}
+Barry Smyth and Elizabeth McKenna performed interesting research on using a clustering techniques to expand on the work of \citet{Smyth1995} \cite{Smyth1998}.
+
+\subsubsection{Coverage}
+Coverage is defined in terms of the Retrieval and Adaptation Spaces.
+
+\paragraph{Retrieval Space}
+
+These are simply the cases retrieved from the case base for a given case.
+
+\[ RetrievalSpace(c \in C) = \left\{ c \prime \in C : c \prime \text{ is retrieved for c} \right\} \]
+
+\paragraph{Adaptation Space}
+
+\[ AdaptationSpace(c \in C) = \left\{ c \prime \in C : c \prime \text{ can be adapted to solve } c \right\} \]
+
+\paragraph{Coverage}
+
+The Coverage of a case is defined as the intersection between that case's Retrieval and Adaptation Spaces. \footnote{Intersection because all of those that could be adapted to solve this case may not be retrieved, and ones may be retrieved that cannot be adapted (depending on the retrieval mechanism used).}
+
+\[ Coverage(c \in C) = \left\{ c \prime \in C : c \prime \in RetrievalSpace(c) \cap AdaptationSpace(c) \right\} \]
+
+
+\subsubsection{Competence Group}
+The most interesting part of the paper is his notion of a Competence Group. He argues that the fundamental unit of competence should not be at the case level, but instead should be at a cluster level, where clustering is performed by the notion of Shared Coverage.
+
+Two cases exhibit Shared Coverage if their Coverage Sets overlap. A Competence Group is then defined as a maximal  collection  of  cases  exhibiting  shared Coverage \footnote{Of particular note here is that maximal means that it is not necessary that each set intersect directly with every other set - but that each case in the group is simply \emph{reachable} by means of Shared Coverage links by every other case in the group. In graph terms, we would speak of the graph's components - each component a maximally connected set of nodes - with an edge between two nodes representing Shared Coverage between those two nodes.}.
+
+\subsubsection{Case \& Group Density}
+
+Case Density as per Smyth's definition is a case's Average Similarity with the other things in a given group. \footnote{Similarity is taken to be a function that, given 2 cases, computes the similarity between those two cases on a scale from 0 to 1, where 0 is in no way similar, and 1 is exactly the same.}
+
+\[
+CaseDensity(c,G)=\frac{\underset{c'\in G-\{c\}}{\sum}Sim(c,c')}{\left|G\right|-1}
+\]
+
+Group density he defines as the average similarity of each thing in the group with the rest of the group from 0 to 1 - i.e. on average how similar are the things in the group to each another.
+
+\[
+GroupDensity(G)=\frac{\underset{c\in G}{\sum}CaseDensity(c,G)}{\left|G\right|}
+\]
+
+\subsubsection{Group Coverage}
+The competence measure of a group of cases is that of Group Coverage, and is defined as follows:
+
+\[
+GroupCoverage(G)=1+\left[\left|G\right|\bullet(1-GroupDensity(G))\right]
+\]
+
+Intuitively - it's bad to have a lot of redundancy, so we want things to be not too close together - therefore \emph{goodness} is inversely proportional to average similarity. Larger groups (as long as not dense) give greater coverage - therefore directly proportional to size.
+
+Actual Reasoning could be looked on as follows:
+\begin{itemize}
+	\item GroupDensity gives average similarity within the group (from 0 to 1 - 0 being not at all similar, 1 being exactly the same).
+	\item 1-Group Similarity gives average dissimilarity within the group.
+	\item Multiplying this average by G the total dissimilarity between the members of the group. \footnote{Another way of looking at it - gives a \emph{strength} of how relevant this group is. (e.g. a group of 2 needs to be taken with a pinch of salt vs a group of 1,000)}
+	\item 1 added for when no dissimilarity (either identical cases or single case in the group), these should still have weighting.
+\end{itemize}
+
+\subsubsection{Case Base Coverage}
+The overall case base coverage (on which case base competence is believed in the paper to follow) as simply the sum of the Group Coverages of all the individual Competence Groups in the case base.
+
+\[
+Coverage(G)=\underset{G_{i}\in G}{\sum}GroupCoverage(G_{j})
+\]
+
+\subsubsection{Experimental Conclusions}
+Smyth and McKenna found a close correspondence between their Case Base Coverage competence model, and the true competence of the case base against the test sets\cite{Smyth1998}.
+
+\subsubsection{Comments}
+Smyth and McKenna's general argument on how it is difficult to establish an individual case's competence seems valid. It is much more natural to define competence characteristics based on groups of cases. 
+
+Traditionally, when talking about grouping, it seems to have been done through clustering, or simply at the case level by having the notion of a case's neighbourhood (which can be defined in various ways - such as within a radius, the k nearest, etc.).
+
+The notion of defining competence groups through graph-style application of maximally connected components is an interesting one. Here, specifically, edges are based on Shared Coverage, but one can easily see how this approach could be applied based on other criteria to represent an edge.
+
+\bibliographystyle{plainnat}
 \bibliography{library}
 \end{document}
