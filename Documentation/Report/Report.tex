@@ -66,26 +66,26 @@ The impact of casual conversations with classmates P\'{a}draig \'{O}'D\'{u}inn, 
 \section{Active Learning Overview}
 The key concept of Active Learning is that a machine learning program has a say in its own learning process, by being capable of choosing the data from which it learns. 
 
-This concept fits particularly well in the domain of Case Based Systems. In Case Based Systems, the system has a pool of cases for which it knows the label. When an unlabelled case is presented to the system, the system uses this pool to try to guess the label of the unlabelled case.
+This concept fits particularly well in the domain of Case Based Reasoning Systems. In Case Based Reasoning Systems, the system has a pool of cases for which it knows the label. When an unlabelled case is presented to the system, the system uses this pool to try to guess the label of the unlabelled case.
 
-The facet of Active Learning we will subsequently consider is known as Pool Based Sampling in other literature \cite{Settles2010}, and is based on the idea that there is a large quantity of unlabelled cases available, but getting labels (or more likely, consulting a human oracle) is an expensive process, for which it is undesirable to apply to the entire unlabelled set. The aim for the system is to choose a subset of these unlabelled cases for which to request a label. These are then used as the system's pool of labelled cases which it will consult in future.
+The facet of Active Learning we will subsequently consider is known as Pool Based Sampling in other literature \cite{Settles2010}, and is based on the idea that there is a large quantity of unlabelled cases available, but getting labels (or more likely, consulting a \emph{Human Expert}) is an expensive process, for which it is undesirable to apply to the entire unlabelled set. The aim for the system is to choose a subset of these unlabelled cases for which to request a label. These are then used as the system's pool of labelled cases which it will consult in future.
 
-The system would like to maximize its classification accuracy for future instances, but have to resort to asking the expert external to the system for a minimal number of labels.
+The system would like to maximize its classification accuracy for future instances, but have to resort to asking the Oracle external to the system for a minimal number of labels.
 
 For an in-depth review of Active Learning, and some of the recent Active Learning literature, consult \citep{Settles2010}.
 
 \section{Importance of Active Learning}
 There are many real-world domains in which a large quantity of unlabelled data is available, but the process of manually labelling all of that data is not feasible. 
 
-A human expert is often needed to label instances of the data. This human factor limits the quantity of data which can be labelled. The financial cost can be significant, and the availability of such an expert can also be a limiting factor.
+A \emph{Human Expert} is often needed to label instances of the data. This human factor limits the quantity of data which can be labelled. The financial cost can be significant, and the availability of such an expert can also be a limiting factor.
 
-Often - the labelling process is in itself exceedingly slow compared to either the amount of unlabelled data available, or the rate at which new data is being generated. 
+Often the labelling process is in itself exceedingly slow compared to either the amount of unlabelled data available, or the rate at which new data is being generated. 
 
 Machine Learning seems a clear answer for these type of scenarios, but for Machine Learning, one still needs training instances to initially train the system.
 
 \subsection{Examples of Active Learning Domains}
 \subsubsection{Recommendation Engines}
-In recommendation engines, the user can be thought of as the Oracle. It is based on their feedback (either implicit or explicit) that the recommendation engine can know if an item was relevant to the user or not. It is likely that there is a vast library from which a recommendation can come, but the quantity of user feedback may be limited.
+In recommendation engines, the user can be thought of as the Oracle. It is from user feedback (either implicit or explicit) that the recommendation engine can know if an item was relevant to the user or not. It is likely that there is a vast library from which a recommendation can come, but the quantity of user feedback may be limited.
 
 What is sometimes done in these systems is that the engine includes some results it is relatively certain will be relevant to the user, but others of which it is uncertain, but would like to gain feedback on from the user. Only comparatively few of these instances can be given to the user for feedback, as doing otherwise would negatively impact the user's experience.
 
@@ -110,7 +110,7 @@ Vast quantities of textual data are often available for the target domain, thoug
 
 Speech recognition is one area that can bring immense benefit to users, but for which manual labelling requires expert skills, and is painstakingly slow even with a trained expert's involvement. For such systems, it is highly desirable to reduce the quantity of data that must be manually labelled to bring the system to an acceptable rate.
 
-Other forms of voice analysis can also potentially benefit from active learning approaches - e.g. Sentiment Analysis.
+%TODO A more explicit presentation of a) Case-Based classification using kNN and b) Pool-Based Sampling and other assumptions that you made might be useful here, along with their descriptions. Then, section 1.4 can explicity contrast variations with 1.3
 
 \section{Fundamental Concepts}
 \subsection{Case Base}
@@ -118,10 +118,10 @@ The Case Base is the labelled pool of data which the overall system consults whe
 
 While not essential, a kNN approach fits the Case Base concept quite well.
 
-\subsection{Oracle/Expert}
-The Oracle (or Expert) is the entity which the system may consult if it wishes to determine the true label for an instance.
+\subsection{Oracle}
+The \emph{Oracle} is the entity which the system may consult if it wishes to determine the true label for an instance.
 
-Often, the Expert is a human familiar with the domain who must manually classify the instance. Though the Expert may also just be another system, but for which there is some expense in using to determine a class. \footnote{Here, we use the word `expense' in its broadest possible meaning. It may be financially expensive, computationally expensive, or simply take an exceedingly long amount of time to run. In any event, `expense' refers to some undesirable operation for which we want to minimise the number of calls.}
+Often, the \emph{Oracle} is a \emph{Human Expert} familiar with the domain who must manually classify the instance. Though the \emph{Oracle} may also just be another system, but for which there is some expense in using to determine a class. \footnote{Here, we use the word `expense' in its broadest possible meaning. It may be financially expensive, computationally expensive, or simply take an exceedingly long amount of time to run. In any event, `expense' refers to some undesirable operation for which we want to minimise the number of calls.}
 
 \subsection{Selection Strategy}
 While the term Selection Strategy can have slightly different meanings given the type of Active Learning being considered, we will subsequently use the phrase to mean the algorithmic approach taken to determine which unlabelled instances to query with the Oracle for the true label.
@@ -134,17 +134,17 @@ The Stopping Condition of the system is the point at which the system must stop 
 The Oracle is willing to classify only a fixed number of instances.
 
 \paragraph{Desired Classification Accuracy} 
-The system stops asking the Oracle for classifications after it is capable of achieving a certain classification accuracy on its test set.
+The system stops asking the \emph{Oracle} for a \emph{Label} after it is capable of achieving a certain classification accuracy on its test set.
 
 \section{Variations / Related Areas}
-Many variations on the concept of Active Learning exist. The following it intended to give just a small subset of examples, as opposed to an exhaustive listing. Further information can be gleaned from \citep{Settles2010}.
+Many variations on the concept of Active Learning exist. The following is intended to give just a small subset of examples, as opposed to an exhaustive listing. Further information can be gleaned from \citep{Settles2010}.
 
 \subsection{Case Base Maintenance}
 Case Base Maintenance is concerned with the task of how to maintain a case base. 
 
 Over time, as new instances are added, the case base size increases. This can have an adverse effect on system performance, thus it can be desirable to have the case base be as minimal as possible, while maintaining classification accuracy.
 
-Another consideration is that some cases may be adversely affecting the system's classification accuracy. It may be that these instances were initially misclassified by the Oracle, the underlying data was noisy, or it could be that the nature of the domain has changed and that similar instances now actually have a different label. The detection of these cases is therefore an important part to long-running Case Based Systems.
+Another consideration is that some cases may be adversely affecting the system's classification accuracy. It may be that these instances were initially misclassified by the Oracle, the underlying data was noisy, or it could be that the nature of the domain has changed and that similar instances now actually have a different label. The detection of these cases is therefore an important part to long-running Case Based Reasoning Systems.
 
 Overall, Case Base Maintenance can be summarised as the process of maintaining a case base to a desirable level over time.
 
@@ -165,19 +165,19 @@ In our evaluations and experimentation, we don't attempt to initially seed the C
 \end{itemize}
 
 \subsection{Stream Based Learning}
-In this methodology, the system does not just select at the outset from an unlabelled pool the instances to request classification by the Expert. Instead, It is presented with a stream of instances, and for each instance, it may either itself guess the classification (if it is relatively sure it is correct), or it may defer the decision to the Expert.
+In this methodology, the system does not just select at the outset from an unlabelled pool the instances to request classification by the Oracle. Instead, It is presented with a stream of instances, and for each instance, it may either itself guess the classification (if it is relatively sure it is correct), or it may defer the decision to the \emph{Oracle}.
 
-This notion can sometimes be more useful - but it is unlikely in practice that the system would query at any arbitrary time for an expert classification, since with the usual case of requiring human involvement, the expert may not be available at all times.
+This notion can sometimes be more useful - but it is unlikely in practice that the system would query at any arbitrary time for a \emph{Label} from the \emph{Oracle}, since with the usual case of requiring human involvement, the \emph{Oracle} may not be available at all times.
 
 What is more likely is that the system would keep note of instances it is very unsure of, guess the classification anyway if an immediate response is required, and at the next opportunity, query the oracle in batch regarding the true classification.
 
 \subsection{Batch Learning}
-In practice, it is unlikely that instances would be presented to the Expert one-at-a-time. What is more likely is that batches of instances are presented to the expert.
+In practice, it is unlikely that instances would be presented to the \emph{Oracle} one-at-a-time. What is more likely is that batches of instances are presented to the \emph{Oracle}.
 
-In our investigation, we do not perform batch learning - instead presenting instances one at a time to the Expert (equivalent to a batch size of 1).
+In our investigation, we do not perform batch learning - instead presenting instances one at a time to the \emph{Oracle} (equivalent to a batch size of 1).
 
 \subsection{Query Synthesis}
-Although it can cause hassle for a human annotator, another variation is known as Query Synthesis, in which the program actually constructs its own unlabelled data instances to present to the Expert (as opposed to the data being actual previously observed).
+Although it can cause hassle for a human annotator, another variation is known as Query Synthesis, in which the program actually constructs its own unlabelled data instances to present to the \emph{Oracle} (as opposed to the data being actual previously observed).
 
 The program is thus able to actively explore the domain space, as opposed to just waiting for data to try to infer this information.
 
@@ -186,19 +186,18 @@ While unsuitable for many problem areas (in particular text), one could easily s
 \citep{Settles2010} points to a good example involving a ``robotic scientist'' as described in \citep{King2009}
 
 \subsection{Noisy Oracle}
-A noisy oracle relates to the Expert being wrong in its classification some of the time.
+A \emph{Noisy Oracle} relates to the \emph{Oracle} being wrong in its classification some of the time.
 
 In our investigation, we do not deal with this variation at all, assuming a Perfect Oracle.
 
 \subsection{Classification Cost Variation}
-In many real-world applications, the cost associated with classifying an instance can vary from instance to instance. Some instances can involve much more of an expert's time than others. In text classification, articles vary in length and complexity. Similarly in video and audio.
+In many real-world applications, the cost associated with classifying an instance can vary from instance to instance. Some instances can involve much more time to determine a \emph{Label} for than others. In text classification, articles vary in length and complexity. Similarly in video and audio.
 
 This paper does not deal with instance classification cost variation, instead assuming a fixed cost.
 
 \section{Project outline}
-The project was split into two parts - one on which we worked on during the first half of the academic year, which set the stage for part 2, which was worked on during the second half.
 
-%TODO Give basic outline of remaining sections
+%TODO Not really the right kind of <?>. Instead give an overview of subsequent chapters. "In chapter 2, we will . . . Then in chapter 3 . . ."
 
 \chapter{Literature Review}
 
@@ -211,7 +210,7 @@ The notion of Similarity or Distance between pairs of data instances is often co
 Distance is simply the inverse of Similarity, representing numerically how far two data instances are away from each other.
 
 \subsection{(Nearest) Neighbours / Neighbourhood}
-%TODO
+%TODO Write This
 
 \subsection{Density}
 The notion of Density is extremely common. It simply represents how dense a region is within a group.
@@ -238,12 +237,12 @@ In contrast to density, diversity is usually not measured across the entire data
 
 ...highlights the interesting point that there are subtle but definitely significant differences to what different researchers mean when they use the terms. Often, they seem to be glossed over quickly in literature due to their apparent obviousness, but are often core to the algorithms presented.
 
-%TODO: Make note of the different definitions.
+%TODO Make note of the different definitions.
 
 \subsection{Clustering}
 Somewhat related to Density, Clustering is sometimes performed on the data set. Usage of clustering varies massively, but one relatively common use is to use Cluster-centres from dense regions as initial seeds for the case base.
 
-%TODO: Outline Strategies
+%TODO Outline Strategies (I was expecting this chapter to review selection strategies (which it does in section 2.2.3 and 2.2.4). I'm not sure 2.2.1 and 2.2.2 belong in this chapter Admittedly, it is uncomfortable shoe-horning them into chapter 4.)
 
 \section{Basic Selection Strategies}
 \subsection{Random Sampling}
@@ -260,6 +259,8 @@ Many Selection Strategies have firm dependencies on a type of Classifier confide
 Hu, in her work on EGAL, experiments with developing an Exploration only strategy by using only a combined measures of Density and Diversity\footnote{Rong Hu recently completed her PHD Thesis on ``Active Learning for Text Classification'' in D.I.T. with Dr. Sarah Jane Delaney as one of her supervisors \cite{Hu2011}. In her thesis, she covers a broad range of topics, but of particular interest to us is her work on ``EGAL'', and also on using Aggregate Confidence Measures.}.
 
 While some of the formula specifics feel slightly odd, the overall attempt on using an Exploration only strategy is pretty interesting. 
+
+%TODO Density + Diversity - needs a bit more explanation.
 
 \subsection{Density}
 \[
@@ -360,15 +361,15 @@ Even though $w=0$ gives a diversity-only approach, and $w=1$ gives a density-onl
 
 \subsection{Model \& Measures}
 
-In \citet{Delany2005} - Delany proposes 5 confidence measures. Hu chooses the 3 of these which she determines experimentally to have the least correlation.
+In \citet{Delany2005} - Delany proposes five confidence measures. Hu chooses the three of these which she determines experimentally to have the least correlation.
 
-For the 3, the following metrics are needed:
+For the three, the following metrics are needed:
 \begin{itemize} 
 	\item $N_{i}(t)$ denotes the ith nearest neighbour of example t.
 	\item $NLN_{i}(t)$ denotes the ith nearest like neighbour to example t.
 	\item $NUN_{i}(t)$ denotes the ith nearest unlike neighbour to example t.
 \end{itemize}
-
+%TODO Needs more explanation
 \subsubsection{Average NUN Index} \footnote{The measure is based just on indexes. It seems slightly strange to just use indexes, not considering the density, etc. of the neighbours. The validity / appropriateness of this approach will not be considered further though - since this particular paper - and the piece of interest to us - is that of aggregating confidence measures.}
 
 \[
@@ -413,7 +414,7 @@ For \textbf{each} measure, the confidence threshold needs to identified for \tex
 
 For each measure, predictions with confidence values higher than the predicted class's threshold are considered confident for that measure, while those with values below are considered non-confident for that measure.
 
-Details surrounding how exactly these thresholds are set can be found in \citet{Delany2005}, but roughly, values are chosen on a per-dataset basis through experimentation. The experimentation, for binary classification, maximize the correct classifications, while keeping the false-positives zero.
+Details surrounding how exactly these thresholds are set can be found in \citet{Delany2005}, but roughly, values are chosen on a per-dataset basis through experimentation. The experimentation, for binary classification\footnote{The false-positive analogy holds less for non-binary classification}, maximizes the correct classifications, while keeping the false-positives zero.
 
 \subsubsection{Operation}
 The algorithm essentially operates on (repeatedly) building 2 sets - the Confident Set, and the Non-Confident Set - from the Unlabelled data.
@@ -482,6 +483,8 @@ Whichever was the actual case - both seem flawed. The underlying fact remains th
 It's possible there was some fancy-maths way to do the normalization which might hope to account for both range and threshold normalization, but I can't see how it could change the fact that a score is being assigned based on possibly a different confidence measure than the one which actually achieved confidence.
 
 As a result of the above, we decided not to proceed with using Hu's aggregation strategy.
+
+%TODO I'm not sure you're presenting this two systems clearly enough. Perhabs stand best out an overview - the intuition, then the algirhtm. Then dive in the details (formulae), and (culture?) these.
 
 \chapter{Platform Architecture}
 \section{Overview}
@@ -718,7 +721,7 @@ This chapter first outlines the fundamental concepts involved in RCDL profiles a
 \subsubsection{Case Contribution\label{sec:contributes}}
 Both Classifies and Misclassifies are subsequently defined in terms of \emph{Case Contribution}.
 
-A case $c$ contributes to another case $c\prime$'s classification if $c$ is retrieved as a nearest neighbour of $c\prime$ and $c$ aids 'positively' to $c\prime$'s classification (i.e. is the same class as $c\prime$ if $c\prime$ is correctly, or is a different class to  $c\prime$ if  $c\prime$ is incorrectly classified).
+A case $c$ contributes to another case $c'$'s classification if $c$ is retrieved as a nearest neighbour of $c'$ and $c$ aids 'positively' to $c'$'s classification (i.e. is the same class as $c'$ if $c'$ is correctly, or is a different class to  $c'$ if  $c'$ is incorrectly classified).
 \subsubsection{Classifies}
 \begin{quote}
 $ Classifies(t, c) $ means that case c contributes to the correct classification of target case t. This means that target case t is successfully classified and case c is returned as a nearest neighbour of case t and has the same classification as case t.\cite{Delany2009}
@@ -888,7 +891,7 @@ In Delaney's work, it was sufficient to calculate the Case Base RCDL profiles in
 
 It would also be useful to be able to determine what RCDL changes would occur in the RCDL profiles if a new case was added with a given class. If this were to be done for each unlabelled case when selecting a case to add to the case base, it would be very expensive to re-build the entire set of RCDL profiles for the case base each time.
 
-Thus, we decided to create incremental strategy, in which the changes can also be inferred in linear time before actually \emph{adding} a case.
+Thus, we decided to create an incremental strategy, in which the changes can also be inferred in linear time before actually \emph{adding} a case.
 
 \subsection{Desired Algorithm Structure}
 \subsubsection{Inputs}
@@ -950,21 +953,31 @@ The maximum NN distance in the cached NN list need only be compared to the dista
 \subparagraph{Get or create Change in all\_changes for x}
 This is simply a shorthand for first checking if there already is a change in all\_changes for $x$, and if so, retrieving it – otherwise creating a new blank Change in all\_changes for $x$, and returning the new Change.
 
+%TODO Not clear (too low level?)
+
 \subparagraph{Duality of NN/rNN changes (both added and removed)}
 If a case has a Nearest Neighbour added, then for that Nearest Neighbour, it will get a Reversed Nearest Neighbour added. Thus, for any NN add, there is a corresponding rNN add. Similarly for remove.
 
 
 \paragraph{Algorithm}
 
+\begin{samepage}
+{\small 
 \begin{verbatim}
-Figure out the new case's NNs, and for each NN, add the new case to their rNNs
-Figure out the existing cases that would have the new case as a NN, and for each:
+// Sort out the new case's Nearest Neighbours
+For each NN of the new case's NNs:
+  add the new case to their rNNs
+
+// Sort out the new case's Reverse Nearest Neighbours.
+For each existing case that has the new case as a NN:
   Add the existing case to the new case's rNNs
   Add the new case to the existing case's NNs.
-  If the new case `shunted' is an NN of the existing case:
-    Remove the shunted case from the existing case's NNs
-    Remove the existing case from the shunted case's rNNs.
+  If the new case shunted an NN of the existing case:
+    Remove shunted case from the existing case's NNs
+    Remove existing case from the shunted case's rNNs.
 \end{verbatim}
+}
+\end{samepage}
 
 \subsubsection{Using NN / rNN changes to determine RCDL changes}
 \paragraph{Notes}
@@ -974,7 +987,9 @@ Due to the NN/rNN Duality property described above with regards NN changes, any 
 \subparagraph{Permutations of NN changes}
 Because of the previous note, we only really need to deal with the added and removed nearest neighbours. So – the permutations of NN changes for a single case, following `supposing' the addition of a single case:
 
-\begin{tabular}{ | c | c | p{5cm} |}
+\medskip
+
+\begin{tabular}{ | c | c | p{5cm} |} \hline
 	NN Added & NN Removed & Notes \\ \hline
 	1 & 1 & Will be the only type when the size of the case base is greater than or equal to  k. \\ \hline
 	1 & 0 & Happens only at start, as the NN is filling to capacity. Same as added above. \\ \hline
@@ -982,7 +997,7 @@ Because of the previous note, we only really need to deal with the added and rem
 	0 & 0 & Uninteresting - its rNNs will be covered elsewhere with the NN changes of another case. \\ \hline
 \end{tabular}
 
-\subparagraph{A NN Removal Guarantees an NN Add} \footnote{in the case of Supposing a case is added}
+\subparagraph{A NN Removal Guarantees an NN Add}
 This can be seen in the truth table above. Because we're only dealing with a new case being added, the effect of the new case can never cause a NN removal without causing a corresponding NN add of the new case. (Because of having a shorter distance to the target case than the furthest-distance NN, the new case will have \emph{shunted} that NN – causing a NN removal).
 
 This allows us to not worry about, at the stage of dealing with NN removals, if the removal caused the class to change, because we'll be dealing with that scenario anyway in the corresponding add.
@@ -1043,6 +1058,8 @@ Similarly, if it went from incorrectly classified to correctly classified:
 	\item For each thing put in the Reachability set, their Coverage sets need to have `case' added.
 \end{itemize}
 
+%TODO I'm not sure this explanation is working. ie clear enough yet. Test: Could one of your (brighter) colleagues understand it?
+
 \subparagraph{Not allowing supposing of an already present case}
 The algorithm presented does not allow for an already present case in the case base to be \emph{supposed} (e.g. if x is in the case base with class `blue', what would happen if x was actually `red').
 
@@ -1050,6 +1067,9 @@ The algorithm presented does not allow for an already present case in the case b
 The algorithm presented does not allow for supposing the removal of a case from the case base (e.g. what would happen if I removed x from the case base?), though it could be updated to support this scenario.
  
 \paragraph{Algorithm Outline}
+
+\begin{samepage}
+{\small 
 \begin{verbatim}
 Compute the NN/rNN changes using the suppose_nn algorithm.
 foreach case in the NN/rNN changes:
@@ -1063,21 +1083,22 @@ foreach case in the NN/rNN changes:
       Remove case from removed_case's Liability set.
 
   // Deal with NN adds, if present
-  if no NN adds for case, jump to start of loop for next case
+  if no NN adds for case:
+    jump to start of loop for next case
 
-  Calculate case's new classification based on updated case base
+  Calculate case's new classification
   
-  if the case's new correct-classification-status is different from before:
+  if the case's correct-classification-status changed:
     // Need to scrub appropriate RCDL sets
-    foreach r in the case's old `contributors' list (Reachability/Dissimilar):
-      if the case's old class was the correct classification:
+    for each r in the case's old `contributors' list:
+      if the case's old classification was the correct:
         Remove r from case's Reachability set
         Remove case from r's Coverage set
       else:
         Remove r from case's Dissimilarity set
         Remove case from r's Liability set
   foreach c in the case's new `contributors' list:
-    if the case's new class is the correct classification:
+    if the case's new classification is correct:
       Add c to case's Reachability set
       Add case to c's Coverage set
     else:
@@ -1085,7 +1106,8 @@ foreach case in the NN/rNN changes:
       Add case to c's Liability set
 
 \end{verbatim}
-
+}
+\end{samepage}
 \subsection{Testing and Validation}
 
 \section{Competence Based Selection Strategies}
@@ -1185,6 +1207,7 @@ Results are presented using a learning curve (Accuracy vs Case-Base Size). The A
 
 \chapter{Appendix}
 \section{Open source Technologies Used}
+%TODO Put in short description of each.
 \subsection*{python}
 \subsection*{git}
 \subsection*{pypy}
@@ -1249,33 +1272,33 @@ Coverage is defined in terms of the Retrieval and Adaptation Spaces.
 
 These are simply the cases retrieved from the case base for a given case.
 
-\[ RetrievalSpace(c \in C) = \left\{ c \prime \in C : c \prime \text{ is retrieved for c} \right\} \]
+\[ RetrievalSpace(c \in C) = \left\{ c' in C : c' \text{ is retrieved for c} \right\} \]
 
 \paragraph{Adaptation Space}
 
-\[ AdaptationSpace(c \in C) = \left\{ c \prime \in C : c \prime \text{ can be adapted to solve } c \right\} \]
+\[ AdaptationSpace(c \in C) = \left\{ c' \in C : c' \text{ can be adapted to solve } c \right\} \]
 
 \paragraph{Coverage}
 
 The Coverage of a case is defined as the intersection between that case's Retrieval and Adaptation Spaces. \footnote{Intersection because all of those that could be adapted to solve this case may not be retrieved, and ones may be retrieved that cannot be adapted (depending on the retrieval mechanism used).}
 
-\[ Coverage(c \in C) = \left\{ c \prime \in C : c \prime \in RetrievalSpace(c) \cap AdaptationSpace(c) \right\} \]
+\[ Coverage(c \in C) = \left\{ c' \in C : c' \in RetrievalSpace(c) \cap AdaptationSpace(c) \right\} \]
 
 
 \subsubsection{Competence Group}
-The most interesting part of the paper is his notion of a Competence Group. He argues that the fundamental unit of competence should not be at the case level, but instead should be at a cluster level, where clustering is performed by the notion of Shared Coverage.
+The most interesting part of the paper is their notion of a Competence Group. They argue that the fundamental unit of competence should not be at the case level, but instead should be at a cluster level, where clustering is performed by the notion of Shared Coverage.
 
 Two cases exhibit Shared Coverage if their Coverage Sets overlap. A Competence Group is then defined as a maximal  collection  of  cases  exhibiting  shared Coverage \footnote{Of particular note here is that maximal means that it is not necessary that each set intersect directly with every other set - but that each case in the group is simply \emph{reachable} by means of Shared Coverage links by every other case in the group. In graph terms, we would speak of the graph's components - each component a maximally connected set of nodes - with an edge between two nodes representing Shared Coverage between those two nodes.}.
 
 \subsubsection{Case \& Group Density}
 
-Case Density as per Smyth's definition is a case's Average Similarity with the other things in a given group. \footnote{Similarity is taken to be a function that, given 2 cases, computes the similarity between those two cases on a scale from 0 to 1, where 0 is in no way similar, and 1 is exactly the same.}
+Case Density as per Smyth and McKenna's definition is a case's Average Similarity with the other things in a given group. \footnote{Similarity is taken to be a function that, given 2 cases, computes the similarity between those two cases on a scale from 0 to 1, where 0 is in no way similar, and 1 is exactly the same.}
 
 \[
 CaseDensity(c,G)=\frac{\underset{c'\in G-\{c\}}{\sum}Sim(c,c')}{\left|G\right|-1}
 \]
 
-Group density he defines as the average similarity of each thing in the group with the rest of the group from 0 to 1 - i.e. on average how similar are the things in the group to each another.
+Group density they define as the average similarity of each thing in the group with the rest of the group from 0 to 1 - i.e. on average how similar are the things in the group to each another.
 
 \[
 GroupDensity(G)=\frac{\underset{c\in G}{\sum}CaseDensity(c,G)}{\left|G\right|}
