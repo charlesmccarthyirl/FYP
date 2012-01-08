@@ -209,11 +209,16 @@ In many real-world applications, the cost associated with classifying an instanc
 
 This paper does not deal with instance classification cost variation, instead assuming a fixed cost.
 
-\section{Project outline}
+\section{Report outline}
+\begin{itemize}
+	\item Chapter \ref{cha:litreview} will outline various basic Selection Strategies as found in existing Active Learning Literature, as well as looking at some more complicated strategies.
+	\item Chapter \ref{cha:platarch} will give an overview of the Platform Architecture developed during the course of this project for running and analysing Selection Strategy experiments.
+	\item Chapter \ref{cha:CompetenceModels} will introduce the notion of Competence Models, outlining a particular Model developed by a researcher from DIT. It will then proceed to present our attempts at expanding the models, and using them in an Active Learning context.
+	\item Chapter \ref{cha:expanalysis} will present the results of the Experimental Analysis carried out on the basic Selection Strategies, and our Competence based Strategies.
+	\item Chapter \ref{cha:conclusions} finishes with the conclusions to the Project, and potential areas of future work that could in theory follow.
+\end{itemize}
 
-%TODO Not really the right kind of <?>. Instead give an overview of subsequent chapters. "In chapter 2, we will . . . Then in chapter 3 . . ."
-
-\chapter{Literature Review}
+\chapter{Literature Review\label{cha:litreview}}
 
 \section{Common Concepts}
 Certain concepts very frequently occur in the Active Learning Literature, so these will be outlined first.
@@ -504,7 +509,7 @@ As a result of the above, we decided not to proceed with using Hu's aggregation 
 
 %TODO I'm not sure you're presenting this two systems clearly enough. Perhabs stand best out an overview - the intuition, then the algirhtm. Then dive in the details (formulae), and (culture?) these.
 
-\chapter{Platform Architecture}
+\chapter{Platform Architecture\label{cha:platarch}}
 \section{Overview}
 \subsection{Purpose}
 The purpose of the system is the allow evaluation of and comparison between different Selection Strategies in a Pool-Based learning context.
@@ -1129,7 +1134,7 @@ foreach case in the NN/rNN changes:
 \subsection{Testing and Validation}
 
 \section{Competence Based Selection Strategies}
-\chapter{Experimental Analysis}
+\chapter{Experimental Analysis\label{cha:expanalysis}}
 \section{Datasets Used}
 \subsection{Non-Textual}
 \subsubsection*{Breathalyzer}\label{sec:breathalyzer}
@@ -1212,7 +1217,7 @@ Results are presented using a learning curve (Accuracy vs Case-Base Size). The A
 
 \subsection{Textual Datasets}
 
-\chapter{Conclusions and Future Work}
+\chapter{Conclusions and Future Work\label{cha:conclusions}}
 
 \section{Closing Opinions}
 \subsection{Backing Source Code should always accompany Experimental Results}
