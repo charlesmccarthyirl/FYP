@@ -305,30 +305,49 @@ Hu, in her work on EGAL, experiments with developing an Exploration only strateg
 
 While some of the formula specifics feel slightly odd, the overall attempt on using an Exploration only strategy is pretty interesting. 
 
-%TODO Density + Diversity - needs a bit more explanation.
+\subsection{Hu's Density / Diversity Measures}
 
-\subsection{Density}
+\subsubsection{Density}
+Hu defines an Instance's \emph{Density} as the sum of similarities within an Instance's neighbourhood.
 \[
 density(x_{i})=\underset{x_{r}\in N_{i}}{\sum}sim(x_{i},x_{r})
 \]
 
+The Neighbourhood of an Instance she defines as:
 \[
 N_{i}=\left\{ x_{r}\in D\mid sim(x_{i},x_{r})\geq\alpha\right\} 
 \]
 
 $\alpha=\mu-0.5\times\delta$ where $\mu$ is the mean, and $\delta$ is the standard deviation of the similarities. This value for $\alpha$ is somewhat arbitrary, in that it just seemed to work well in Hu's experiments.
 
-Of particular note is that the density measure is calculated across the entire dataset (i.e. unlabelled + labelled). This being in contrast to the upcoming Diversity measure - which is measured just on the labelled instances.
+Of particular note is that the density measure is calculated across the entire dataset (i.e. unlabelled + labelled). 
 
-\subsection{Diversity}
+\subsubsection{Diversity}
+
+Diversity measures how different an Instance is from everything already in the Case Base (all the Labelled Instances).
 
 \[
 diversity(x_{i})=\frac{1.0}{max_{x_{r}\in L}sim(x_{i},x_{r})}
 \]
 
-It's inverted because distance is inverse of similarity. So diversity is really the distance to the nearest neighbour in the Labelled set.
+In this formula, similarity is inverted because distance is the inverse of similarity. So diversity is really the distance to the nearest neighbour in the Labelled set.
 
-\subsection{Combining Density and Diversity}
+\subsection{The EGAL Strategy}
+
+\subsubsection{Overview}
+Hu's rough approach is to build a Candidate set of instances which one might want to add to the Case Base. This Candidate Set is based roughly on the Instances in that are furthest away from all the Cases in the Case Base. From these Candidates, one then chooses ones that are from dense regions of the state space.
+
+Hu allows for the balance between the effect of Density and Diversity to be controlled through a ``balancing factor''.
+
+\begin{samepage}
+\subsubsection{The Algorithm}
+
+\begin{figure}[h!]
+\includegraphics[scale=0.75]{./Others/Hu2011EgalAlgorithm}
+\caption{Hu's Algorithm for the EGAL Selection Strategy}
+\end{figure}
+
+\end{samepage}
 
 \subsubsection{Candidate Set}
 \[
@@ -406,25 +425,28 @@ Even though $w=0$ gives a diversity-only approach, and $w=1$ gives a density-onl
 
 \subsection{Model \& Measures}
 
-In \citet{Delany2005} - Delany proposes five confidence measures. Hu chooses the three of these which she determines experimentally to have the least correlation.
+In \citet{Delany2005} - Delany proposes five confidence measures. Hu chooses the three of these which she determines experimentally to have the least correlation\footnote{The validity / appropriateness of this approach will not be considered further though - since this particular paper - and the piece of interest to us - is that of aggregating confidence measures. Better descriptions, explanations and justifications of the measures can be found in \cite{Delany2005}}.
 
-For the three, the following metrics are needed:
+
+For the three, the following metrics are needed\footnote{Like and Unlike are compared to the Instance's predicted class by the kNN Classifier, since obviously, the actual label of the Instance is unknown.}:
 \begin{itemize} 
 	\item $N_{i}(t)$ denotes the ith nearest neighbour of example t.
 	\item $NLN_{i}(t)$ denotes the ith nearest like neighbour to example t.
 	\item $NUN_{i}(t)$ denotes the ith nearest unlike neighbour to example t.
 \end{itemize}
-%TODO Needs more explanation
-\subsubsection{Average NUN Index} \footnote{The measure is based just on indexes. It seems slightly strange to just use indexes, not considering the density, etc. of the neighbours. The validity / appropriateness of this approach will not be considered further though - since this particular paper - and the piece of interest to us - is that of aggregating confidence measures.}
+
+\subsubsection{Average NUN Index}
 
 \[
 AvgNUNIndex(t,k)=\frac{\sum_{i=1}^{k}IndexOfNUN_{i}(t)}{k}
 \]
 
-where:
+where \footnote{The measure is based just on indexes. It seems slightly strange to just use indexes, not considering the density, etc. of the neighbours.}:
 \begin{itemize}
 	\item $IndexOfNUN_{i}(t)$ is the index of the ith nearest unlike neighbour of target example t, the index being the ordinal ranking of the example in the list of NNs
 \end{itemize}
+
+This represents the average index of the first k unlike Neighbours in the Case's sorted Nearest Neighbour list. Intuitively, a larger average index is preferable, as this somewhat indicates that there wasn't much uncertainty, when the closer neighbours were voting for the predicted label.
 
 \subsubsection{Similarity Ratio}
 \[
@@ -436,6 +458,8 @@ where:
 	\item $Sim(a, b)$ is the similarity between examples $a$ and $b$ 
 	\item $\epsilon$ is a smoothing value to allow for situations where an example may have no NLNs or NUNs ($\epsilon$ = 0.0001 is used in all of her evaluations). Top and bottom have this value to give a ratio of 1 when no NLNs or NUNs, since technically the ratio is 0:0 - a ratio of 1.
 \end{itemize}
+
+This represents the ratio of the Similarity values between an Instance's k Nearest Like Neighbours, and k Nearest Unlike Neighbours. Intuitively, a higher ratio is better, as this would indicate that the classifier should be certain about its classification, since the cases with the same label as the predicted label are relatively a lot closer than the ones of a different label.
 
 \subsubsection{Similarity Ratio Within K}
 \[
@@ -449,8 +473,21 @@ where:
 	\item $\epsilon$ is a smoothing value to allow for situations where an example may have no NUNs ($\epsilon = 0.0001$ is used). \footnote{It's unclear the reason for the inconsistency between the use of $\epsilon$ on the bottom only here, but on top and bottom above.}
 \end{itemize}
 
+This measure is similar to the above measure, except that instead of considering the k Nearest Like Neighbours, and the k Nearest Unlike Neighbours, it just considers the Like and Unlike Neighbours within the first k Nearest Neighbours (be they like, or unlike).
 
 \subsection{Combining the confidence Measures}
+
+\subsubsection{Overview}
+Firstly, in a machine learning fashion, the threshold values are determined for each measure for each Label that indicate confidence for that Label. These predicted values are then used in assembling a non-confident set, from which elements are Selected in a least-confident-first style. This selection happens in `batches', after which the algorithm is re-initialized for the next batch. This is repeated until the Stopping Criteria is met.
+
+\begin{samepage}
+\subsubsection{The Algorithm}
+\begin{figure}[h!]
+\includegraphics[scale=0.75]{./Others/Hu2011AggregrateAlgorithm}
+\caption{Hu's Algorithm for the Aggregated Confidence Measures Selection Strategy}
+\end{figure}
+\end{samepage}
+
 \subsubsection{Initializing the Case Base}
 Before the main algorithm which combines the confidence measures is initiated, the Case Base is initially seeded with a Deterministic variation on Furthest-First Initialization, as presented in \citet{Greene2007}
 
@@ -459,7 +496,7 @@ For \textbf{each} measure, the confidence threshold needs to identified for \tex
 
 For each measure, predictions with confidence values higher than the predicted class's threshold are considered confident for that measure, while those with values below are considered non-confident for that measure.
 
-Details surrounding how exactly these thresholds are set can be found in \citet{Delany2005}, but roughly, values are chosen on a per-dataset basis through experimentation. The experimentation, for binary classification\footnote{The false-positive analogy holds less for non-binary classification}, maximizes the correct classifications, while keeping the false-positives zero.
+Details surrounding how exactly these thresholds are set can be found in \citet{Delany2005}, but roughly, values are chosen on a per-dataset basis through experimentation, with a threshold calculated for each measure for each Label (i.e. cross product style) that maximizes Confidence-accuracy, but keeps False Positives to zero.
 
 \subsubsection{Operation}
 The algorithm essentially operates on (repeatedly) building 2 sets - the Confident Set, and the Non-Confident Set - from the Unlabelled data.
@@ -471,11 +508,6 @@ The Non-Confident Set is composed of instances which do not appear in the Confid
 This min-max combination was chosen as it performed the best in Hu's preliminary experiments when she considered multiple variations.\footnote{I really question this approach . . .}. Measures for each instance ``are normalised using statistical normalisation after performing a log transformation to correct those with skewed distributions''\cite{Hu2011}.
 
 After the Confident and Non-Confident sets are built, selection begins. First elements in the Non-Confident Set are selected, and once it is expended, elements from the Confident Set are selected. Selection occurs from each of the sets in a lowest-score-first order. A batch size which is an input to the algorithm indicates how many should be selected in this \emph{batch}, before restarting the entire process, and beginning the selection of a new batch from the start again.
-
-\begin{figure}[h!]
-\includegraphics{./Others/Hu2011AggregrateAlgorithm}
-\caption{Hu's Algorithm for the Aggregated Confidence Measures Selection Strategy}
-\end{figure}
 
 \subsection{Experiment Results}
 Hu finds that using the aggregated confidence measure performs marginally (though not significantly) better than using any one of the confidence measures alone and also than Uncertainty Sampling.
@@ -528,8 +560,6 @@ Whichever was the actual case - both seem flawed. The underlying fact remains th
 It's possible there was some fancy-maths way to do the normalization which might hope to account for both range and threshold normalization, but I can't see how it could change the fact that a score is being assigned based on possibly a different confidence measure than the one which actually achieved confidence.
 
 As a result of the above, we decided not to proceed with using Hu's aggregation strategy.
-
-%TODO I'm not sure you're presenting this two systems clearly enough. Perhabs stand best out an overview - the intuition, then the algirhtm. Then dive in the details (formulae), and (culture?) these.
 
 \chapter{Platform Architecture\label{cha:platarch}}
 \section{Overview}
@@ -995,18 +1025,14 @@ Unfortunately, each case in the case base needs to be examined to determine if i
 
 The maximum NN distance in the cached NN list need only be compared to the distance of the new case (with consideration for tie breaking as in the kNN classifier if they're equal).
 
-\subparagraph{Get or create Change in all\_changes for x}
-This is simply a shorthand for first checking if there already is a change in all\_changes for $x$, and if so, retrieving it – otherwise creating a new blank Change in all\_changes for $x$, and returning the new Change.
-
-%TODO Not clear (too low level?)
-
 \subparagraph{Duality of NN/rNN changes (both added and removed)}
 If a case has a Nearest Neighbour added, then for that Nearest Neighbour, it will get a Reversed Nearest Neighbour added. Thus, for any NN add, there is a corresponding rNN add. Similarly for remove.
 
-
-\paragraph{Algorithm}
+This allows us just to iterate through the NN changes, and infer the presence of the corresponding rNN change as a result.
 
 \begin{samepage}
+\paragraph{Algorithm}
+
 {\small 
 \begin{verbatim}
 // Sort out the new case's Nearest Neighbours
@@ -1102,8 +1128,6 @@ Similarly, if it went from incorrectly classified to correctly classified:
 	\item The case's Reachability set needs to be populated with the elements in its new NNs that have the same class as its actual class.
 	\item For each thing put in the Reachability set, their Coverage sets need to have `case' added.
 \end{itemize}
-
-%TODO I'm not sure this explanation is working. ie clear enough yet. Test: Could one of your (brighter) colleagues understand it?
 
 \subparagraph{Not allowing supposing of an already present case}
 The algorithm presented does not allow for an already present case in the case base to be \emph{supposed} (e.g. if x is in the case base with class `blue', what would happen if x was actually `red').
@@ -1252,38 +1276,79 @@ Results are presented using a learning curve (Accuracy vs Case-Base Size). The A
 
 \chapter{Appendix}
 \section{Open source Technologies Used}
-%TODO Put in short description of each.
-\subsection*{python}
-\subsection*{git}
-\subsection*{pypy}
-\subsection*{orange}
-\subsection*{pyx}
-\subsection*{matplotlib}
-\subsection*{Eclipse}
-\subsection*{Pydev}
-\subsection*{Aptana}
-\subsection*{Dia}
-\subsection*{Latex}
-\subsection*{TexStudio}
-\subsection*{Ubuntu}
-\subsection*{SciKit Learn}
-\subsection*{cProfile}
-\subsection*{Run Snake Run}
-\subsection*{bpython}
-\subsection*{Lyx}
-\subsection*{Graphviz}
-\subsection*{PyGraphviz}
-\subsection*{PyPdf}
-\subsection*{Google Protocol Buffers}
-\subsection*{PdfRider}
+
+\subsection{Development Related}
+
+\subsubsection*{Python}
+\emph{Python}\cite{prog:python} is a high-level programming language that allows for rapid development. It was chosen due to the author's familiarity with the language, its prettiness, the large availability of Open Source libraries for it, and the need for rapid development due to the relatively short timespan of the Final Year Project.
+
+\subsubsection*{git}
+\emph{Git}\cite{prog:git} was the source-control system used, with GitHub as the host. It was primarily chosen due to its powerful support for maintaining local repositories in addition to remote ones. This came in very useful during the times I was without network access.
+
+\subsubsection*{TortoiseGit}
+\emph{TortoiseGit}\cite{prog:tortoisegit} is an incredibly easy to use interface to Git on Windows, and was used as the primary means of interacting with Git when working in a Windows environment.
+
+\subsubsection*{PyPy}
+\emph{PyPy}\cite{prog:pypy} is an alternative implementation from the standard cPython interpreter, and can often give significant performance gains to Python programs. The downside is that id doesn't support SWIG (the layer which allows interface with C++ and other code), and thus rules out the use of many libraries, and thus is not appropriate for all Python programs.
+
+PyPy was tried in the project after the Orange dependencies were removed, but it was found not to give a worthwhile performance improvement, so cPython was used instead. The probable reason for this is the frequent usage of operations such as list comprehensions that are already quite optimized in the cPython implementation.
+
+\subsubsection*{Orange}
+\emph{Orange}\cite{prog:orange} is a Machine Learning framework with bindings for Python. It was used heavily initially, but as the project progressed, our usage patterns differed compared to what it was designed for, leading to significant memory related issues. We thus elected to just use it for data-loading, and distance computation, implementing the other bits we needed ourselves.
+
+It was chosen as opposed to the other Machine Learning frameworks available for Python, as it seemed the most mature and diverse of group.
+
+\subsubsection*{Matplotlib}
+\emph{Matplotlib}\cite{prog:matplotlib} is a very popular plotting library for Python, meant to provide a feature-rich, Open Source alternative to Matlab, and Mathematica.
+
+It was used at the outset of the project to perform initial plotting, but was later abandoned in favour of PyX due to its non-pythonic interface which was meant more for interactive use.
+
+\subsubsection*{PyX}
+\emph{PyX}\cite{prog:pyx} is a graphics package for Python. It was used in the project for producing plots, and was chosen for its very Latex-friendly output formats, good documentation, and well formed interface.
+
+\subsubsection*{Eclipse}
+\emph{Eclipse} was the IDE used for all development. It was chosen due to its extreme extensibility and the author's prior familiarity with it.
+
+\subsubsection*{Pydev}
+\emph{Pydev}\cite{prog:pydev} is a Python plugin for Eclipse that allows Eclipse to be used as a full-fledged Python IDE. It features a debugger, syntax awareness, auto completion, and other features one would expect from an IDE.
+
+\subsubsection*{Aptana}
+\emph{Aptana} is another Eclipse plugin that is primarily aimed at Web Development, though does add some small additional Python features, and includes Git integration.
+
+\subsubsection*{Ubuntu}
+Due to some of the technologies involved currently requiring a *nix environment, \emph{Ubuntu}\cite{prog:ubuntu} was chosen as the main OS in which to do the development and experiment-running related to the project.
+
+\subsubsection*{SciKit Learn}
+\subsubsection*{cProfile}
+\subsubsection*{Run Snake Run}
+\subsubsection*{bpython}
+\subsubsection*{Graphviz}
+\subsubsection*{PyGraphviz}
+\subsubsection*{PyPdf}
+\subsubsection*{Google Protocol Buffers}
+\subsubsection*{Nose}
+
+\subsection{Documentation Related}
+\subsubsection*{Dia}
+\subsubsection*{Latex}
+\subsubsection*{TexStudio}
+
+\subsubsection*{Lyx}
+
+
+
+
+\subsubsection*{PdfRider}
 http://pdfrider.codeplex.com
 Extracting pages
-\subsection*{Briss}
+\subsubsection*{PdfEditor}
+%http://code.google.com/p/pdfeditor/downloads/detail?name=PdfEditorInstallator.msi&can=2&q=
+\subsubsection*{Briss}
 http://sourceforge.net/projects/briss/ - pdf cropping
-\subsection*{csvtools}
+\subsubsection*{csvtools}
 Deprecated (but useful!) latex package to import CSVs.
 
-\subsection*{extraplaceins}
+\subsubsection*{extraplaceins}
 http://lexfridman.com/blogs/research/2011/03/06/prevent-figures-from-floating-outside-sections-in-latex/
 
 \section{Cut Sections}
