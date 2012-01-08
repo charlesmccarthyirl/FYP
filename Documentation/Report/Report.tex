@@ -257,23 +257,45 @@ Diversity (usually also mentioned with Density) is another common measure used. 
 In contrast to density, diversity is usually not measured across the entire data-set, but instead just across the actual Case Base\footnote{Again, this might not be the case when one is dealing with Case Base Maintenance.}. The reasoning for this is that it would be beneficial to select new instances that are diverse from what is already present in the Case Base, in hopes that a larger range of the domain may be solved as a result. 
 
 \subsection{Solves / Classifies / Contributes}
+When it comes to analysing an individual Case, often the notion of the other Cases that the individual Case can somehow Classify comes into question. In the context of kNN Classification though, an individual Case will not be able to Classify another case on its own, instead somehow only possibly contributing to another Case's Classification. This leaves room for different definitions of what one means when they consider a Case capable of Solving another Case. 
 
-...highlights the interesting point that there are subtle but definitely significant differences to what different researchers mean when they use the terms. Often, they seem to be glossed over quickly in literature due to their apparent obviousness, but are often core to the algorithms presented.
-
-%TODO Make note of the different definitions.
+\citep{BridgeUpcoming} highlights the interesting point that there are subtle but definitely significant differences to what different researchers mean when they use the term Solves. Often, they seem to be glossed over quickly in literature due to their apparent obviousness, but are often core to the algorithms presented.
 
 \subsection{Clustering}
 Somewhat related to Density, Clustering is sometimes performed on the data set. Usage of clustering varies massively, but one relatively common use is to use Cluster-centres from dense regions as initial seeds for the case base.
 
-%TODO Outline Strategies (I was expecting this chapter to review selection strategies (which it does in section 2.2.3 and 2.2.4). I'm not sure 2.2.1 and 2.2.2 belong in this chapter Admittedly, it is uncomfortable shoe-horning them into chapter 4.)
-
 \section{Basic Selection Strategies}
 \subsection{Random Sampling}
+\emph{Random Sampling} is probably the most basic Selection Strategy. It simply select Instances at random from the Unlabelled Set. Even with its simplicity, it has the benefit of resulting in a moderately representative sampling of the domain\footnote{This is assuming that the Unlabelled Instances are a representative sampling of the real world domain - which we usually assume that they are.}.
+
+It is often used as one of a group of baseline strategies on which other strategies are compared.
+
 \subsection{Uncertainty Sampling}
+\emph{Uncertainty Sampling}\cite{Lewis1994} selects Instances that a Classifier trained on the Case Base is most uncertain about (or said another way - is least certain about). Assuming the Classifier can generate a probability for each Label when provided with a new Instance, the maximum of these for an Instance can be said to be the \emph{certainty} with which the Classifier can classify that Instance.
+
+The benefit of Uncertainty Sampling is that it doesn't select redundant instances, since whatever it selects is the one that it is least capable of Classifying with its current Case Base. The downside is that it is very prone to querying outliers, since it does not consider information such as the density of the region from which the Instance comes.
+
+Uncertainty Sampling, like Random Sampling, is very commonly used as a baseline when evaluating new Algorithms.
+
+\subsection{Uncertainty with Density}
+As discussed in the previous section, Uncertainty Sampling has the serious downfall of being prone to querying outliers, since it does not consider the region surrounding the Instances it selects.
+
+A very straightforward attempt at solving this issue is by incorporating Density information also, giving an additional weighting to the Uncertainty measures based on how Dense a region the Instance in question comes from. Uncertain instances from dense regions thus become more favourable than Uncertain instances from very sparse regions (outliers).
+
+One example of combining Uncertainty with Density can be found in \citep{Zhu2008}, though it uses an Uncertainty measure based on Entropy as opposed to pure Uncertainty alone.
+
 \subsection{Margin Sampling}
+
+\emph{Margin Sampling} tries to account for a shortcoming in pure Uncertainty Sampling for Multi-label Classification in that it only considers information about the most probable label, essentially throwing away the information about the other labels.
+
+Margin Sampling looks at the difference between the probability of the most probable label, and the second most probably label. The intuition is that if there is a large difference between the two, the Classifier must be relatively certain. Whereas if there's very little difference, then with relatively little change, the Classifier might could have picked a different Label, and so it really mustn't have been very certain about it.
+
+Margin Sampling really only makes sense in Classification where there are more than two possible label values. In Binary classification, Margin Sampling gives an identical strategy to Uncertainty Sampling.
+
 \subsection{Diversity Only}
-\subsection{Density Only}
-\subsection{Density + Diversity}
+In a \emph{Diversity Only} Sampling, the System selects Instances that are as far away as possible from everything else in the Case Base. This can result in an understandably Diverse Case Base, but is very prone to querying outliers like Uncertainty Sampling.
+
+This motivates many authors to try and incorporate Density information with Diversity. One such attempt is described below.
 
 \section{Rong Hu's Work on EGAL: Exploration Guided Active Learning}
 \subsection{Introduction}
