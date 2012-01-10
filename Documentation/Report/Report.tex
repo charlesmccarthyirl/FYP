@@ -68,11 +68,11 @@ The key concept of Active Learning is that a machine learning program has a say 
 
 This concept fits particularly well in the domain of Case Based Reasoning Systems. In Case Based Reasoning Systems, the system has a Pool of Cases for which it knows the Label. When an Unlabelled Case is presented to the system, the system uses this pool to try to guess the Label of the Unlabelled Case.
 
-The facet of Active Learning we will subsequently consider is known as Pool Based Sampling in other literature \cite{Settles2010}, and is based on the idea that there is a large quantity of Unlabelled Cases available, but getting Labels (which might involve consulting a Human Expert) is an expensive process, for which it is undesirable to apply to the entire Unlabelled Set. The aim for the system is to choose a subset of these Unlabelled Cases for which to request a Label. These are then used as the system's pool of Labelled Cases which it will consult in future.
+The facet of Active Learning we will subsequently consider is known as Pool Based Sampling in other literature \citep{Settles2010}, and is based on the idea that there is a large quantity of Unlabelled Cases available, but getting Labels (which might involve consulting a Human Expert) is an expensive process, for which it is undesirable to apply to the entire Unlabelled Set. The aim for the system is to choose a subset of these Unlabelled Cases for which to request a Label. These are then used as the system's pool of Labelled Cases which it will consult in future.
 
 The system would like to maximize its classification accuracy for future Cases, but have to resort to asking the Oracle external to the system for a minimal number of labels.
 
-For an in-depth review of Active Learning, and some of the recent Active Learning literature, consult \citep{Settles2010}.
+For an in-depth review of Active Learning, and some of the recent Active Learning literature, consult \citet{Settles2010}.
 
 \section{Importance of Active Learning}
 There are many real-world domains in which a large quantity of unlabelled data is available, but the process of manually labelling all of that data is not feasible. 
@@ -118,7 +118,7 @@ In Pool Based Active Learning, a Pool of Unlabelled Cases are available, from wh
 
 \begin{figure}[h!]
 \includegraphics[width=10cm]{./Others/Settles2010PoolBasedImage}
-\caption{Pool Based Active Learning Cycle Diagram found in \citep{Settles2010}}
+\caption{Pool Based Active Learning Cycle Diagram found in \citet{Settles2010}}
 \end{figure}
 
 \subsection{Case Base}
@@ -149,7 +149,7 @@ The Oracle is willing to classify only a fixed number of Cases.
 The system stops asking the Oracle for a Label after it is capable of achieving a certain classification accuracy on its test set.
 
 \section{Variations / Related Areas}
-Many variations on the concept of Active Learning exist. The following is intended to give just a small subset of examples, as opposed to an exhaustive listing. Further information can be gleaned from \citep{Settles2010}.
+Many variations on the concept of Active Learning exist. The following is intended to give just a small subset of examples, as opposed to an exhaustive listing. Further information can be gleaned from \citet{Settles2010}.
 
 \subsection{Case Base Maintenance}
 Case Base Maintenance is concerned with the task of how to maintain a Case Base. 
@@ -190,7 +190,7 @@ The program is thus able to actively explore the domain space, as opposed to jus
 
 While unsuitable for many problem areas (in particular text), one could easily see how this model could be useful in the context of scientific experiments. The program may wish to make \emph{guesses} as to what would be useful data to get classified, so that it may further refine it's knowledge of the domain.
 
-\citep{Settles2010} points to a good example involving a ``robotic scientist'' as described in \citep{King2009}.
+\citet{Settles2010} points to a good example involving a ``robotic scientist'' as described in \citet{King2009}.
 
 Query Synthesis is not really necessary in tradition Pool Based Sampling areas - since a large pool of truly observed (and therefore valid) unlabelled examples are present that should be representative of the type and distribution of problems which will be later presented to the system.
 
@@ -244,11 +244,11 @@ The reasoning is that the entire data-set is hopefully representative of real-wo
 
 Even with the commonality of the Density notion, there is quite a bit of variance in the literature around how density is actually measured. Two examples of relatively straightforward measures:
 \begin{enumerate}
-	\item \textbf{Global Density}: Represented as the average distance from a Case to every Case in the data set\cite{Xu2007}.
-	\item \textbf{Local kNN Based Density}: Represented as the average distance to its k nearest neighbours within the data set.\cite{Zhu2008}.
+	\item \textbf{Global Density}: Represented as the average distance from a Case to every Case in the data set\citep{Xu2007}.
+	\item \textbf{Local kNN Based Density}: Represented as the average distance to its k nearest neighbours within the data set\citep{Zhu2008}.
 \end{enumerate}
 
-Density is also sometimes measured for groups as opposed to on a Case-by-Case basis\cite{Smyth1998}, and often involves the sum of the pair-wise Similarities for the Cases in the group.
+Density is also sometimes measured for groups as opposed to on a Case-by-Case basis\citep{Smyth1998}, and often involves the sum of the pair-wise Similarities for the Cases in the group.
 
 \subsection{Diversity}
 
@@ -261,7 +261,7 @@ A relatively common metric for the Diversity of a Case is the Similarity to that
 \subsection{Solves / Classifies / Contributes}
 When it comes to analysing an individual Case, often the notion of the other Cases that the individual Case can somehow Classify comes into question. In the context of kNN Classification though, an individual Case will not be able to Classify another Case on its own, instead somehow only possibly contributing to another Case's Classification. This leaves room for different definitions of what one means when they consider a Case capable of Solving another Case. 
 
-\citep{BridgeUpcoming} highlights the interesting point that there are subtle but definitely significant differences to what different researchers mean when they use the term Solves. Often, the term seems to be glossed over quickly in literature due to their apparent obviousness, but are still often core to the algorithms presented.
+\citet{BridgeUpcoming} highlights the interesting point that there are subtle but definitely significant differences to what different researchers mean when they use the term Solves. Often, the term seems to be glossed over quickly in literature due to their apparent obviousness, but are still often core to the algorithms presented.
 
 \subsection{Clustering}
 Somewhat related to Density, Clustering is sometimes performed on the data set. Usage of clustering varies massively, but one relatively common use is to use Cluster-centres from dense regions as initial seeds for the Case Base.
@@ -273,7 +273,7 @@ Somewhat related to Density, Clustering is sometimes performed on the data set. 
 It is often used as one of a group of baseline strategies on which other strategies are compared.
 
 \subsection{Uncertainty Sampling}
-\emph{Uncertainty Sampling}\cite{Lewis1994} selects Cases that a Classifier trained on the Case Base is most uncertain about (or said another way - is least certain about). Assuming the Classifier can generate a probability for each Label when provided with a new Unlabelled Case, the maximum of these for a Case can be said to be the \emph{certainty} with which the Classifier can classify that Case. Picking the minimum of these gives Uncertainty Sampling.
+\emph{Uncertainty Sampling}\citep{Lewis1994} selects Cases that a Classifier trained on the Case Base is most uncertain about (or said another way - is least certain about). Assuming the Classifier can generate a probability for each Label when provided with a new Unlabelled Case, the maximum of these for a Case can be said to be the \emph{certainty} with which the Classifier can classify that Case. Picking the minimum of these gives Uncertainty Sampling.
 
 The rough intuition is that by selecting Cases that the Classifier is least certain about, you are making the biggest impact on the system by trying to ensure that there won't be new unseen instances that the Classifier will be so uncertain of.
 
@@ -286,7 +286,7 @@ As discussed in the previous section, Uncertainty Sampling has the serious downf
 
 A very straightforward attempt at solving this issue is by incorporating Density information also, giving an additional weighting to the Uncertainty measures based on how Dense a region the Case in question comes from. Uncertain Cases from dense regions thus become more favourable than Uncertain Cases from very sparse regions (outliers).
 
-One example of combining Uncertainty with Density can be found in \citep{Zhu2008}, though it uses an Uncertainty measure based on Entropy as opposed to pure Uncertainty alone.
+One example of combining Uncertainty with Density can be found in \citet{Zhu2008}, though it uses an Uncertainty measure based on Entropy as opposed to pure Uncertainty alone.
 
 \subsection{Margin Sampling}
 
@@ -305,7 +305,7 @@ This motivates many authors to try and incorporate Density information with Dive
 \subsection{Introduction}
 Many Selection Strategies have firm dependencies on a type of Classifier confidence score (what Hu terms Exploitation Strategies), while also incorporating measures such as Density and Diversity (what Hu terms Exploration Strategies).
 
-Hu, in her work on EGAL, experiments with developing an Exploration only strategy by combining measures of Density and Diversity\footnote{Rong Hu recently completed her PHD Thesis on ``Active Learning for Text Classification'' in D.I.T. with Dr. Sarah Jane Delaney as one of her supervisors\cite{Hu2011}. In her thesis, she covers a broad range of topics, but of particular interest to us is her work on ``EGAL'', and also on using Aggregate Confidence Measures.}.
+Hu, in her work on EGAL, experiments with developing an Exploration only strategy by combining measures of Density and Diversity\footnote{Rong Hu recently completed her PHD Thesis on ``Active Learning for Text Classification'' in D.I.T. with Dr. Sarah Jane Delaney as one of her supervisors\citep{Hu2011}. In her thesis, she covers a broad range of topics, but of particular interest to us is her work on ``EGAL'', and also on using Aggregate Confidence Measures.}.
 
 While some of the formula specifics feel slightly odd, the overall attempt on using an Exploration only strategy is pretty interesting. 
 
@@ -358,7 +358,7 @@ Hu allows for the balance between the effect of Density and Diversity to be cont
 CS=\left\{ \exists x_{i}\in U\mid diversity(x_{i})\geq\frac{1}{\beta}\right\} 
 \]
 
-This is presented in a slightly expanded (but equivalent) form in Hu's paper dedicated to EGAL\cite{Hu2010}. Really, $\beta$ represents the maximum similarity allowed to its nearest neighbour. This formula forms the set of Cases which do not have any other Cases within a distance of $\frac{1}{\beta}$.
+This is presented in a slightly expanded (but equivalent) form in Hu's paper dedicated to EGAL\citep{Hu2010}. Really, $\beta$ represents the maximum similarity allowed to its nearest neighbour. This formula forms the set of Cases which do not have any other Cases within a distance of $\frac{1}{\beta}$.
 
 \subsubsection{Generating the Max Similarity Sets}
 
@@ -406,7 +406,7 @@ $\beta$ is then set to that $s_{w}$ value.
 \end{itemize}
 
 \subsubsection{$w$ as a Density/Diversity Balancing factor}
-Hu explains that $w$ is a balancing factor between Density and Diversity\cite{Hu2010}. 
+Hu explains that $w$ is a balancing factor between Density and Diversity\citep{Hu2010}. 
 
 \begin{itemize}
 	\item When $w=0$, a pure diversity-sampling approach occurs. 
@@ -430,11 +430,11 @@ The approach of picking a similarity value to achieve that partitioning also fee
 \subsection{Introduction}
 Confidence probably needs to be initially distinguished from Competence before continuing. Confidence relates to how confident the system is regarding the Classification of an unseen instance(e.g. the probability of the most likely Label as determined by the Classifier), whereas Competence relates to the overall capability of the system. It is Confidence measures that are dealt with here.
 
-In her thesis\cite{Hu2011}, Hu outlines a Selection Strategy based on using a single Confidence Measure (essentially, the same as standard Uncertainty Sampling, but using the Confidence Measure to determine what the Case Base is most uncertain of), but expands on this to present an algorithm which attempts to aggregate multiple Confidence Measures, to produce an algorithm that performs better than using any one of the Confidence Measures alone.
+In her thesis\citep{Hu2011}, Hu outlines a Selection Strategy based on using a single Confidence Measure (essentially, the same as standard Uncertainty Sampling, but using the Confidence Measure to determine what the Case Base is most uncertain of), but expands on this to present an algorithm which attempts to aggregate multiple Confidence Measures, to produce an algorithm that performs better than using any one of the Confidence Measures alone.
 
 \subsection{Model \& Measures}
 
-In \citet{Delany2005} - Delany proposes five confidence measures. Hu chooses the three of these which she determines experimentally to have the least correlation\footnote{The validity / appropriateness of this approach will not be considered further though - since this particular paper - and the piece of interest to us - is that of aggregating confidence measures. Better descriptions, explanations and justifications of the measures can be found in \cite{Delany2005}}.
+In \citet{Delany2005} - Delany proposes five confidence measures. Hu chooses the three of these which she determines experimentally to have the least correlation\footnote{The validity / appropriateness of this approach will not be considered further though - since this particular paper - and the piece of interest to us - is that of aggregating confidence measures. Better descriptions, explanations and justifications of the measures can be found in \citet{Delany2005}}.
 
 For the three, the following metrics are needed\footnote{Like and Unlike are compared to the Case's predicted class by the kNN Classifier, since obviously, the actual label of the Case is unknown.}:
 \begin{itemize} 
@@ -513,7 +513,7 @@ The Confident Set is composed of Cases for which any of their Confidence Measure
 
 The Non-Confident Set is composed of Cases which do not appear in the Confident Set, but the \emph{score} associated with each Case is the minimum of all the confidence measures for that Case. 
 
-This min-max combination was chosen as it performed the best in Hu's preliminary experiments when she considered multiple variations.\footnote{I really question this approach . . .}. Measures for each Case ``are normalised using statistical normalisation after performing a log transformation to correct those with skewed distributions''\cite{Hu2011}.
+This min-max combination was chosen as it performed the best in Hu's preliminary experiments when she considered multiple variations.\footnote{I really question this approach . . .}. Measures for each Case ``are normalised using statistical normalisation after performing a log transformation to correct those with skewed distributions''\citep{Hu2011}.
 
 After the Confident and Non-Confident sets are built, selection begins. First elements in the Non-Confident Set are selected, and once it is expended, elements from the Confident Set are selected. Selection occurs from each of the sets in a lowest-score-first order. A batch size which is an input to the algorithm indicates how many should be selected in this \emph{batch}, before restarting the entire process, and beginning the selection of a new batch from the start again.
 
@@ -577,9 +577,9 @@ The purpose of the system is to allow evaluation of and comparison between diffe
 It achieves this by executing each of the Selection Strategies on several data sets from an initially empty Case Base. At each Selection Strategy Selection, it runs a KNN based Classifier on the Case Base, evaluating its capability to correctly classify the instances in a test set.
 
 \subsection{Technologies}
-Weka\cite{prog:weka}, a Java based Machine Learning framework, was initially briefly investigated, but due to my familiarity with Python, Orange\cite{prog:orange} was used as the core Machine Learning component. It provided useful facilities to quickly get a basic evaluation platform up and running. As the platform progressed, most Orange dependencies were removed in favour of custom implementations due to the need for greater control, and a memory-management related bug which existed in Orange with regards its Python bindings for its C++ backend. Orange was subsequently just used for data loading, and distance computations.
+Weka\citep{prog:weka}, a Java based Machine Learning framework, was initially briefly investigated, but due to my familiarity with Python, Orange\citep{prog:orange} was used as the core Machine Learning component. It provided useful facilities to quickly get a basic evaluation platform up and running. As the platform progressed, most Orange dependencies were removed in favour of custom implementations due to the need for greater control, and a memory-management related bug which existed in Orange with regards its Python bindings for its C++ backend. Orange was subsequently just used for data loading, and distance computations.
 
-For plotting, matplotlib\cite{prog:matplotlib} was initially used, but due to its very non-pythonic interface, we changed to using PyX\cite{prog:pyx}, which also provided much better support for LaTeX style file formats.
+For plotting, matplotlib\citep{prog:matplotlib} was initially used, but due to its very non-pythonic interface, we changed to using PyX\citep{prog:pyx}, which also provided much better support for LaTeX style file formats.
 
 \section{Inputs}
 \subsection{Data Files}
@@ -590,7 +590,7 @@ For ease, Orange was used to perform initial data loading, and distance computat
 \subsubsection{Orange Supported}
 Orange's primary data format is that of tabular, delimited text - such as CSV or TSV. Optionally, markup can be placed in the header rows of these files to help Orange know of the properties of each of the attributes - e.g. if the attribute represents the Label for the Case, if the attribute is Discrete or Continuous, etc., but Orange is surprisingly good at figuring most of it out on its own - occasionally just needing slight nudging in the right direction.
 
-Orange also supports some of the formats commonly used in other Machine Learning platforms - e.g. ARFF (as found in Weka) and correctly formatted .names, .data file pairs as sometimes found in the UCI Machine Learning Repository\cite{web:uci}\footnote{It should be noted that the majority of .data/.name pairs are not in the strict format necessary, thus some prior manipulation of the files present there may be needed to load them with Orange.}.
+Orange also supports some of the formats commonly used in other Machine Learning platforms - e.g. ARFF (as found in Weka) and correctly formatted .names, .data file pairs as sometimes found in the UCI Machine Learning Repository\citep{web:uci}\footnote{It should be noted that the majority of .data/.name pairs are not in the strict format necessary, thus some prior manipulation of the files present there may be needed to load them with Orange.}.
 
 \subsubsection{Custom Pre-computed Distance Format}
 
@@ -625,9 +625,9 @@ These files may also be gzipped - resulting in an extension .csv.gz, and this wi
 
 CSV was chosen due to it being quite trivial to produce irrespective of the programming language. It also allowed for easy debugging, and would potentially allow other Machine Learning systems to be used for distance computation.
 
-\paragraph{Google's Protocol Buffers\cite{prog:protocolbuffers}}
+\paragraph{Google's Protocol Buffers\citep{prog:protocolbuffers}}
 
-Google's blurb for Protocol Buffers is ``think XML, but smaller, faster, and simpler''\cite{prog:protocolbuffers}. It is a binary format for which a proxy can be automatically generated for Python (among many other languages). It is used as the preferred method of loading data with precomputed distances in the presented platform, due to its compact representation, and efficient loading.
+Google's blurb for Protocol Buffers is ``think XML, but smaller, faster, and simpler''\citep{prog:protocolbuffers}. It is a binary format for which a proxy can be automatically generated for Python (among many other languages). It is used as the preferred method of loading data with precomputed distances in the presented platform, due to its compact representation, and efficient loading.
 
 These files store essentially the same information in a similar method as the CSV style presented above. The devised protocol specification is as follows:
 \begin{verbatim}
@@ -692,13 +692,13 @@ A K Nearest Neighbours based Classifier is used in the evaluation, with
 	
 \end{itemize}
 
-An overview of KNN Classification can be found online.\cite{web:knntut}.
+An overview of KNN Classification can be found online\citep{web:knntut}.
 
 \subsubsection{Cross Validation}
 
-10-Fold Cross Validation is used for training/testing against the data. Initially Orange was used to provide Stratified Folds, but later, during the Orange-dependency-removal stage - a simplistic non-stratified implementation was adapted from the SciKit Learn library\cite{prog:sklearn}.
+10-Fold Cross Validation is used for training/testing against the data. Initially Orange was used to provide Stratified Folds, but later, during the Orange-dependency-removal stage - a simplistic non-stratified implementation was adapted from the SciKit Learn library\citep{prog:sklearn}.
 
-Many walkthroughs of K-Fold Cross Validation exist online\cite{web:kfolddemo}, but the basic approach is to split the data into k sets, followed by iteratively choosing one of the sets as the test set, and the union of the remaining sets as the training set. Thus, the testing is repeated k times. The results of the k tests are then averaged to produce a single result.
+Many walkthroughs of K-Fold Cross Validation exist online\citep{web:kfolddemo}, but the basic approach is to split the data into k sets, followed by iteratively choosing one of the sets as the test set, and the union of the remaining sets as the training set. Thus, the testing is repeated k times. The results of the k tests are then averaged to produce a single result.
 
 \subsubsection{Basic Evaluation Algorithm}
 \begin{samepage}
@@ -776,10 +776,10 @@ Each csv contains essentially 3 items. \footnote{The format of these 3 items is 
 Summary Results are also saved\footnote{Technically, these Summary Results are unnecessary, as they can simply be recomputed using the raw individual Cross Validation Results. They are simply there for user ease.}, and are similar to the CSV style of Raw Cross Validation Results except do not contain lists of Selections, or the Test Set or Training Set, but are in a file named ``summary.csv''.
 
 \subsection{Learning Curve Plots}
-PyX\cite{prog:pyx} is used to generate a PDF file of plots of the Average Learning Curves for all of the Selection Strategies\footnote{Initially - matplotlib\cite{prog:matplotlib} was used to generate the graphs - but its interface was somewhat messy and non-pythonic.}. One PDF is generated for each Data Set.
+PyX\citep{prog:pyx} is used to generate a PDF file of plots of the Average Learning Curves for all of the Selection Strategies\footnote{Initially - matplotlib\citep{prog:matplotlib} was used to generate the graphs - but its interface was somewhat messy and non-pythonic.}. One PDF is generated for each Data Set.
 
 \subsection{Selection Graphs}
-Node/Edge style graphs are also generated for each of the Selection Strategies. The distance matrix for the entire Data Set is used to generate a Spring-graph of all the Cases, where each Case has an edge to its 5 Nearest Neighbours, with a force proportional to the distance. Graphviz\cite{prog:graphviz} was used to perform this graph generation, with PyGraphviz\cite{prog:pygraphviz} as the interface from Python.
+Node/Edge style graphs are also generated for each of the Selection Strategies. The distance matrix for the entire Data Set is used to generate a Spring-graph of all the Cases, where each Case has an edge to its 5 Nearest Neighbours, with a force proportional to the distance. Graphviz\citep{prog:graphviz} was used to perform this graph generation, with PyGraphviz\citep{prog:pygraphviz} as the interface from Python.
 
 Cases which a given Selection Strategy chooses are highlighted at each Selection iteration. These are then output to a PDF file, with each page representing an iteration in the Selection Strategy.
 
@@ -793,7 +793,7 @@ A summary CSV file is also output for the Experiments executed during a run of t
 \chapter{Competence Models\label{cha:CompetenceModels}}
 \section{Overview}
 
-Delaney, in her work, expanded upon the definitions of Coverage and Reachability sets (as described in \citep{Smyth1995}) to include their counterparts, what she terms ``Liability'' and ``Dissimilarity'' respectively \cite{Delany2009}. She subsequently uses these concepts in defining Case Profiles, which she uses Case Base Maintenance strategies.
+Delaney, in her work, expanded upon the definitions of Coverage and Reachability sets (as described in \citet{Smyth1995}) to include their counterparts, what she terms ``Liability'' and ``Dissimilarity'' respectively\citep{Delany2009}. She subsequently uses these concepts in defining Case Profiles, which she uses Case Base Maintenance strategies.
 
 From Delaney's work, we hope to expand on her boolean RCDL Profile concepts, and attempt to use them in an Active Learning Selection Strategy role.
 
@@ -807,7 +807,7 @@ Both Classifies and Misclassifies are subsequently defined in terms of \emph{Cas
 A Case $c$ contributes to another Case $c'$'s classification if $c$ is retrieved as a nearest neighbour of $c'$ and $c$ aids 'positively' to $c'$'s classification (i.e. is the same class as $c'$ if $c'$ is correctly, or is a different class to  $c'$ if  $c'$ is incorrectly classified).
 \subsubsection{Classifies}
 \begin{quote}
-$ Classifies(t, c) $ means that Case $c$ contributes to the correct classification of target Case $t$. This means that target Case $t$ is successfully classified and Case $c$ is returned as a nearest neighbour of Case $t$ and has the same classification as Case $t$.\cite{Delany2009}
+$ Classifies(t, c) $ means that Case $c$ contributes to the correct classification of target Case $t$. This means that target Case $t$ is successfully classified and Case $c$ is returned as a nearest neighbour of Case $t$ and has the same classification as Case $t$\citep{Delany2009}.
 \end{quote}
 
 Therefore, for $ Classifies(t, c) $:
@@ -820,7 +820,7 @@ Therefore, for $ Classifies(t, c) $:
 \subsubsection{Misclassifies}
 
 \begin{quote}
-$ Misclassifies(t, c ) $ means that Case $c$ contributes in some way to the incorrect classification of target Case $t$. In effect this means that when target Case $t$ is misclassified by the Case Base, Case $c$ is returned as a neighbour of $t$ but has a different classification to Case $t$.\cite{Delany2009}
+$ Misclassifies(t, c ) $ means that Case $c$ contributes in some way to the incorrect classification of target Case $t$. In effect this means that when target Case $t$ is misclassified by the Case Base, Case $c$ is returned as a neighbour of $t$ but has a different classification to Case $t$\citep{Delany2009}.
 \end{quote}
 
 
@@ -888,7 +888,7 @@ These are all the Cases $ t \in rNNs(c) $ such that $t$ is incorrectly classifie
 \section{Delaney's Analysis}
 
 \subsection{Case Classifications}
-Through the definitions of the RCDL Sets - Delaney notes the following\cite{Delany2009}\footnote{The two enumerations following of profile analysis are taken verbatim from the cited paper. They gives a good break-down of the possibilities, and are simply useful to keep in mind when considering the rest of the RCDL approach - hence their inclusion.}:
+Through the definitions of the RCDL Sets - Delaney notes the following\citep{Delany2009}\footnote{The two enumerations following of profile analysis are taken verbatim from the cited paper. They gives a good break-down of the possibilities, and are simply useful to keep in mind when considering the rest of the RCDL approach - hence their inclusion.}:
 
 \begin{enumerate}
 	\item Firstly, it is possible to indicate whether the Case is correctly or incorrectly classified by the Case Base. This is identified by the Case having either a reachability set (R) or a dissimilarity set (D).
@@ -896,7 +896,7 @@ Through the definitions of the RCDL Sets - Delaney notes the following\cite{Dela
 	\item Finally whether the Case is harmful and causes damage, by the existence of a liability set (L).
 \end{enumerate}
 
-Through enumeration of the possible RCDL Combinations - 8 possible Profiles exist for a Case, using the occurrence of a non-empty set as the \emph{flag} on which to enumerate\cite{Delany2009}:
+Through enumeration of the possible RCDL Combinations - 8 possible Profiles exist for a Case, using the occurrence of a non-empty set as the \emph{flag} on which to enumerate\citep{Delany2009}:
 
 \begin{enumerate}
 	\item \emph{R}: A Case which is correctly classified but is not used for classifying any other Case in the Case Base.
@@ -1318,43 +1318,43 @@ Results are presented using a learning curve (Accuracy vs Case-Base Size). The A
 \subsection{Development Related}
 
 \subsubsection*{Python}
-\emph{Python}\cite{prog:python} is a high-level programming language that allows for rapid development. It was chosen due to the author's familiarity with the language, its prettiness, the large availability of Open Source libraries for it, and the need for rapid development due to the relatively short timespan of the Final Year Project.
+\emph{Python}\citep{prog:python} is a high-level programming language that allows for rapid development. It was chosen due to the author's familiarity with the language, its prettiness, the large availability of Open Source libraries for it, and the need for rapid development due to the relatively short timespan of the Final Year Project.
 
 \subsubsection*{git}
-\emph{Git}\cite{prog:git} was the source-control system used, with GitHub as the host. It was primarily chosen due to its powerful support for maintaining local repositories in addition to remote ones. This came in very useful during the times I was without network access.
+\emph{Git}\citep{prog:git} was the source-control system used, with GitHub as the host. It was primarily chosen due to its powerful support for maintaining local repositories in addition to remote ones. This came in very useful during the times I was without network access.
 
 \subsubsection*{TortoiseGit}
-\emph{TortoiseGit}\cite{prog:tortoisegit} is an incredibly easy to use interface to Git on Windows, and was used as the primary means of interacting with Git when working in a Windows environment.
+\emph{TortoiseGit}\citep{prog:tortoisegit} is an incredibly easy to use interface to Git on Windows, and was used as the primary means of interacting with Git when working in a Windows environment.
 
 \subsubsection*{PyPy}
-\emph{PyPy}\cite{prog:pypy} is an alternative implementation from the standard cPython interpreter, and can often give significant performance gains to Python programs. The downside is that id doesn't support SWIG (the layer which allows interface with C++ and other code), and thus rules out the use of many libraries, and thus is not appropriate for all Python programs.
+\emph{PyPy}\citep{prog:pypy} is an alternative implementation from the standard cPython interpreter, and can often give significant performance gains to Python programs. The downside is that id doesn't support SWIG (the layer which allows interface with C++ and other code), and thus rules out the use of many libraries, and thus is not appropriate for all Python programs.
 
 PyPy was tried in the project after the Orange dependencies were removed, but it was found not to give a worthwhile performance improvement, so cPython was used instead. The probable reason for this is the frequent usage of operations such as list comprehensions that are already quite optimized in the cPython implementation.
 
 \subsubsection*{Orange}
-\emph{Orange}\cite{prog:orange} is a Machine Learning framework with bindings for Python. It was used heavily initially, but as the project progressed, our usage patterns differed compared to what it was designed for, leading to significant memory related issues. We thus elected to just use it for data-loading, and distance computation, implementing the other bits we needed ourselves.
+\emph{Orange}\citep{prog:orange} is a Machine Learning framework with bindings for Python. It was used heavily initially, but as the project progressed, our usage patterns differed compared to what it was designed for, leading to significant memory related issues. We thus elected to just use it for data-loading, and distance computation, implementing the other bits we needed ourselves.
 
 It was chosen as opposed to the other Machine Learning frameworks available for Python, as it seemed the most mature and diverse of group.
 
 \subsubsection*{Matplotlib}
-\emph{Matplotlib}\cite{prog:matplotlib} is a very popular plotting library for Python, meant to provide a feature-rich, Open Source alternative to Matlab, and Mathematica.
+\emph{Matplotlib}\citep{prog:matplotlib} is a very popular plotting library for Python, meant to provide a feature-rich, Open Source alternative to Matlab, and Mathematica.
 
 It was used at the outset of the project to perform initial plotting, but was later abandoned in favour of PyX due to its non-pythonic interface which was meant more for interactive use.
 
 \subsubsection*{PyX}
-\emph{PyX}\cite{prog:pyx} is a graphics package for Python. It was used in the project for producing plots, and was chosen for its very Latex-friendly output formats, good documentation, and well formed interface.
+\emph{PyX}\citep{prog:pyx} is a graphics package for Python. It was used in the project for producing plots, and was chosen for its very Latex-friendly output formats, good documentation, and well formed interface.
 
 \subsubsection*{Eclipse}
 \emph{Eclipse} was the IDE used for all development. It was chosen due to its extreme extensibility and the author's prior familiarity with it.
 
 \subsubsection*{Pydev}
-\emph{Pydev}\cite{prog:pydev} is a Python plugin for Eclipse that allows Eclipse to be used as a full-fledged Python IDE. It features a debugger, syntax awareness, auto completion, and other features one would expect from an IDE.
+\emph{Pydev}\citep{prog:pydev} is a Python plugin for Eclipse that allows Eclipse to be used as a full-fledged Python IDE. It features a debugger, syntax awareness, auto completion, and other features one would expect from an IDE.
 
 \subsubsection*{Aptana}
 \emph{Aptana} is another Eclipse plugin that is primarily aimed at Web Development, though does add some small additional Python features, and includes Git integration.
 
 \subsubsection*{Ubuntu}
-Due to some of the technologies involved currently requiring a *nix environment, \emph{Ubuntu}\cite{prog:ubuntu} was chosen as the main OS in which to do the development and experiment-running related to the project.
+Due to some of the technologies involved currently requiring a *nix environment, \emph{Ubuntu}\citep{prog:ubuntu} was chosen as the main OS in which to do the development and experiment-running related to the project.
 
 \subsubsection*{SciKit Learn}
 \subsubsection*{cProfile}
@@ -1389,6 +1389,8 @@ Deprecated (but useful!) latex package to import CSVs.
 \subsubsection*{extraplaceins}
 http://lexfridman.com/blogs/research/2011/03/06/prevent-figures-from-floating-outside-sections-in-latex/
 
+\subsubsection*{natbib}
+
 \section{Cut Sections}
 \subsection{Criticism against Reachability/Dissimilarity Sets}
 A Case either has a Reachability set, or Dissimilarity set - never both. This either-or nature is convenient for Delany's binary-style analysis, but throws away all information about the \emph{competing} set (be it Reachability, or Dissimilarity).
@@ -1411,7 +1413,7 @@ Here, no knowledge of $NN_{3}(case_{1})$ is maintained. I believe it would be mo
 
 \subsection{Smyth \& McKenna's Work on Competence Models}
 \subsubsection{Introduction}
-Barry Smyth and Elizabeth McKenna performed interesting research on using a clustering techniques to expand on the work of \citet{Smyth1995} \cite{Smyth1998}.
+Barry Smyth and Elizabeth McKenna performed interesting research on using a clustering techniques to expand on the work of \citet{Smyth1995} \citep{Smyth1998}.
 
 \subsubsection{Coverage}
 Coverage is defined in terms of the Retrieval and Adaptation Spaces.
@@ -1477,7 +1479,7 @@ Coverage(G)=\underset{G_{i}\in G}{\sum}GroupCoverage(G_{j})
 \]
 
 \subsubsection{Experimental Conclusions}
-Smyth and McKenna found a close correspondence between their Case Base Coverage competence model, and the true competence of the Case Base against the test sets\cite{Smyth1998}.
+Smyth and McKenna found a close correspondence between their Case Base Coverage competence model, and the true competence of the Case Base against the test sets\citep{Smyth1998}.
 
 \subsubsection{Comments}
 Smyth and McKenna's general argument on how it is difficult to establish an individual case's competence seems valid. It is much more natural to define competence characteristics based on groups of cases. 
@@ -1486,6 +1488,6 @@ Traditionally, when talking about grouping, it seems to have been done through c
 
 The notion of defining competence groups through graph-style application of maximally connected components is an interesting one. Here, specifically, edges are based on Shared Coverage, but one can easily see how this approach could be applied based on other criteria to represent an edge.
 
-\bibliographystyle{plainnat}
+\bibliographystyle{unsrtnat}
 \bibliography{library}
 \end{document}
