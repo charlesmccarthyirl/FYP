@@ -4,10 +4,10 @@ import functools
 from utils import max_multiple
 
 def standard_inverse_distance_weighting(distance):
-    return 1/(distance+1)
+    return 1/(distance+0.0000000001)
 
 def squared_inverse_distance_weighting(distance):
-    return 1/(pow(distance, 2) + 1)
+    return 1/(pow(distance, 2) + 0.0000000001)
 
 class KNN:    
     def __init__(self, data, k, dist_meas, oracle, possible_classes, 

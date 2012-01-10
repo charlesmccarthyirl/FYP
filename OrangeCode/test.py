@@ -58,7 +58,7 @@ def main(experiment, named_data_sets, experiment_directory, do_create_graphs=Tru
             logging.info("Unable to generate graph for %s data set. Graphing module unavailable in system: %s" %(data_set_name, ex)) 
 
 if __name__ == "__main__":
-    logging.basicConfig(format='%(asctime)s %(message)s',level=logging.DEBUG)
+    logging.basicConfig(format='%(asctime)s %(message)s',level=logging.INFO)
     experiment = __import__(sys.argv[1]).experiment
     named_data_sets = __import__(sys.argv[2]).named_data_sets
     experiment_directory = os.path.expanduser(sys.argv[3])
