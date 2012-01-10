@@ -501,7 +501,7 @@ class ExperimentResult(dict):
                           height=10, # Want a square graph . . .
                           x=pyx.graph.axis.linear(title="Case Base Size", min=0, max=max_x), #This might seem redundant - but pyx doesn't handle non-varying y well. So specifying the min and max avoids that piece of pyx code.
                           y=pyx.graph.axis.linear(title="Classification Accuracy", min=0, max=max_y),
-                          key=pyx.graph.key.key(pos="br", dist=0.1))
+                          key=pyx.graph.key.key(pos="mr",hinside=0)) #http://www.physik.tu-dresden.de/~baecker/python/pyxgraph/examples.ps.gz
         
         # either provide lists of the individual coordinates
         points = [pyx.graph.data.values(x=[result.case_base_size for result in result_set], 
@@ -509,7 +509,7 @@ class ExperimentResult(dict):
                                     title="%s (AULC: %.3f)" % (name, result_set.AULC())) 
                   for (name, result_set) in self.items()]
         
-        g.plot(points, [pyx.graph.style.line([pyx.color.gradient.Rainbow])])
+        g.plot(points, [pyx.graph.style.line([pyx.color.gradient.ReverseRainbow])])
         
         if (title):
             title = title.replace("_", r"\_")
