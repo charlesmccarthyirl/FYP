@@ -7,6 +7,7 @@ from os.path import basename, splitext
 from functools import partial
 from utils import stream_getter
 import functools
+import logging
 
 def tgz_filename_getter(variation_name, path):
     if not os.path.exists(path):
@@ -14,8 +15,11 @@ def tgz_filename_getter(variation_name, path):
     
     return os.path.join(path, variation_name + '.tar.gz')
 
-def main(experiment, named_data_sets, experiment_directory, do_create_graphs=True):
+def main(experiment, named_data_sets, experiment_directory, do_create_graphs=True, do_create_summary=True):
     # data_set_name -> example_table (pre-shuffled)
+    
+    summary_results = {}
+    
     for (data_set_name, data_set_generator) in named_data_sets:
         l_experiment = experiment.copy()
         
@@ -45,6 +49,11 @@ def main(experiment, named_data_sets, experiment_directory, do_create_graphs=Tru
         results.write_to_csvs(lambda variation_name: 
                               stream_getter(tgz_filename_getter(variation_name, raw_results_dir)))
         
+        if do_create_summary:
+            summary_results[data_set_name] = dict([(var_name, var_result.AULC()) 
+                                                   for (var_name, var_result) 
+                                                   in results.items()])
+        
         if do_create_graphs:
             try:
                 results.write_to_selection_graphs(lambda variation_name: stream_getter(tgz_filename_getter(variation_name, os.path.join(full_result_path, 'selection_graphs')), True), data_set)
@@ -56,6 +65,23 @@ def main(experiment, named_data_sets, experiment_directory, do_create_graphs=Tru
             g.writePDFfile(os.path.abspath(full_result_path)) # Yes this is intentional, want it in the experiment directory, but with the same name as the folder.
         except ImportError, ex:
             logging.info("Unable to generate graph for %s data set. Graphing module unavailable in system: %s" %(data_set_name, ex)) 
+
+    if do_create_summary:
+        logging.info("Beginning summary csv generation")
+        with open(os.path.join(experiment_directory, "summary.csv"), 'wb') as summary_stream:
+            writer = csv.writer(summary_stream)
+            # Get all the union of all the variations names. 
+            variations = list(set(itertools.chain(*[r.keys() for r in summary_results.values()])))
+            
+            #None at start to leave column for data set names
+            writer.writerow([None] + variations)
+            for (data_name, data_results) in summary_results.items():
+                row = [data_name] + [data_results.get(var_name, None) for var_name in variations]
+                writer.writerow(row)
+            
+        logging.info("Ending summary csv generation")
+                
+    
 
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s',level=logging.INFO)
