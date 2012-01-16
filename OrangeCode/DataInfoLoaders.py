@@ -31,7 +31,7 @@ def get_data_info(filename, distance_constructor, do_normalize_distances=True):
         open_op = open
         if ext == ".gz":
             open_op = gzip.open
-            ext = os.path.splitext(os.path.splitext(filename)[0])[0].lower()
+            ext = os.path.splitext(os.path.splitext(filename)[0])[1].lower()
                 
         if ext == ".pcdt":
             method = DataInfo.DeserializationMethod.csv
