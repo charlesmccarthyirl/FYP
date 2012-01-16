@@ -15,7 +15,9 @@ def tgz_filename_getter(variation_name, path):
     
     return os.path.join(path, variation_name + '.tar.gz')
 
-def main(experiment, named_data_sets, experiment_directory, do_create_graphs=True, do_create_summary=True):
+def main(experiment, named_data_sets, experiment_directory, 
+         do_create_graphs=True, do_create_summary=True,
+         write_all_selections=False):
     # data_set_name -> example_table (pre-shuffled)
     
     summary_results = {}
@@ -56,7 +58,9 @@ def main(experiment, named_data_sets, experiment_directory, do_create_graphs=Tru
         
         if do_create_graphs:
             try:
-                results.write_to_selection_graphs(lambda variation_name: stream_getter(tgz_filename_getter(variation_name, os.path.join(full_result_path, 'selection_graphs')), True), data_set)
+                results.write_to_selection_graphs(lambda variation_name: stream_getter(tgz_filename_getter(variation_name, os.path.join(full_result_path, 'selection_graphs')), True), 
+                                                  data_set,
+                                                  write_all_selections)
             except ImportError, ex:
                 logging.info("Unable to generate selection graphs for %s data set. Graphing module unavailable in system: %s" %(data_set_name, ex)) 
             
@@ -89,7 +93,8 @@ if __name__ == "__main__":
     named_data_sets = __import__(sys.argv[2]).named_data_sets
     experiment_directory = os.path.expanduser(sys.argv[3])
     do_create_graph = sys.argv[4] != "0"
+    write_all_selections = len(sys.argv) > 5 and sys.argv[5] == "1"
     if not os.path.exists(experiment_directory):
         os.makedirs(experiment_directory)
-    main(experiment, named_data_sets, experiment_directory, do_create_graph)
+    main(experiment, named_data_sets, experiment_directory, do_create_graph, write_all_selections)
 #    cProfile.run("main(experiment, named_data_sets, experiment_directory)", "mainProfile")

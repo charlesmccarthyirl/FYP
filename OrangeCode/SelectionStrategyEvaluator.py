@@ -389,7 +389,8 @@ class ExperimentResult(dict):
             with stream_from_name_getter(variation_name) as stream:
                 result_set.serialize(stream)
                 
-    def write_to_selection_graphs(self, stream_from_name_getter, data_info):
+    def write_to_selection_graphs(self, stream_from_name_getter, 
+                                  data_info, write_all_selections=True):
         if not (sys.modules.has_key('pygraphviz') and sys.modules.has_key('pyPdf')):
             raise ImportError('pygraphviz/pypdf not available on this system.')
         
@@ -406,7 +407,6 @@ class ExperimentResult(dict):
         
         def set_node_selected(g, n):
             g.get_node(n).attr['color'] = 'green'
-
         
         logging.debug("Beginning Add Graph Data")
         
@@ -460,14 +460,15 @@ class ExperimentResult(dict):
                         for e in resultset.test_set:
                             set_node_as_test(G, e)
     
-                        for result in sorted(resultset, key=lambda r: r.case_base_size):
+                        for (j, result) in enumerate(sorted(resultset, 
+                                                            key=lambda r: r.case_base_size)):
                             _format="pdf"
                             
                             if result.selections is not None:
                                 for sel in result.selections:
                                     set_node_selected(G, sel)
                             
-                            if True:#j == len(resultset) - 1: # Changing to just gen-ing last.
+                            if write_all_selections or j == len(resultset) - 1: # Changing to just gen-ing last.
                                 mem_stream = StringIO.StringIO()
                                 G.draw(mem_stream, format=_format)
                                 mem_stream.seek(0)
