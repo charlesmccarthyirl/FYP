@@ -8,6 +8,7 @@ from functools import partial
 from utils import stream_getter
 import functools
 import logging
+import latexcodec
 
 def tgz_filename_getter(variation_name, path):
     if not os.path.exists(path):
@@ -17,7 +18,7 @@ def tgz_filename_getter(variation_name, path):
 
 def main(experiment, named_data_sets, experiment_directory, 
          do_create_graphs=True, do_create_summary=True,
-         write_all_selections=False):
+         write_all_selections=False, latex_encode=True):
     # data_set_name -> example_table (pre-shuffled)
     
     summary_results = {}
@@ -72,20 +73,29 @@ def main(experiment, named_data_sets, experiment_directory,
 
     if do_create_summary:
         logging.info("Beginning summary csv generation")
+        
+        
+        
         with open(os.path.join(experiment_directory, "summary.csv"), 'wb') as summary_stream:
             writer = csv.writer(summary_stream)
+            
+            if not latex_encode:
+                writerow = writer.writerow
+            else:
+                def writerow(row):
+                    row = [c if type(c) is not str else c.encode('latex') for c in row]
+                    writer.writerow(row)
+            
             # Get all the union of all the variations names. 
             variations = list(set(itertools.chain(*[r.keys() for r in summary_results.values()])))
             
             #None at start to leave column for data set names
-            writer.writerow([None] + variations)
+            writerow([None] + variations)
             for (data_name, data_results) in summary_results.items():
                 row = [data_name] + [data_results.get(var_name, None) for var_name in variations]
-                writer.writerow(row)
+                writerow(row)
             
         logging.info("Ending summary csv generation")
-                
-    
 
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s',level=logging.INFO)
@@ -96,5 +106,5 @@ if __name__ == "__main__":
     write_all_selections = len(sys.argv) > 5 and sys.argv[5] == "1"
     if not os.path.exists(experiment_directory):
         os.makedirs(experiment_directory)
-    main(experiment, named_data_sets, experiment_directory, do_create_graph, write_all_selections)
+    main(experiment, named_data_sets, experiment_directory, do_create_graph, write_all_selections=write_all_selections)
 #    cProfile.run("main(experiment, named_data_sets, experiment_directory)", "mainProfile")
