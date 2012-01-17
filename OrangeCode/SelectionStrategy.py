@@ -7,8 +7,7 @@ Created on 23 Oct 2011
 import random
 from utils import average, meanstdv
 from itertools import permutations, imap
-from CaseProfiling import RcdlCaseProfile
-from OrangeCode.CaseProfiling import AddRemovalStore
+from CaseProfiling import RcdlCaseProfile, AddRemovalStore
 
 def index_of(collection, needle):
     i = 0
