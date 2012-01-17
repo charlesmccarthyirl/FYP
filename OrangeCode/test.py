@@ -74,25 +74,30 @@ def main(experiment, named_data_sets, experiment_directory,
     if do_create_summary:
         logging.info("Beginning summary csv generation")
         
-        
-        
         with open(os.path.join(experiment_directory, "summary.csv"), 'wb') as summary_stream:
             writer = csv.writer(summary_stream)
+            writerow = writer.writerow
             
-            if not latex_encode:
-                writerow = writer.writerow
+            if latex_encode:
+                str_encoder = lambda s: s.encode('latex')
+                highlight = lambda x: "\\textbf{%s}" % x
             else:
-                def writerow(row):
-                    row = [c if type(c) is not str else c.encode('latex') for c in row]
-                    writer.writerow(row)
+                str_encoder = lambda s: s
+                highlight = lambda x: x
             
             # Get all the union of all the variations names. 
             variations = list(set(itertools.chain(*[r.keys() for r in summary_results.values()])))
+            data_names = summary_results.keys()
             
-            #None at start to leave column for data set names
-            writerow([None] + variations)
-            for (data_name, data_results) in summary_results.items():
-                row = [data_name] + [data_results.get(var_name, None) for var_name in variations]
+            top_results = [max(r.values()) for r in (summary_results[dn] for dn in data_names)]
+            
+            #None at start to leave column for variation names
+            writerow([None] + map(str_encoder, data_names))
+            
+            for variation in variations:
+                variation_results = [r.get(variation, None) for r in (summary_results[dn] for dn in data_names)]
+                variation_results_highlighted = [highlight(v) if v == t else v for (v, t) in zip(variation_results, top_results)]
+                row = [str_encoder(variation)] + variation_results_highlighted
                 writerow(row)
             
         logging.info("Ending summary csv generation")
