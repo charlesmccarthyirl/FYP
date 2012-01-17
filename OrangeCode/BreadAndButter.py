@@ -6,6 +6,8 @@ from utils import stream_getter
 from functools import partial
 from DataInfoLoaders import get_data_info
 import os, logging, itertools, random
+from SelectionStrategy import SingleCompetenceSelectionStrategy
+from CaseProfiling import CaseProfileBuilder
 
 RANDOM_SEED = 42
 DATASETS_DIR = os.path.join(os.path.dirname(__file__), "../Datasets/")
@@ -93,3 +95,16 @@ def create_named_data_set_generators(base_data_set_infos):
     base_data_set_infos = map(_translate_bit, base_data_set_infos)
     return [((data_set_info["base_filename"]).split(".")[0], partial(load_data_info, **data_set_info)) 
             for data_set_info in base_data_set_infos]
+
+def gen_case_profile_ss_generator(case_profile_measure_generator, op=SingleCompetenceSelectionStrategy.take_maximum):
+    def case_profile_selection_strategy_generator(*args, **kwargs): 
+        case_profile_builder=CaseProfileBuilder(k, *args, **kwargs)
+        return SingleCompetenceSelectionStrategy(
+            case_profile_measure_generator, 
+            op, 
+            *args,
+            case_profile_builder=case_profile_builder,
+            on_selection_action=lambda example: case_profile_builder.put(example),
+            **kwargs)
+    
+    return case_profile_selection_strategy_generator

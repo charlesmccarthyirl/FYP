@@ -5,8 +5,10 @@ Created on 23 Oct 2011
 '''
 
 import random
-from utils import average
+from utils import average, meanstdv
 from itertools import permutations, imap
+from CaseProfiling import RcdlCaseProfile
+from OrangeCode.CaseProfiling import AddRemovalStore
 
 def index_of(collection, needle):
     i = 0
@@ -102,14 +104,6 @@ class DensityTimesDiversityMeasure(CompetenceMeasure):
 
     def measure(self, example):
         return self.density_measure.measure(example) * self.diversity_measure.measure(example)
-
-class DensityPlusDiversityMeasure(CompetenceMeasure):
-    def __init__(self, *args, **kwargs):
-        self.density_measure = DensityMeasure(*args, **kwargs)
-        self.diversity_measure = DiversityMeasure(*args, **kwargs)
-
-    def measure(self, example):
-        return self.density_measure.measure(example) + self.diversity_measure.measure(example)
     
 class SingleCompetenceSelectionStrategy(SelectionStrategy):
     @staticmethod
@@ -161,27 +155,25 @@ class SingleCompetenceSelectionStrategy(SelectionStrategy):
         return [Selection(selected_example, selected_i)]
 
 class CaseProfileBasedCompetenceMeasure(CompetenceMeasure):
-    def __init__(self, probability_generator, case_base, case_profile_builder=None, *args, **kwargs):
+    def __init__(self, probability_generator, case_base, case_profile_builder=None, possible_classes=None, oracle=None, *args, **kwargs):
         self.case_profile_builder = case_profile_builder
-        self._probability_getter = probability_generator(case_base, *args, **kwargs)
+        self._probability_getter = probability_generator(case_base, *args, possible_classes=possible_classes, oracle=oracle, **kwargs)
         self.case_base = case_base
+        self.possible_classes = possible_classes
+        self.oracle = oracle
 
     def measure(self, example):
-        probabilities = self._probability_getter(example)
+        pass
 
-        example_possibilities = [(probability, 
-                                  self.case_profile_builder.suppose(example, _class)) 
-                                 for (_class, probability) in probabilities if probability > 0]
+class ExampleCoverageOnlyCompetenceMeasure(CaseProfileBasedCompetenceMeasure):
+    def measure(self, example):
+        probabilities = self._probability_getter(example)
+        example_possibilities = [(_class,
+                                  probability, 
+                                  len(self.case_profile_builder.suppose(example, _class).get(example, AddRemovalStore()).added.coverage_set)) 
+                                 for (_class, probability) in probabilities]
+        mean, std = meanstdv([cov_len for (c, p, cov_len) in example_possibilities])
         
-        def compute_rcdl_score(rcdl_profile):
-            return len(rcdl_profile.coverage_set) - len(rcdl_profile.liability_set)
-        
-        def compute_add_removal_score(add_removal):
-            return compute_rcdl_score(add_removal.added) - compute_rcdl_score(add_removal.removed)
-        
-        def compute_add_removals_dict_score(add_removals_dict):
-            return sum((compute_add_removal_score(add_removal) for add_removal in add_removals_dict.values()))
-        
-        return sum((probability*compute_add_removals_dict_score(add_removals_dict) 
-                    for (probability, add_removals_dict) in example_possibilities))
+        return std
+            
         
