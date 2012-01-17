@@ -77,6 +77,7 @@ def main(experiment, named_data_sets, experiment_directory,
         with open(os.path.join(experiment_directory, "summary.csv"), 'wb') as summary_stream:
             writer = csv.writer(summary_stream)
             writerow = writer.writerow
+            format_num = lambda n: n if n is None else "%.3f" % n
             
             if latex_encode:
                 str_encoder = lambda s: s.encode('latex')
@@ -96,7 +97,7 @@ def main(experiment, named_data_sets, experiment_directory,
             
             for variation in variations:
                 variation_results = [r.get(variation, None) for r in (summary_results[dn] for dn in data_names)]
-                variation_results_highlighted = [highlight(v) if v == t else v for (v, t) in zip(variation_results, top_results)]
+                variation_results_highlighted = [highlight(format_num(v)) if v == t else format_num(v) for (v, t) in zip(variation_results, top_results)]
                 row = [str_encoder(variation)] + variation_results_highlighted
                 writerow(row)
             
