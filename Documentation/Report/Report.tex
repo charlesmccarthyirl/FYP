@@ -8,6 +8,11 @@
 \usepackage{algorithmic}
 \usepackage{amsmath}
 \usepackage[section,subsection,subsubsection]{extraplaceins} %http://lexfridman.com/blogs/research/2011/03/06/prevent-figures-from-floating-outside-sections-in-latex/
+\usepackage{datatool}
+\usepackage[margin=1in]{geometry}
+\usepackage{rotating}
+
+\DTLloaddb{summary}{./ExperimentResults/summary.csv}
 
 \title{Using Competence Models in Active Learning}
 \author{Charles McCarthy\\
@@ -1242,6 +1247,10 @@ The algorithm presented does not allow for supposing the removal of a Case from 
 \section{Results}
 Results are presented using a learning curve (Accuracy vs Case-Base Size). The AULC figure is also calculated.
 
+\subsection{Summary}
+\begin{sidewaystable}
+\DTLdisplaydb{summary}
+\end{sidewaystable}
 \subsection{Non-Textual Datasets}
 
 \begin{figure}[h!]
@@ -1365,6 +1374,7 @@ Due to some of the technologies involved currently requiring a *nix environment,
 \subsubsection*{PyPdf}
 \subsubsection*{Google Protocol Buffers}
 \subsubsection*{Nose}
+\subsubsection*{latexcodec (Python Package)}
 
 \subsection{Documentation Related}
 \subsubsection*{Dia}
@@ -1383,13 +1393,21 @@ Extracting pages
 %http://code.google.com/p/pdfeditor/downloads/detail?name=PdfEditorInstallator.msi&can=2&q=
 \subsubsection*{Briss}
 http://sourceforge.net/projects/briss/ - pdf cropping
-\subsubsection*{csvtools}
-Deprecated (but useful!) latex package to import CSVs.
+\subsubsection*{Datatool}
+Nevermind: Deprecated (but useful!) latex package to import CSVs.
+Tool for dealing with csv files
 
 \subsubsection*{extraplaceins}
 http://lexfridman.com/blogs/research/2011/03/06/prevent-figures-from-floating-outside-sections-in-latex/
 
 \subsubsection*{natbib}
+
+\subsection{Misc}
+\subsubsection*{WinSCP}
+
+\subsubsection*{Putty}
+
+\subsubsection*{PythonBrew}
 
 \section{Cut Sections}
 \subsection{Criticism against Reachability/Dissimilarity Sets}
