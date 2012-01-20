@@ -8,12 +8,11 @@ data_files = [
               'zoo.tab',
               'hepatitis.csv',
               'breathalyzer.csv',
-              'pima-indians-diabetes.csv',
               'haberman.csv',
               'glass.tab',
               'tae.csv',
-              'heart_disease.tab',
-              'lung-cancer.tab'
+              'heartdisease.tab',
+              'lungcancer.tab'
               ]
 data_dir = '../Datasets'
 
