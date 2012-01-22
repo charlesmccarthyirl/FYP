@@ -312,10 +312,10 @@ class SelectionStrategyEvaluator:
                 del(unlabelled_set[index])
                 case_base.append(selection)
 
-            logging.debug("Starting testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set)))
-            result = selection_strategy_evaluator.__generate_result(case_base, test_set, selections)
-            results.append(result)
-            logging.debug("Finishing testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set))) 
+                logging.debug("Starting testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set)))
+                result = selection_strategy_evaluator.__generate_result(case_base, test_set, selections)
+                results.append(result)
+                logging.debug("Finishing testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set))) 
         
         return results
     
