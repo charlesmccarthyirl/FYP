@@ -1,4 +1,5 @@
 import os
+from operator import gt, lt
 
 def stream_getter(filename, none_on_exists=False):
     path = os.path.dirname(filename)
@@ -9,6 +10,19 @@ def stream_getter(filename, none_on_exists=False):
         return None
     
     return open(filename, 'wb')
+
+def op_multiple(the_list, op, key=None):
+    ms = []
+    m_key = None
+    
+    for thing in the_list:
+        thing_key = thing if key is None else key(thing)
+        if m_key is None or op(thing_key, m_key):
+            m_key = thing_key
+            ms = [thing]
+        elif thing_key == m_key:
+            ms.append(thing)
+    return ms
 
 def max_multiple(the_list, key=None):
     '''
@@ -22,18 +36,10 @@ def max_multiple(the_list, key=None):
     >>> m_list
     [('a', 3), ('b', 2), ('c', 3)]
     '''
-    
-    ms = []
-    m_key = None
-    
-    for thing in the_list:
-        thing_key = thing if key is None else key(thing)
-        if m_key is None or thing_key > m_key:
-            m_key = thing_key
-            ms = [thing]
-        elif thing_key == m_key:
-            ms.append(thing)
-    return ms
+    return op_multiple(the_list, gt, key)
+
+def min_multiple(the_list, key=None):
+    return op_multiple(the_list, lt, key)
 
 def average(iterable):
     total = 0
