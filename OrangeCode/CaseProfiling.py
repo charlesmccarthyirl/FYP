@@ -1,5 +1,6 @@
 from itertools import *
 import logging
+from copy import copy
 from collections import defaultdict
 from utils import max_multiple
 
@@ -36,6 +37,13 @@ class RcdlCaseProfile:
     
     def __repr__(self):
         return str(self)
+    
+    def __copy__(self):
+        new_profile = RcdlCaseProfile(self.reachability_set, self.coverage_set, 
+                                      self.dissimilarity_set, self.liability_set, 
+                                      self.nearest_neighbours, self.reverse_nearest_neighbours, 
+                                      self.classification)
+        return new_profile
     
     def difference_update(self, other_case_profile):
         for attr in ("reachability_set", "coverage_set", "dissimilarity_set", "liability_set", 
@@ -91,11 +99,24 @@ class AddRemovalStore:
     def __str__(self):
         return "Added: %s, Removed: %s" % (self.added, self.removed)
     
+    def __copy__(self):
+        new_add_removal_store = AddRemovalStore()
+        new_add_removal_store.added = copy(self.added)
+        new_add_removal_store.removed = copy(self.removed)
+        return new_add_removal_store
+    
     def apply_to(self, profile):
         profile.difference_update(self.removed)
         profile.update(self.added)
         if self.removed.classification is not None or self.added.classification is not None:
             profile.classification = self.added.classification
+
+class SuppositionResults(dict):
+    def __copy__(self):
+        new_result = SuppositionResults()
+        for (k, v) in self.iteritems():
+            new_result[k] = copy(v)
+        return new_result
 
 class CaseProfileBuilder:
     def __init__(self, k, classifier_generator, distance_constructor, 
@@ -151,7 +172,7 @@ class CaseProfileBuilder:
         '''
         assert(not self.case_info_lookup.has_key(case)) # Just don't want to deal with the hassle right now.
         
-        add_removals_dict = {}
+        add_removals_dict = SuppositionResults()
         
         def get_or_create(_case):
             if not add_removals_dict.has_key(_case):
@@ -215,18 +236,32 @@ class CaseProfileBuilder:
         assert(all(ca not in add_removed.added.nearest_neighbours for (ca, add_removed) in add_removals_dict.items()))
         return add_removals_dict
     
-    def suppose(self, _case, _class):
+    def suppose_multiple(self, case, classes):
+        nn_changes = self.__suppose_nn(case)
+        
+        class_to_supposes = {}
+        
+        for _class in classes:
+            class_to_supposes[_class] = self.suppose(case, _class, nn_changes)
+        
+        return class_to_supposes
+        
+    
+    def suppose(self, _case, _class, nn_changes=None):
         '''
         Determines the changes that would occur if _case were to be added with label _class to the case base,
         where a change is considered anything with an affected NN, rNN, Coverage, Reachability, Dissimilarity
         or Liability set.
         
+        Returns a dictionary-like object of case ->  AddRemoveChanges elements.
+        
         @param _case: The case to suppose the addition of.
         @param _class: The label to suppose that the case would be added with.
         '''
         assert(not self.case_info_lookup.has_key(_case)) # Just don't want to deal with the hassle right now.
+        assert(nn_changes is None or isinstance(nn_changes, SuppositionResults))
         
-        add_removals_dict = self.__suppose_nn(_case)
+        add_removals_dict = copy(nn_changes) if nn_changes is not None else self.__suppose_nn(_case)
         
         oracle = self.__get_oracle()
         def get_class(m_case):
