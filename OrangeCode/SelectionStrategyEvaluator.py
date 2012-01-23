@@ -11,7 +11,6 @@ from PrecomputedDistance import Instance
 from SelectionStrategy import Selection
 from Knn import KNN
 import math
-from OrangeCode.test import stream_from_name_getter
 try:
     import pyx
 except:
@@ -297,7 +296,7 @@ class SelectionStrategyEvaluator:
         
         results.append(selection_strategy_evaluator.__generate_result(case_base, test_set, None))
         
-        while not (len(unlabelled_set) == 0 or stopping_condition.is_criteria_met(case_base, unlabelled_set):
+        while not (len(unlabelled_set) == 0 or stopping_condition.is_criteria_met(case_base, unlabelled_set)):
             selections = selection_strategy.select(unlabelled_set)
             
             if not isinstance(selections, collections.Iterable):
