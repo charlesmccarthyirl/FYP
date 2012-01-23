@@ -63,7 +63,7 @@ class KNN:
             
             if len(current_nearest_sorted) < k \
                or other_dist <= current_nearest_sorted[-1][1]:
-                current_nearest_sorted.append((other, dist_meas(instance, other)))
+                current_nearest_sorted.append((other, other_dist))
                 current_nearest_sorted.sort(key=cmp_key)
                 
                 if len(current_nearest_sorted) <= k:
