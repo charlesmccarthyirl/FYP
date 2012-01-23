@@ -52,11 +52,23 @@ class KNN:
     
     @staticmethod
     def s_find_nearest(instance, data, k, dist_meas, instance_tie_breaker=min, exclude_self=True):
+        data = [(d, dist_meas(instance, d))  for d in data if not (d is instance and exclude_self)]
+        
+        if len(data) <= k:
+            return [d[0] for d in data]
+        
         cmp_key = functools.cmp_to_key(KNN._comparer)
         
-        current_nearest_sorted = []
+        if len(data) == k+1:
+            maxes = max_multiple(data, key=cmp_key)
+            while len(maxes) > 1:
+                best = instance_tie_breaker((m[0] for m in maxes))
+                maxes = [m for m in maxes if m[0] is not best]
+            m = maxes[0][0]
+            return [d[0] for d in data if d[0] is not m]
         
-        for other in data:
+        current_nearest_sorted = [] 
+        for (other, other_dist) in data:
             if other is instance and exclude_self:
                 continue
             other_dist = dist_meas(instance, other)
