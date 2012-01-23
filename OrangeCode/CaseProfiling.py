@@ -144,6 +144,11 @@ class CaseProfileBuilder:
         return self.__nns_getter_generator(training_data, *self.__get_generator_args())(case)
     
     def __suppose_nn(self, case):
+        '''
+        Determine the changes that would occur to all NN rNN sets if case were added.
+        
+        @param case: The case to suppose the addition of.
+        '''
         assert(not self.case_info_lookup.has_key(case)) # Just don't want to deal with the hassle right now.
         
         add_removals_dict = {}
@@ -172,7 +177,6 @@ class CaseProfileBuilder:
                 maxes = max_multiple(((other_case_nn, dist_meas(other_case, other_case_nn))
                                 for other_case_nn 
                                 in other_case_profile.nearest_neighbours), key=lambda el: el[1])
-                #TODO: Bug - change to max multiple. Then == or len of max > 1
                 max_ex, max_dist = maxes[0]
                 case_dist = dist_meas(other_case, case)
                 
@@ -212,6 +216,14 @@ class CaseProfileBuilder:
         return add_removals_dict
     
     def suppose(self, _case, _class):
+        '''
+        Determines the changes that would occur if _case were to be added with label _class to the case base,
+        where a change is considered anything with an affected NN, rNN, Coverage, Reachability, Dissimilarity
+        or Liability set.
+        
+        @param _case: The case to suppose the addition of.
+        @param _class: The label to suppose that the case would be added with.
+        '''
         assert(not self.case_info_lookup.has_key(_case)) # Just don't want to deal with the hassle right now.
         
         add_removals_dict = self.__suppose_nn(_case)
@@ -249,11 +261,10 @@ class CaseProfileBuilder:
                
             if not case_info: 
                 assert(case == _case)
-    
-            
+
             if len(case_add_removals.added.nearest_neighbours) == 0:
                 continue # There can't be any adds if there were no removals
-                         # Note: This will need to be changed if I want to support suppose_remove
+                # Note: This will need to be changed if I want to support suppose_remove
             
             # Deal with NN removals
             for removed_nn_case in case_add_removals.removed.nearest_neighbours:
