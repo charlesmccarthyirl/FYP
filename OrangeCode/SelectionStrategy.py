@@ -168,12 +168,6 @@ class CaseProfileBasedCompetenceMeasure(CompetenceMeasure):
 
 class ExampleCoverageOnlyCompetenceMeasure(CaseProfileBasedCompetenceMeasure):
     def measure(self, example):
-#        probabilities = self._probability_getter(example)
-#        example_possibilities = [(_class,
-#                                  probability, 
-#                                  len(self.case_profile_builder.suppose(example, _class).get(example, AddRemovalStore()).added.coverage_set)) 
-#                                 for (_class, probability) in probabilities]
-        
         class_to_supposition_results = self.case_profile_builder.suppose_multiple(example, self.possible_classes).items()
         class_to_scores = ((c, len(r.get(example, AddRemovalStore()).added.coverage_set)) for (c, r) in class_to_supposition_results)
         mean, std = meanstdv([cov_len for (c, cov_len) in class_to_scores])
