@@ -142,7 +142,9 @@ class SingleCompetenceSelectionStrategy(SelectionStrategy):
         
         for example in collection:
             example_measure = m.measure(example)
-            if selected_i_measure is None or self._do_take_measure1_over_measure2(example_measure, selected_i_measure):
+            if selected_i_measure is None \
+               or example_measure is not None \
+                  and self._do_take_measure1_over_measure2(example_measure, selected_i_measure):
                 selected_i = i
                 selected_i_measure = example_measure
             i += 1
