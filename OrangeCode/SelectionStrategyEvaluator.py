@@ -11,6 +11,7 @@ from PrecomputedDistance import Instance
 from SelectionStrategy import Selection
 from Knn import KNN
 import math
+from OrangeCode.test import stream_from_name_getter
 try:
     import pyx
 except:
@@ -345,7 +346,7 @@ class Experiment:
         self.training_test_sets_extractor = training_test_sets_extractor
         self.named_experiment_variations_generator = named_experiment_variations_generator
         
-    def execute_on(self, data_info, existing_named_variation_results=None): 
+    def execute_on(self, data_info, existing_named_variation_results=None, stream_from_name_getter=None): 
         named_variation_results = ExperimentResult()
 
         named_experiment_variations = self.named_experiment_variations_generator(data_info.data, 
@@ -369,6 +370,9 @@ class Experiment:
                 logging.info("Starting evaluation on variation %s" % variation_name)
                 variation_result = evaluator.generate_results_from_many(self.training_test_sets_extractor(data_info.data, data_info.oracle))
                 logging.info("Finishing evaluation on variation %s" % variation_name)
+                if stream_from_name_getter is not None:
+                    with stream_from_name_getter(variation_name) as stream:
+                        variation_result.serialize(stream)
                 
             named_variation_results[variation_name] = variation_result
             

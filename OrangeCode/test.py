@@ -47,11 +47,10 @@ def main(experiment, named_data_sets, experiment_directory,
         existing_results = ExperimentResult()
         existing_results.load_from_csvs(name_to_file_stream_getter_pairs)
         
-        results = l_experiment.execute_on(data_set, existing_results)
-        
-        results.write_to_csvs(lambda variation_name: 
-                              stream_getter(tgz_filename_getter(variation_name, raw_results_dir)))
-        
+        stream_from_name_getter = lambda vn: stream_getter(tgz_filename_getter(vn, raw_results_dir))
+        results = l_experiment.execute_on(data_set, existing_results, 
+                                          stream_from_name_getter=stream_from_name_getter)
+
         if do_create_summary:
             summary_results[data_set_name] = dict([(var_name, var_result.AULC()) 
                                                    for (var_name, var_result) 
