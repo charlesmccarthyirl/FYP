@@ -225,9 +225,9 @@ class DataInfo:
     
     @staticmethod
     def deserialize(stream, deserialization_method):
-        logging.info("Beginning deserializing Data Info from %s" % stream)
+        logging.debug("Beginning deserializing Data Info from %s" % stream)
         return DataInfo.deserialize_pcd_tuples(deserialization_method(stream))
-        logging.info("Finishing deserializing Data Info from %s" % stream)
+        logging.debug("Finishing deserializing Data Info from %s" % stream)
 
 
 def generate_precomputed_example_distance_constructor(data, distance_measurer):

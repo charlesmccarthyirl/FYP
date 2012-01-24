@@ -67,8 +67,10 @@ def load_data_info(
         **kwargs):
     filename = data_files_dict[base_filename]
     
+    logging.info("Beginning load_data_info of %s" % base_filename)
     data_info = get_data_info(filename, distance_constructor)
     data_info = data_info.get_precached()
+    logging.info("Ending load_data_info")
     
     if random_seed_generator is not None:
         random_seed = random_seed_generator()
