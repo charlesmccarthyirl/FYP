@@ -132,6 +132,9 @@ class DataInfo:
         
         max_dist = max(dm(*p) for p in permutations(self.data, 2)) #dist should be the same both ways, but just in case
         
+        if max_dist <= 1.0:
+            return self
+        
         di = self.copy()
         old_dc = di.distance_constructor
         
@@ -140,6 +143,7 @@ class DataInfo:
             return lambda ex1, ex2: old_dm(ex1, ex2)/max_dist
             
         di.distance_constructor = new_distance_constructor
+        di._is_precached = False # It might almost be precached, but technically at the mo, it's not.
         return di
     
     class SerializationMethod:
