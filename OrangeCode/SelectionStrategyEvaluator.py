@@ -25,7 +25,7 @@ except:
 import sys
 import logging
 import csv
-from itertools import compress, imap, izip, islice, izip_longest, chain, combinations
+from itertools import compress, imap, izip, islice, izip_longest, chain, combinations, repeat
 import random
 import tarfile, StringIO
 from os.path import splitext
@@ -215,9 +215,7 @@ class Oracle:
     
     def __call__(self, instance):
         return self.classify(instance)
-
-
-
+    
 def add_dicts(dict1, dict2):
     result = dict1.copy()
     result.update(dict2)
@@ -238,11 +236,11 @@ class SelectionStrategyEvaluator:
         self.classifier_generator = classifier_generator
         self.kwargs = kwargs
     
-    def __generate_results_from_test_unlabelled_tuple(self, tuple):
-        return self.generate_results(*tuple)
+    def _generate_results_from_test_unlabelled_tuple(self, t):
+        return self.generate_results(*t)
     
     def generate_results_from_many(self, data_test_iterable):
-        all_results = map(self.__generate_results_from_test_unlabelled_tuple,
+        all_results = map(self._generate_results_from_test_unlabelled_tuple,
                           data_test_iterable)
         return MultiResultSet(all_results)
     
