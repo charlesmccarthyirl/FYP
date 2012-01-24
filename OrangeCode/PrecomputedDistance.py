@@ -132,7 +132,7 @@ class DataInfo:
         
         max_dist = max(dm(*p) for p in permutations(self.data, 2)) #dist should be the same both ways, but just in case
         
-        if max_dist <= 1.0:
+        if max_dist == 1.0:
             return self
         
         di = self.copy()
