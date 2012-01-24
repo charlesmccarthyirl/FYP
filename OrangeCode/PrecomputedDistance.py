@@ -57,21 +57,21 @@ class Instance(object):
     repr_re = re.compile(r"(\d+) \((.+)\)")
     
     def __init__(self, id_no=None, label=None, payload=None, instance_to_copy=None):
-        self._label = None 
-        self._payload = None
-        self._id_no = None
+        self.label = None 
+        self.payload = None
+        self.id_no = None
         
         if instance_to_copy:
-            self._label = instance_to_copy.label
-            self._payload = instance_to_copy.payload
-            self._id_no = instance_to_copy.id_no
+            self.label = instance_to_copy.label
+            self.payload = instance_to_copy.payload
+            self.id_no = instance_to_copy.id_no
         
-        if self._label is None:
-            self._label = label 
-        if self._payload is None:
-            self._payload = payload
-        if self._id_no is None:
-            self._id_no = id_no
+        if self.label is None:
+            self.label = label 
+        if self.payload is None:
+            self.payload = payload
+        if self.id_no is None:
+            self.id_no = id_no
     
     def __eq__(self, other):
         assert(isinstance(other, Instance))
@@ -91,18 +91,6 @@ class Instance(object):
     
     def __str__(self, *args, **kwargs):
         return repr(self)
-        
-    @property
-    def label(self):
-        return self._label
-    
-    @property
-    def payload(self):
-        return self._payload
-    
-    @property
-    def id_no(self):
-        return self._id_no
 
 class DataInfo: 
     def copy(self):
