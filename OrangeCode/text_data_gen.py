@@ -21,7 +21,7 @@ def get_20newsgroups_data_info_for_categories(categories):
     print "done in %fs" % (time() - t0)
     
     labels = [data.target_names[i] for i in data.target]
-    payloads = [os.sep.join(e.split(os.sep)[-2:]) for e in data.filenames]
+    payloads = [os.sep.join(e.split(os.sep)[-3:]) for e in data.filenames]
     
     # Similarity is from Zero to One - so (1-s) gives distance from 0 to 1.
     distances = [[(1-s) for s in row[:col_to+1]]for (col_to, row) in enumerate(pairwise_similarity)]
