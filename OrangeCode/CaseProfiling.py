@@ -275,6 +275,7 @@ class CaseProfileBuilder:
         if len(self.case_base) == 0: # Nothing in the case base, so no neighbours or the likes.
             _case_add_removal = get_or_create(_case)
             _case_add_removal.added.classification = self.classify([], _case)
+            return add_removals_dict
         
         for (case, case_add_removals) in list(add_removals_dict.items()): # list, because I'll be updating as I go
             # Only really need to deal with the added and removed nearest neighbours,
@@ -298,8 +299,10 @@ class CaseProfileBuilder:
                 assert(case == _case)
 
             if len(case_add_removals.added.nearest_neighbours) == 0:
-                continue # There can't be any adds if there were no removals
+                continue # There can't be any removals if there were no adds
                 # Note: This will need to be changed if I want to support suppose_remove
+            
+            assert(case == _case or len(case_add_removals.added.nearest_neighbours) == 1)
             
             # Deal with NN removals
             for removed_nn_case in case_add_removals.removed.nearest_neighbours:
