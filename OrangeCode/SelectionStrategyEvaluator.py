@@ -30,6 +30,7 @@ import random
 import tarfile, StringIO
 from os.path import splitext
 from utils import average
+from multiprocessing import Pool
 
 
 def to_numerically_indexed(sequence):
@@ -237,11 +238,12 @@ class SelectionStrategyEvaluator:
         self.classifier_generator = classifier_generator
         self.kwargs = kwargs
     
+    def __generate_results_from_test_unlabelled_tuple(self, tuple):
+        return self.generate_results(*tuple)
+    
     def generate_results_from_many(self, data_test_iterable):
-        all_results = [self.generate_results(test_set, unlabelled_set)
-                       for (test_set, unlabelled_set) 
-                       in data_test_iterable]
-
+        all_results = map(self.__generate_results_from_test_unlabelled_tuple,
+                          data_test_iterable)
         return MultiResultSet(all_results)
     
     def generate_ca(self, t, p):
