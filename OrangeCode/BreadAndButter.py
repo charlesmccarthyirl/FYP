@@ -110,3 +110,13 @@ def gen_case_profile_ss_generator(case_profile_measure_generator, op=SingleCompe
             **kwargs)
     
     return case_profile_selection_strategy_generator
+
+def gen_case_profile_ss_generator2(competence_ss, *args, **kwargs):
+    def case_profile_selection_strategy_generator(*args, **kwargs): 
+        case_profile_builder=CaseProfileBuilder(k, *args, **kwargs)
+        return competence_ss(
+            *args,
+            case_profile_builder=case_profile_builder,
+            **kwargs)
+    
+    return case_profile_selection_strategy_generator
