@@ -41,13 +41,13 @@ def get_training_test_sets_extractor(random_seed_generator=random_seed_generator
     return split_data
 
 def create_named_experiment_variations_generator(named_selection_strategy_generators):
-    return lambda *args, **kwargs: dict([(name, 
-                                          ExperimentVariation(classifier_generator, 
-                                                              probability_generator, 
-                                                              nns_getter_generator,
-                                                              selection_strategy_generator))
-                                         for (name, selection_strategy_generator) 
-                                         in named_selection_strategy_generators.items()])
+    return lambda *args, **kwargs: [ (name, 
+                                      ExperimentVariation(classifier_generator, 
+                                                          probability_generator, 
+                                                          nns_getter_generator,
+                                                          selection_strategy_generator))
+                                     for (name, selection_strategy_generator) 
+                                     in named_selection_strategy_generators]
     
 def create_experiment(stopping_condition_generator, named_experiment_variations, random_seed_generator=random_seed_generator):
     return Experiment(oracle_generator_generator,

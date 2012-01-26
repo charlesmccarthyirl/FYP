@@ -11,6 +11,7 @@ from PrecomputedDistance import Instance
 from SelectionStrategy import Selection
 from Knn import KNN
 import math
+from collections import OrderedDict
 try:
     import pyx
 except:
@@ -25,7 +26,7 @@ except:
 import sys
 import logging
 import csv
-from itertools import compress, imap, izip, islice, izip_longest, chain, combinations, repeat
+from itertools import compress, imap, izip, islice, izip_longest, chain, combinations
 import random
 import tarfile, StringIO
 from os.path import splitext
@@ -346,7 +347,7 @@ class Experiment:
         named_experiment_variations = self.named_experiment_variations_generator(data_info.data, 
                                                                                  data_info.oracle)
         
-        for (variation_name, variation) in named_experiment_variations.items():
+        for (variation_name, variation) in named_experiment_variations:
             assert isinstance(variation, ExperimentVariation)
             if existing_named_variation_results.has_key(variation_name):
                 logging.info("Already have results for %s. Skipping evaluation." % variation_name)
@@ -373,7 +374,7 @@ class Experiment:
 
         return named_variation_results
 
-class ExperimentResult(dict):
+class ExperimentResult(OrderedDict):
     def load_from_csvs(self, name_to_stream_generator_pairs):
         for (variation_name, stream_generator) in name_to_stream_generator_pairs:
             with stream_generator() as stream:                

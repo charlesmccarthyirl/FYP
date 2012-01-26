@@ -28,18 +28,25 @@ maximum_dtd_selection_strategy_generator = partial(SingleCompetenceSelectionStra
                                                             SingleCompetenceSelectionStrategy.take_maximum)
 
 
-named_selection_strategy_generators = OrderedDict([
+named_selection_strategy_generators = [
                                        ("Random Selection", random_selection_strategy_generator),
                                         ("Uncertainty Sampling", classifier_output_selection_strategy_generator),
                                        ("Margin Sampling", margin_sampling_selection_strategy_generator),
-                                    
+                                   
                                        ("Example Coverage Only Minimum Suppose Deviation Based Selection", 
                                         gen_case_profile_ss_generator(ExampleCoverageOnlyCompetenceMeasure, 
                                                                       op=SingleCompetenceSelectionStrategy.take_minimum)),
-                                                   
+                                   
+                                       ("Example Reachability Only Minimum Based Selection", 
+                                        gen_case_profile_ss_generator(ExampleReachabilityOnlyCompetenceMeasure, 
+                                                                      op=SingleCompetenceSelectionStrategy.take_minimum)),
+
+                                       ("Deviation Size Mish Mash", 
+                                        gen_case_profile_ss_generator2(SizeDeviationCombo)),
+                                                                  
                                        ("Maximum Diversity Sampling", maximum_diversity_selection_strategy_generator),
                                        ("Maximum Density*Diversity", maximum_dtd_selection_strategy_generator),
-                                       ])
+                                       ]
 
 named_experiment_variations_generator = create_named_experiment_variations_generator(named_selection_strategy_generators)
 

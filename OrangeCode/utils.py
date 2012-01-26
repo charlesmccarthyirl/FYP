@@ -50,6 +50,10 @@ def average(iterable):
         
     return total / length
 
+def uniqueify(seq):
+    seen = set()
+    seen_add = seen.add
+    return [ x for x in seq if x not in seen and not seen_add(x)]
 
 """ 
 Calculate mean and standard deviation of data x[]: 
