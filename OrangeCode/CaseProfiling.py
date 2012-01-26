@@ -238,14 +238,7 @@ class CaseProfileBuilder:
     
     def suppose_multiple(self, case, classes):
         nn_changes = self.__suppose_nn(case)
-        
-        class_to_supposes = {}
-        
-        for _class in classes:
-            class_to_supposes[_class] = self.suppose(case, _class, nn_changes)
-        
-        return class_to_supposes
-        
+        return [(_class, self.suppose(case, _class, nn_changes)) for _class in classes]
     
     def suppose(self, _case, _class, nn_changes=None):
         '''
