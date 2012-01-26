@@ -5,7 +5,7 @@ import itertools
 import os, sys, glob
 from os.path import basename, splitext
 from functools import partial
-from utils import stream_getter
+from utils import stream_getter, uniqueify
 import functools
 import logging
 import latexcodec
@@ -21,7 +21,7 @@ def main(experiment, named_data_sets, experiment_directory,
          write_all_selections=False, latex_encode=True):
     # data_set_name -> example_table (pre-shuffled)
     
-    summary_results = {}
+    summary_results = OrderedDict()
     
     for (data_set_name, data_set_generator) in named_data_sets:
         l_experiment = experiment.copy()
@@ -52,7 +52,7 @@ def main(experiment, named_data_sets, experiment_directory,
                                           stream_from_name_getter=stream_from_name_getter)
 
         if do_create_summary:
-            summary_results[data_set_name] = dict([(var_name, var_result.AULC()) 
+            summary_results[data_set_name] = OrderedDict([(var_name, var_result.AULC()) 
                                                    for (var_name, var_result) 
                                                    in results.items()])
         
@@ -86,7 +86,7 @@ def main(experiment, named_data_sets, experiment_directory,
                 highlight = lambda x: x
             
             # Get all the union of all the variations names. 
-            variations = list(set(itertools.chain(*[r.keys() for r in summary_results.values()])))
+            variations = uniqueify(itertools.chain(*[r.keys() for r in summary_results.values()]))
             data_names = summary_results.keys()
             
             top_results = [max(r.values()) for r in (summary_results[dn] for dn in data_names)]
