@@ -30,8 +30,6 @@ import random
 import tarfile, StringIO
 from os.path import splitext
 from utils import average
-from multiprocessing import Pool
-
 
 def to_numerically_indexed(sequence):
     index_dict = {}
@@ -260,10 +258,7 @@ class SelectionStrategyEvaluator:
     def generate_ca_of_classifier(self, classifier, test_set):
         return self.generate_ca(imap(self.oracle, test_set), imap(classifier, test_set))
     
-    def __generate_result(self, case_base, test_set, selections):
-        if selections is not None:
-            selections = [sel.selection for sel in selections] # selections are a bunch of Selections - need to just have the underlying objects, not the associated index of the selection aswell
-        
+    def __generate_result(self, case_base, test_set, selection):
         case_base_size = len(case_base)
         try:
             classifier = self.classifier_generator(case_base, oracle=self.oracle, **self.kwargs)
@@ -274,7 +269,7 @@ class SelectionStrategyEvaluator:
             # Some classifiers have issues with 0 examples in the training set.
             classification_accuracy = 0
         
-        return Result(case_base_size, classification_accuracy, selections)
+        return Result(case_base_size, classification_accuracy, selection)
     
     def generate_results(self, unlabelled_set, test_set):
         results = ResultSet(unlabelled_set, test_set)
@@ -307,13 +302,13 @@ class SelectionStrategyEvaluator:
                     index = selection.index
                     selection = selection.selection
                 else:
-                    index = unlabelled_set,index(selection)
+                    index = unlabelled_set.index(selection)
                 
                 del(unlabelled_set[index])
                 case_base.append(selection)
 
                 logging.debug("Starting testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set)))
-                result = selection_strategy_evaluator.__generate_result(case_base, test_set, selections)
+                result = selection_strategy_evaluator.__generate_result(case_base, test_set, selection)
                 results.append(result)
                 logging.debug("Finishing testing with case base size of %d and test set size of %d" % (len(case_base), len(test_set))) 
         
