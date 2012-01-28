@@ -55,7 +55,7 @@ class RcdlCaseProfile:
                      "nearest_neighbours", "reverse_nearest_neighbours"):
             getattr(self, attr).update(getattr(other_case_profile, attr))
 
-def build_rcdl_profiles_brute_force(case_base, classifier, distance_measure, nns_getter, oracle):
+def build_rcdl_profiles_brute_force(case_base, classifier_generator, distance_measure, nns_getter, oracle):
     case_to_profile_dict = defaultdict(RcdlCaseProfile)
     
     # Sort NNs / rNNs
@@ -69,7 +69,7 @@ def build_rcdl_profiles_brute_force(case_base, classifier, distance_measure, nns
     for case in case_base:
         case_rcdl = case_to_profile_dict[case]
         case_actual_class = oracle(case)
-        case_classified_class = classifier(case)
+        case_classified_class = classifier_generator(case_rcdl.nearest_neighbours)(case)
         case_rcdl.classification = case_classified_class
         
         if case_actual_class == case_classified_class:

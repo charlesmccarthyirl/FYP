@@ -7,16 +7,11 @@ import unittest
 from DataSets import named_data_sets
 from BreadAndButter import k, classifier_generator as _classifier_generator, nns_getter_generator as _nns_getter_generator
 from CaseProfiling import build_rcdl_profiles_brute_force, CaseProfileBuilder
-from functools import partial
-import itertools
 import random
 
 class Test(unittest.TestCase):
-
-
     def setUp(self):
         pass
-
 
     def tearDown(self):
         pass
@@ -38,11 +33,6 @@ class Test(unittest.TestCase):
             profile_builder = CaseProfileBuilder(k, _classifier_generator, distance_constructor, 
                                                  _nns_getter_generator, oracle, possible_classes)
             
-#            distance_measurer = distance_constructor(data)
-#            combinations = itertools.combinations(data, 2)
-#            distances = [(c, distance_measurer(*c)) for c in combinations]
-#            print distances
-            
             i = 1
             for case in data:
                 print "No: %s, Case %s" % (i, case)
@@ -57,10 +47,9 @@ class Test(unittest.TestCase):
                 self.assertTrue(profile_builder.case_info_lookup.has_key(case))
                 
                 # Use Brute Force to get the rcdl profiles
-                classifier = classifier_generator(profile_builder.case_base)
                 distance_measurer = distance_constructor(profile_builder.case_base)
                 nns_getter = nns_getter_generator(profile_builder.case_base)
-                brute_force_rcdl_profiles = build_rcdl_profiles_brute_force(profile_builder.case_base, classifier, distance_measurer, nns_getter, oracle)
+                brute_force_rcdl_profiles = build_rcdl_profiles_brute_force(profile_builder.case_base, classifier_generator, distance_measurer, nns_getter, oracle)
                 
                 # Make sure that they're the same size so I don't 'miss' any
                 self.assertTrue(len(profile_builder_rcdl_profiles) == len(brute_force_rcdl_profiles))
@@ -71,7 +60,5 @@ class Test(unittest.TestCase):
                 
                 i += 1
 
-
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
