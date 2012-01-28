@@ -50,6 +50,7 @@ def average(iterable):
         
     return total / length
 
+# Taken from http://www.peterbe.com/plog/uniqifiers-benchmark
 def uniqueify(seq):
     seen = set()
     seen_add = seen.add
@@ -71,3 +72,16 @@ def meanstdv(x):
         std = std + (a - mean)**2 
     std = sqrt(std / float(n-1)) 
     return mean, std
+
+
+# http://preshing.com/20110924/timing-your-code-using-pythons-with-statement
+import time
+
+class Timer:
+    def __enter__(self):
+        self.start = time.clock()
+        return self
+
+    def __exit__(self, *args):
+        self.end = time.clock()
+        self.interval = self.end - self.start
