@@ -7,20 +7,30 @@ import csv, sys, os
 from CaseProfilingTests import testIncrementalRcdl
 from TextualDataSets import named_data_sets as textual_data_sets
 from DataSets import named_data_sets as non_textual_data_sets
-from itertools import chain
+from itertools import chain, islice
 import pyx
 
 if __name__ == '__main__':
     name = sys.argv[1]
-    d = sys.argv[2]
-    if not os.path.exists(d):
-        os.mkdir(d)
     
-    textual_dict = dict(chain(textual_data_sets, non_textual_data_sets))
-    
-    data_info_loader = textual_dict[name]
-    
-    timings = testIncrementalRcdl(data_info_loader)
+    if name.endswith('.csv'):
+        d = os.path.dirname(name)
+        fn = name
+        name = os.path.splitext(os.path.basename(name))[0]
+        with open(fn, 'r') as f:
+            reader = csv.reader(f)
+            timings = [(int(cb), float(inc), float(bf))
+                       for (cb, inc, bf) in islice(reader, 1, None)]
+    else:
+        d = sys.argv[2] if len(sys.argv) > 2 else '.'
+        if not os.path.exists(d):
+            os.mkdir(d)
+        
+        textual_dict = dict(chain(textual_data_sets, non_textual_data_sets))
+        
+        data_info_loader = textual_dict[name]
+        
+        timings = testIncrementalRcdl(data_info_loader)
     
     with open(os.path.join(d, name+'.csv'), 'wb') as f:
         w = csv.writer(f)
