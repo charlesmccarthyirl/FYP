@@ -6,6 +6,7 @@ import os, sys, glob
 from os.path import basename, splitext
 from functools import partial
 from utils import stream_getter, uniqueify
+import csv
 import functools
 import logging
 import latexcodec
