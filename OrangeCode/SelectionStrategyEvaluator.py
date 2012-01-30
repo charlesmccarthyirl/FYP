@@ -340,31 +340,38 @@ class Experiment:
         self.stopping_condition_generator = stopping_condition_generator
         self.training_test_sets_extractor = training_test_sets_extractor
         self.named_experiment_variations_generator = named_experiment_variations_generator
+    
+    def generate_named_experiment_variations(self, data_info):
+        return self.named_experiment_variations_generator(data_info.data, 
+                                                          data_info.oracle)
         
+    
+    def execute_on_only(self, data_info, variation):
+        evaluator = SelectionStrategyEvaluator(self.oracle_generator_generator(data_info.oracle), 
+                                               data_info.oracle,
+                                               self.stopping_condition_generator,
+                                               variation.selection_strategy,
+                                               variation.classifier_generator,
+                                               probability_generator=variation.probability_generator,
+                                               nns_getter_generator=variation.nns_getter_generator,
+                                               distance_constructor=data_info.distance_constructor,
+                                               possible_classes=data_info.possible_classes)
+        
+        variation_result = evaluator.generate_results_from_many(self.training_test_sets_extractor(data_info.data, data_info.oracle))
+        
+        return variation_result
+    
     def execute_on(self, data_info, existing_named_variation_results=None, stream_from_name_getter=None): 
         named_variation_results = ExperimentResult()
 
-        named_experiment_variations = self.named_experiment_variations_generator(data_info.data, 
-                                                                                 data_info.oracle)
-        
+        named_experiment_variations = self.generate_named_experiment_variations(data_info)
         for (variation_name, variation) in named_experiment_variations:
             assert isinstance(variation, ExperimentVariation)
             if existing_named_variation_results.has_key(variation_name):
-                logging.info("Already have results for %s. Skipping evaluation." % variation_name)
                 variation_result = existing_named_variation_results[variation_name]
             else:
-                evaluator = SelectionStrategyEvaluator(self.oracle_generator_generator(data_info.oracle), 
-                                                       data_info.oracle,
-                                                       self.stopping_condition_generator,
-                                                       variation.selection_strategy,
-                                                       variation.classifier_generator,
-                                                       probability_generator=variation.probability_generator,
-                                                       nns_getter_generator=variation.nns_getter_generator,
-                                                       distance_constructor=data_info.distance_constructor,
-                                                       possible_classes=data_info.possible_classes)
-                logging.info("Starting evaluation on variation %s" % variation_name)
-                variation_result = evaluator.generate_results_from_many(self.training_test_sets_extractor(data_info.data, data_info.oracle))
-                logging.info("Finishing evaluation on variation %s" % variation_name)
+                variation_result = self.execute_on_only(data_info, variation)
+                
                 if stream_from_name_getter is not None:
                     with stream_from_name_getter(variation_name) as stream:
                         variation_result.serialize(stream)
