@@ -16,7 +16,7 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{rotating}
 
-\newcolumntype{x}[1] {>{\raggedright}p{#1}}
+\newcolumntype{x}[1] {>{\raggedright}p{#1}} %http://nepsweb.co.uk/docs/tableTricks.pdf
 
 \DTLloaddb{summary}{./ExperimentResults/summary.csv}
 \title{Competence-Driven Active Learning}
@@ -1223,6 +1223,85 @@ The algorithm presented does not allow for an already present Case in the Case B
 The algorithm presented does not allow for supposing the removal of a Case from the Case Base (e.g. what would happen if I removed x from the Case Base?), though it could be updated to support this scenario.
 
 \subsection{Testing and Validation}
+Testing was performed in Unit-Test style to ensure the RCDL Profiles achieved using the Incremental Strategy presented correlated exactly with a simple brute-force strategy. This was done on each of the datasets used.
+
+\medspace
+
+\begin{samepage}
+\subsubsection{Brute Force Algorithm}
+\begin{verbatim}
+// Compute NNs and rNNs
+foreach case in case_base:
+  case_rcdl = case's RCDL Profile
+  case_nns = the k nearest neighbours of case
+  Add case_nns into case_rcdl.nearest_neighbours
+  foreach nn in case_nns:
+    nn_rcdl = nn's RCDL Profile
+    case_to_profile_dict[nn].reverse_nearest_neighbours.add(case)
+
+// From NNs & rNNs, compute the remainder of the RCDL Profiles
+foreach case in case_base:
+  case_rcdl = case's RCDL Profile
+  actual_label = oracle(case)
+  classified_label = Classify using case_rcdl.nearest_neighbours
+  case_rcdl.classification = classified_label
+  
+  if actual_label == classified_label:
+    helping_cases = {nn for nn in case_rcdl.nearest_neighbours 
+                     if oracle(nn) == actual_label}
+    Add helping_cases to case_rcdl.reachability_set
+    foreach hc in helping_cases:
+      hc_rcdl = hc's RCDL Profile
+      Add case to hc_rcdl.coverage_set
+  else:
+    hurting_cases = {nn for nn in case_rcdl.nearest_neighbours 
+                     if oracle(nn) != case_actual_class}
+    Add hurting_cases to case_rcdl.dissimilarity_set
+    foreach hc in hurting_cases:
+      hc_rcdl = hc's RCDL Profile
+      Add case to hc_rcdl.liability_set
+\end{verbatim}
+\end{samepage}
+
+\medspace
+\vspace{10pt}
+
+\begin{samepage}
+\subsubsection{The Test}
+\begin{verbatim}
+Shuffle the dataset
+incremental_builder = A new instance of the Incremental RCDL Builder
+case_base = {}
+
+foreach case in dataset:
+  Add case to case_base
+  
+  // Use the incremental builder to get the rcdl profiles
+  profile_builder.put(case)
+  incr_profiles = profile_builder.case_profiles
+  
+  // Use Brute Force to get the rcdl profiles
+  bf_profiles = Build the profiles brute force from the case_base
+  
+  // Make sure that they're the same size so I don't 'miss' any
+  assert that |br_profiles| == |incr_profiles|
+  
+  // Iterate through each profile, and make sure its 
+  // brute force equivalent is the same
+  for (pb_case, pb_case_profile) in incr_profiles:
+      bf_case_profile = Get pb_case's Case Profile from bf_profiles
+      assert that pb_case_profile == bf_case_profile
+\end{verbatim}
+
+\end{samepage}
+
+\subsubsection{Timings}
+\begin{figure}[h!]
+\includegraphics[width=10cm]{./ExperimentResults/WinXwinTimings}
+\end{figure}
+
+\subsubsection{Complexity Analysis}
+%TODO Write the Complexity Analysis Section.
 
 \section{Types of RCDL Changes from adding a Single Case to the Case Base}
 \subsection{NNs of the New Case}
@@ -1425,6 +1504,38 @@ With the absence of further knowledge, we could guess that when the Reachability
 This Strategy takes this approach exactly – assigning an overall score to each Unlabelled Case equal to the total of the Reachability Set Supposes across all the different possible Labels\footnote{Totalling is sufficient because we are guaranteed that the Reachability Set will be empty for all but one of the Supposes. So totalling is equivalent to just taking the value of the non-Empty Reachability Set.}. The Unlabelled Case with the minimum score is then selected. Ties are broken at random.
 
 \subsection{CompStrat 2 – NCADMin: New Case Coverage Added Deviation Minimisation}
+
+The intuition around this strategy is that by trying to find Unlabelled Cases which have a roughly equal positive effect for the different possible labels, we get Cases which are close to Classification Boundaries.
+
+\begin{figure}[h!]
+\includegraphics[width=10cm]{./Drawn/NCADMin}
+\end{figure}
+
+In the above example, if we allow k=4, and we have two candidate unlabelled cases C1 and C2. With the Case Base as it stands, the Classification Boundary we can guess is in the middle of the circle and triangle regions (denoted by the line).
+ 
+Intuitively – if we knew the value of C1, it would better tell us where the classification boundary should be. If it turned out to be a circle, it would push the Classification Boundary left towards the triangles. Similarly, if it turned out to be a triangle, it would push the Classification Boundary right towards the circles. 
+
+C2 would be less useful to retrieve a label for, since compared to C1, we know more about the region in which it lies.
+
+If we were to look at the size of the Coverage Sets of C1 and C2 for the different possible classifications:
+
+\begin{tabular}{|c|c|c|c|}
+\cline{2-4} 
+\multicolumn{1}{c|}{} & Coverage if Triangle & Coverage if Circle & Standard Deviation\tabularnewline
+\hline 
+C1 & 3 & 3 & 0\tabularnewline
+\hline 
+C2 & 3 & 0 & 2.12\tabularnewline
+\hline 
+\end{tabular}
+
+\vspace{10pt}
+
+This strategy chooses the case with the minimum Standard Deviation between the possible labels, with random tie-breaking used.
+
+One thing that initially falls out of this strategy is that, during the early selections, it will likely choose relatively diverse Cases. Unlabelled Cases which have no rNNs in the Case Base will have empty Coverage Sets irrespective of their Supposed Label, and thus, a Standard Deviation of 0.
+
+After all of the diverse Cases have been selected, it will then move onto balancing more similar to as described in the example above.
 
 \subsection{CompStrat 3 – NCATMax: New Case Coverage Added Total Maximisation}
 
