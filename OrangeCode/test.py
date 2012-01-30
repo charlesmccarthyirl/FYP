@@ -8,6 +8,7 @@ from functools import partial
 from utils import stream_getter, uniqueify
 import csv
 import functools
+from functools import partial
 import logging
 import latexcodec
 import multiprocessing as mp
@@ -79,9 +80,19 @@ def main_gen_raw_results_only(experiment, named_data_sets,
     with stream_from_name_getter(variation_name) as stream:
         variation_result.serialize(stream)
 
+def log_throwaway(to_log):
+    def inner(*args):
+        mp.get_logger().info(to_log)
+
 def main_gen_raw_results(experiment, named_data_sets, experiment_directory):
+    mp.log_to_stderr()
+    logger = mp.get_logger()
+    logger.setLevel(logging.INFO)
+    
     experiment_obj = get_experiment_obj(experiment)
     named_data_sets_obj = get_named_data_sets_obj(named_data_sets)
+    
+    pool = mp.Pool()
     for (data_set_name, data_set_generator) in named_data_sets_obj:
         logging.info("Beginning processing on %s" % data_set_name)
         l_experiment, data_info = get_exp_ds_pair(experiment_obj, data_set_generator)
@@ -97,10 +108,12 @@ def main_gen_raw_results(experiment, named_data_sets, experiment_directory):
                 continue
             
             logging.info("Starting evaluation on variation %s" % variation_name)
-            main_gen_raw_results_only(experiment, named_data_sets, 
-                                      experiment_directory, data_set_name, 
-                                      variation_name)
-            logging.info("Finishing evaluation on variation %s" % variation_name)
+            pool.apply_async(main_gen_raw_results_only, 
+                         (experiment, named_data_sets, experiment_directory, data_set_name, variation_name), 
+                        
+                        callback=log_throwaway("Finishing evaluation on variation %s" % variation_name))
+    pool.close()
+    pool.join()
         
 def get_stream_from_name_getter_for(raw_results_dir):
     def internal(variation_name):
