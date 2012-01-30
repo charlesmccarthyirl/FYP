@@ -694,10 +694,10 @@ A K Nearest Neighbours based Classifier is used in the evaluation, with
 	\item Distance Weighted Voting. The distance function used is:
 	
 	\[
-	\frac{1}{distance^{2}+10^{-10}}
+	\frac{1}{distance^{2}+1}
 	\]
 	
-	where $distance$ is normalized between $0$ and $1$, and the $10^{-10}$ is simply to account for $distance$ being $0$, giving a high weighting to when this happens.
+	where $distance$ is normalized between $0$ and $1$, and the $+1$ is simply to account for $distance$ being $0$, giving a high weighting to when this happens, while also trying to account for possible noise in the data.
 	
 	
 \end{itemize}
@@ -1306,7 +1306,10 @@ foreach case in dataset:
 \section{Types of RCDL Changes from adding a Single Case to the Case Base}
 \subsection{NNs of the New Case}
 \begin{figure}[h!]
-\includegraphics[width=5cm]{./Drawn/NNsCorrectlyClassify}
+  \centering
+	\includegraphics[width=5cm]{./Drawn/NNsCorrectlyClassify}
+\caption{Nearest Neighbours Causing the Correct Classification of a Case as a Circle.}
+\label{fig:NNsCorrect}
 \end{figure}
 
 In the above example the NNs of the added case Cn are \{C1, C2, C3\}. Cn is correctly classified by the Case Base as a circle, thus we are dealing with the Reachability and Coverage sets.
@@ -1318,7 +1321,10 @@ In the above example the NNs of the added case Cn are \{C1, C2, C3\}. Cn is corr
 If Cn had been incorrectly classified - it would instead have been the Dissimilarity and Liability sets affected – e.g.
 
 \begin{figure}[h!]
-\includegraphics[width=5cm]{./Drawn/NNsIncorrectlyClassify}
+  \centering
+	\includegraphics[width=5cm]{./Drawn/NNsIncorrectlyClassify}
+\caption{Nearest Neighbours Causing the Incorrect Classification of a Case as a Triangle.}
+
 \end{figure}
 
 In the above example, C3 and C1 contribute to the incorrect classification of Cn, so
@@ -1495,7 +1501,7 @@ For some strategies, the deviation between the changes for the different possibl
 
 \section{Selection Strategies}
 \subsection{CompStrat 1 - NRATMin: New Case Reachability Added Total Minimisation}
-When Supposing a single Case for addition to the Case Base, irrespective of the Label we choose to suppose, the Case Base will classify it with only one Label. E.g. in \ref{fig:NNsCorrect}, irrespective of if we Suppose Cn to be a triangle, or a circle, the Case Base will still classify it a circle. Thus, the Reachability Set of Cn will only get populated in one instance – when we Suppose Cn to be the same Label as the Case Base classifies it.
+When Supposing a single Case for addition to the Case Base, irrespective of the Label we choose to suppose, the Case Base will classify it with only one Label. E.g. in Figure \ref{fig:NNsCorrect}, irrespective of if we Suppose Cn to be a triangle, or a circle, the Case Base will still classify it a circle. Thus, the Reachability Set of Cn will only get populated in one instance – when we Suppose Cn to be the same Label as the Case Base classifies it.
 
 This holds true in Supposing any Case for the Case Base. A Supposed Case will only have its Reachability Set populated for one single Label for a Case Base state – the Label that the Case Base classifies it as. Assuming a non-empty Case Base, for when the Reachability Set is populated - the cardinality of the set will always be between 1 and k.
 
@@ -1537,9 +1543,12 @@ One thing that initially falls out of this strategy is that, during the early se
 
 After all of the diverse Cases have been selected, it will then move onto balancing more similar to as described in the example above.
 
-\subsection{CompStrat 3 – NCATMax: New Case Coverage Added Total Maximisation}
+\subsection{CompStrat 3 – NCATMaxDMin: New Case Coverage Added Total Maximisation with Deviation Minimization}
+This strategy was an attempt at resolving one of the `issues' of CompStrat 2, in that it will likely choose Cases that have very little impact on the Cases already in the Case Base.  CompStrat 3 first chooses the top quarter of Unlabelled Cases based on their total Coverage added among all the different Supposes of the possible Labels. It then chooses from these the one with least Standard Deviation between the Covered totals of the Supposes.
 
-\subsection{CompStrat 4 – NCATMaxDMin: New Case Coverage Added Total Maximisation with Deviation Minimization}
+In the above example, C2 is slightly more desirable, in that – irrespective of its Label, it would assist in covering a large portion of Cases, and would be a better candidate than C1 in helping set the classification boundary in a region dense with multiple Labels.
+
+A downside of this strategy though is that it is liable to get `stuck' in relatively dense areas of the State Space, not choosing Cases which exert no influence on the existing Cases in the Case Base.
 
 \chapter{Experimental Analysis\label{cha:expanalysis}}
 \section{Datasets Used}
@@ -1571,60 +1580,20 @@ Results are presented using a learning curve (Accuracy vs Case-Base Size). The A
 \end{sidewaystable}
 \subsection{Non-Textual Datasets}
 
-\begin{figure}[h!]
-\includegraphics{./Plots/breathalyzer}
-\caption{Learning Curve Plots for `Breathalyzer' Dataset (\ref{sec:breathalyzer})}
-\end{figure}
-
-\begin{figure}[h!]
-\includegraphics{./Plots/dermatology}
-\caption{Learning Curve Plots for `Dermatology' Dataset (\ref{sec:dermatology})}
-\end{figure}
-
-\begin{figure}[h!]
-\includegraphics{./Plots/glass}
-\caption{Learning Curve Plots for `Glass' Dataset (\ref{sec:glass})}
-\end{figure}
-
-\begin{figure}[h!]
-\includegraphics{./Plots/haberman}
-\caption{Learning Curve Plots for `Haberman' Dataset (\ref{sec:haberman})}
-\end{figure}
-
-\begin{figure}[h!]
-\includegraphics{./Plots/heart_disease}
-\caption{Learning Curve Plots for `Heart Disease' Dataset (\ref{sec:heart_disease})}
-\end{figure}
-
-\begin{figure}[h!]
-\includegraphics{./Plots/hepatitis}
-\caption{Learning Curve Plots for `Hepatitis' Dataset (\ref{sec:hepatitis})}
-\end{figure}
-
-\begin{figure}[h!]
-\includegraphics{./Plots/iris}
-\caption{Learning Curve Plots for `Iris' Dataset (\ref{sec:iris})}
-\end{figure}
-
-\begin{figure}[h!]
-\includegraphics{./Plots/lung-cancer}
-\caption{Learning Curve Plots for `Lung Cancer' Dataset (\ref{sec:lung_cancer})}
-\end{figure}
-
-\begin{figure}[h!]
-\includegraphics{./Plots/tae}
-\caption{Learning Curve Plots for `TA Evaluation' Dataset (\ref{sec:taevaluation})}
-\end{figure}
-
-\begin{figure}[h!]
-\includegraphics{./Plots/wine}
-\caption{Learning Curve Plots for `Wine' Dataset (\ref{sec:wine})}
-\end{figure}
-
-\begin{figure}[h!]
-\includegraphics{./Plots/zoo}
-\caption{Learning Curve Plots for `Zoo' Dataset (\ref{sec:zoo})}
-\end{figure}
+\begin{python}
+import csv
+with open("./ExperimentResults/summary.csv") as f:
+    r = csv.reader(f)
+    r = list(r)
+    datasets = r[0][1:]
+    for ds in datasets:
+        print
+        print r'\begin{figure}[h!]'
+        print r'\includegraphics[width=0.98\textwidth]{./Plots/' + ds + '}'
+        print r"\caption{Learning Curve Plots for `" + ds + "' Dataset}"
+        print r'\end{figure}'
+        print
+\end{python}
 
 \subsection{Textual Datasets}
 

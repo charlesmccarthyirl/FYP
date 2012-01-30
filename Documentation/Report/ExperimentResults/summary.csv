@@ -1,7 +1,9 @@
-,iris,heartdisease,tae,hepatitis,zoo,glass,dermatology,breathalyzer,lungcancer,haberman,wine
-Maximum Density*Diversity,13.340,\textbf{22.446},10.541,6.318,18.411,13.781,21.907,30.310,3.433,\textbf{28.096},16.780
-Random Selection,13.037,21.976,10.864,\textbf{7.612},14.547,\textbf{20.512},27.978,32.115,2.880,27.031,18.452
-ECOMS Competence,14.437,20.115,10.213,4.347,\textbf{18.866},16.123,\textbf{29.523},\textbf{33.067},3.410,22.247,\textbf{19.659}
-Uncertainty Sampling,14.653,22.281,10.827,5.328,16.646,17.481,28.246,32.668,\textbf{4.120},25.859,16.657
-Margin Sampling,14.037,22.281,10.399,5.328,14.350,15.957,27.582,32.668,3.753,25.859,16.458
-Maximum Diversity Sampling,\textbf{15.450},20.583,\textbf{11.163},4.918,18.507,18.552,22.390,29.736,3.597,27.113,15.239
+,iris,dermatology,wine,zoo,hepatitis,breathalyzer,haberman,glass,tae,heartdisease,lungcancer
+Random Selection,13.037,27.978,18.452,14.547,\textbf{7.612},32.115,27.031,\textbf{20.512},10.864,21.976,2.880
+Uncertainty Sampling,14.653,28.246,16.657,16.646,5.328,32.668,25.859,17.481,10.827,22.281,\textbf{4.120}
+Margin Sampling,14.037,27.582,16.458,14.350,5.328,32.668,25.859,15.957,10.399,22.281,3.753
+Maximum Diversity Sampling,\textbf{15.450},22.390,15.239,18.507,4.918,29.736,27.113,18.552,\textbf{11.163},20.583,3.597
+Maximum Density*Diversity,13.340,21.907,16.780,18.411,6.318,30.310,\textbf{28.096},13.781,10.541,\textbf{22.446},3.433
+CompStrat 1 - NRATMin,13.900,27.723,17.896,16.890,5.481,33.285,26.805,18.022,10.752,22.054,3.290
+CompStrat 2 - NCADMin,15.010,\textbf{29.305},\textbf{20.143},\textbf{18.595},4.347,\textbf{33.458},22.027,16.123,10.213,20.087,3.410
+CompStrat 3 - NCATMaxDMin,8.227,18.637,14.635,8.383,5.735,30.736,24.951,15.673,9.731,14.266,2.080
