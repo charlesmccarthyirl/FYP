@@ -67,11 +67,16 @@ class ResultSet(list):
     def deserialize(self, stream):
         logging.debug("Starting CSV reading from stream %s" % stream)
         
+        def convert(cell):
+            if cell.isdigit():
+                return int(cell)
+            try:
+                return float(cell)
+            except ValueError:
+                return cell
+        
         reader = csv.reader(stream)
-        rows = [[float(cell) if '.' in cell 
-                             else int(cell) if cell.isdigit() 
-                                            else cell
-                for cell in row]
+        rows = [map(convert, row)
                 for row in islice(reader, 1, None) if len(row) > 1]
         self.extend((Result(*row[:3]) for row in rows if row[0] is not None and row[0] != ""))
         
