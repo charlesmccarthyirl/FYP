@@ -76,18 +76,18 @@ The impact of casual conversations with classmates P\'{a}draig \'{O}'D\'{u}inn, 
 \section{Active Learning Overview}
 The key concept of Active Learning is that a machine learning program has a say in its own learning process, by being capable of choosing the data from which it learns. 
 
-This concept fits particularly well in the domain of Case Based Reasoning Systems. In Case Based Reasoning Systems, the system has a Pool of Cases for which it knows the Label. When an Unlabelled Case is presented to the system, the system uses this pool to try to guess the Label of the Unlabelled Case.
+This concept fits particularly well in the domain of Case Based Reasoning Systems. In Case Based Reasoning Systems, the system has a collection of Cases for which it knows the Label. When an Unlabelled Case is presented to the system, the system uses this collection to try to guess the Label of the Unlabelled Case.
 
-The facet of Active Learning we will subsequently consider is known as Pool Based Sampling in other literature \citep{Settles2010}, and is based on the idea that there is a large quantity of Unlabelled Cases available, but getting Labels (which might involve consulting a Human Expert) is an expensive process, for which it is undesirable to apply to the entire Unlabelled Set. The aim for the system is to choose a subset of these Unlabelled Cases for which to request a Label. These are then used as the system's pool of Labelled Cases which it will consult in future.
+The facet of Active Learning we will subsequently consider is known as Pool Based Sampling in other literature \citep{Settles2010}, and is based on the idea that there is a large quantity of Unlabelled Cases available, but getting Labels (which might involve consulting a Human Expert) is an expensive process, for which it is undesirable to apply to the entire Unlabelled Set. The aim of the system is to choose a subset of these Unlabelled Cases for which to request a Label. These are then used as the system's pool of Labelled Cases which it will consult in future.
 
 The system would like to maximize its classification accuracy for future Cases, but have to resort to asking the Oracle external to the system for a minimal number of labels.
 
 For an in-depth review of Active Learning, and some of the recent Active Learning literature, consult \citet{Settles2010}.
 
 \section{Importance of Active Learning}
-There are many real-world domains in which a large quantity of unlabelled data is available, but the process of manually labelling all of that data is not feasible. 
+There are many real-world domains in which a large quantity of unlabelled data is available, but labelling all of that data is not feasible. 
 
-A Human Expert is often needed to Label instances of the data. This human factor limits the quantity of data which can be Labelled. The financial cost can be significant, and the availability of such an expert can also be a limiting factor.
+A Human Expert is often needed to Label instances of the data. This human factor limits the quantity of data which can be labelled. The financial cost can be significant, and the availability of such an expert can also be a limiting factor.
 
 Often the labelling process is in itself exceedingly slow compared to either the amount of Unlabelled data available, or the rate at which new data is being collected. 
 
@@ -97,7 +97,7 @@ Machine Learning seems a clear answer for these type of scenarios, but for Machi
 \subsubsection{Recommendation Engines}
 In recommendation engines, the user can be thought of as the Oracle. It is from user feedback (either implicit or explicit) that the recommendation engine can know if an item was relevant to the user or not. It is likely that there is a vast library from which a recommendation can come, but the quantity of user feedback may be limited.
 
-What is sometimes done in these systems is that the engine includes some results it is relatively certain will be relevant to the user, but others of which it is uncertain, but would like to gain feedback on from the user. Only comparatively few of these Cases can be given to the user for feedback, as doing otherwise would negatively impact the user's experience.
+What is sometimes done in these systems is that the engine includes some results it is relatively certain will be relevant to the user, and others of which it is uncertain, but would like to gain feedback on from the user. Only comparatively few of these uncertain Cases can be given to the user for feedback, as doing otherwise would negatively impact the user's experience.
 
 Choosing which uncertain Cases to present to the user to maximize the system's competence-gain is therefore an important problem for the system.
 
@@ -132,7 +132,7 @@ In Pool Based Active Learning, a Pool of Unlabelled Cases are available, from wh
 \end{figure}
 
 \subsection{Case Base}
-The Case Base is the labelled pool of data which the overall system consults when a new unlabelled Case is presented for classification.
+The \emph{Case Base} is the labelled pool of data which the overall system consults when a new unlabelled Case is presented for classification.
 
 \subsection{Case-Based Classification using kNN}
 
@@ -141,15 +141,15 @@ A k Nearest Neighbours approach fits the Case Base concept quite well. When a ne
 When new data is added to the Case Base, there is no real cost in re-training the Classifier, since re-training simply involves adding the new data to the set in which the kNN walks through (which can simply be the Case Base itself).
 
 \subsection{Oracle}
-The Oracle is the entity which the system may consult if it wishes to determine the true Label for a Case.
+The \emph{Oracle} is the entity which the system may consult if it wishes to determine the true Label for a Case.
 
 Often, the Oracle is a Human Expert familiar with the domain who must manually classify the Case. Though the Oracle may also just be another system, but for which there is some expense in using to determine a class. \footnote{Here, we use the word `expense' in its broadest possible meaning. It may be financially expensive, computationally expensive, or simply take an exceedingly long amount of time to run. In any event, `expense' refers to some undesirable operation for which we want to minimise the number of calls.}
 
 \subsection{Selection Strategy}
-While the term Selection Strategy can have slightly different meanings given the type of Active Learning being considered, we will subsequently use the phrase to mean the algorithmic approach taken to determine which unlabelled Cases to query with the Oracle for the true Label.
+While the term \emph{Selection Strategy} can have slightly different meanings given the type of Active Learning being considered, we will subsequently use the phrase to mean the algorithmic approach taken to determine which Unlabelled Cases to query against the Oracle for their true Labels, and put in the Case Base.
 
 \subsection{Stopping Condition}
-The Stopping Condition of the system is the point at which the system must stop consulting the Oracle.
+The \emph{Stopping Condition} of the system is the point at which the system must stop consulting the Oracle.
 
 \subsubsection{Examples of stopping conditions}
 \paragraph{Oracle Budget} 
@@ -162,7 +162,7 @@ The system stops asking the Oracle for a Label after it is capable of achieving 
 Many variations on the concept of Active Learning exist. The following is intended to give just a small subset of examples, as opposed to an exhaustive listing. Further information can be gleaned from \citet{Settles2010}.
 
 \subsection{Case Base Maintenance}
-Case Base Maintenance is concerned with the task of how to maintain a Case Base. 
+\emph{Case Base Maintenance} is concerned with the task of how to maintain a Case Base. 
 
 Over time, as new Cases are added, the Case Base size increases. This can have an adverse effect on system performance, thus it can be desirable to have the Case Base be as minimal as possible, while maintaining classification accuracy.
 
@@ -187,14 +187,14 @@ In our evaluations and experimentation, we don't attempt to initially seed the C
 \end{itemize}
 
 \subsection{Stream Based Learning}
-In this methodology, the system does not just select at the outset from an unlabelled pool the Cases to request labelling by the Oracle. Instead, it is presented with a stream of Cases, and for each Case, it may either itself guess the classification (if it is relatively sure it is correct), or it may defer the decision to the Oracle.
+In \emph{Stream Based Learning}, the system does not just select at the outset from an unlabelled pool the Cases to request labelling by the Oracle. Instead, it is presented with a stream of Cases, and for each Case, it may either itself guess the classification (if it is relatively sure it is correct), or it may defer the decision to the Oracle.
 
 This notion can sometimes be more useful - but it is unlikely in practice that the system would query at any arbitrary time for a Label from the Oracle, since the Oracle may not be available at all times given the usual case of requiring human involvement.
 
 What is more likely is that the system would keep note of Cases it is very unsure of, guess the classification anyway if an immediate response is required, and at the next opportunity, query the Oracle in batch regarding the true classification.
 
 \subsection{Query Synthesis}
-Although it can cause hassle for a human annotator, another variation is known as Query Synthesis, in which the program actually constructs its own unlabelled data instances to present to the Oracle (as opposed to the data being actual previously observed).
+Although it can cause hassle for a human annotator, another variation is known as \emph{Query Synthesis}, in which the program actually constructs its own unlabelled data instances to present to the Oracle (as opposed to the data being actual previously observed).
 
 The program is thus able to actively explore the domain space, as opposed to just waiting for data to try to infer this information.
 
@@ -236,7 +236,7 @@ Certain concepts very frequently occur in the Active Learning Literature, so the
 \subsection{Similarity/Distance}
 The notion of \emph{Similarity} or \emph{Distance} between pairs of data instances is often core in many Selection Strategies. As one would expect - the Similarity between two data instances is a numerical figure which represents how similar the Cases are to one another.
 
-Distance is simply the inverse of Similarity, representing numerically how far two data instances are away from one another other.
+Distance is simply the inverse of Similarity, representing numerically how far two data instances are away from one another.
 
 \subsection{(Nearest) Neighbours / Neighbourhood}
 It is common to define a group of Cases relative to an individual Case that in some fashion relate more strongly to the Case than other Cases in the Case Base - Cases that \emph{neighbour} that Case by means of the relation.
@@ -280,7 +280,7 @@ Somewhat related to Density, Clustering is sometimes performed on the data set. 
 \subsection{Random Sampling}
 \emph{Random Sampling} is probably the most basic Selection Strategy. It simply select Cases at random from the Unlabelled Set. Even with its simplicity, it has the benefit of resulting in a moderately representative sampling of the domain\footnote{This is assuming that the Unlabelled Cases are a representative sampling of the real world domain - which we usually assume that they are.}.
 
-It is often used as one of a group of baseline strategies on which other strategies are compared.
+It is often used as one of a group of baseline strategies against which other strategies are compared.
 
 \subsection{Uncertainty Sampling}
 \emph{Uncertainty Sampling}\citep{Lewis1994} selects Cases that a Classifier trained on the Case Base is most uncertain about (or said another way - is least certain about). Assuming the Classifier can generate a probability for each Label when provided with a new Unlabelled Case, the maximum of these for a Case can be said to be the \emph{certainty} with which the Classifier can classify that Case. Picking the minimum of these gives Uncertainty Sampling.
@@ -313,11 +313,11 @@ This motivates many authors to try and incorporate Density information with Dive
 
 \section{Rong Hu's Work on EGAL: Exploration Guided Active Learning}
 \subsection{Introduction}
-Many Selection Strategies have firm dependencies on a type of Classifier confidence score (what Hu terms Exploitation Strategies), while also incorporating measures such as Density and Diversity (what Hu terms Exploration Strategies).
+Many Selection Strategies have firm dependencies on a type of Classifier confidence score (what Hu terms Exploitation), while also incorporating measures such as Density and Diversity (what Hu terms Exploration).
 
 Hu, in her work on EGAL, experiments with developing an Exploration only strategy by combining measures of Density and Diversity\footnote{Rong Hu recently completed her PHD Thesis on ``Active Learning for Text Classification'' in D.I.T. with Dr. Sarah Jane Delaney as one of her supervisors\citep{Hu2011}. In her thesis, she covers a broad range of topics, but of particular interest to us is her work on ``EGAL'', and also on using Aggregate Confidence Measures.}.
 
-While some of the formula specifics feel slightly odd, the overall attempt on using an Exploration only strategy is pretty interesting. 
+While some of the formula specifics feel slightly odd, the overall attempt at using an Exploration only strategy is pretty interesting. 
 
 \subsection{Hu's Density / Diversity Measures}
 
@@ -353,9 +353,12 @@ Hu's rough approach is to build a Candidate set of Cases from the Unlabelled Set
 
 Hu allows for the balance between the effect of Density and Diversity to be controlled through a ``balancing factor''.
 
+\pagebreak % Fight to get heading next to algorithm
+
 \begin{samepage}
 
-\subsubsection{The Algorithm}
+\subsubsection{The Algorithm} 
+
 \begin{figure}[h!]
 \includegraphics[scale=0.75]{./Others/Hu2011EgalAlgorithm}
 \caption{Hu's Algorithm for the EGAL Selection Strategy}
@@ -379,11 +382,11 @@ S=\left\{ s_{i}=\frac{1}{diversity(x_{i})}\mid x_{i}\in U\right\}
 \]
 
 \subsubsection{Determining $\beta$}
-The setting of $\beta$ feels somewhat round-about - but roughly speaking, $\beta$ is set to the similarity value that would cause a certain pre-fixed percentage of top-most diverse elements to be chosen. for the Candidate Set
+The setting of $\beta$ feels somewhat round-about - but roughly speaking, $\beta$ is set to the similarity value that would cause a certain pre-fixed percentage of the top-most diverse elements to be chosen as the Candidate Set
 
 Firstly, a proportioning parameter $w$ controls the proportion of the top-most diverse elements to include in the Candidate Set. From experimentation, Hu finds that 0.25 gives good results - i.e. selecting a quarter of the most diverse elements as the Candidate Set.
 
-Because in the algorithm, similarity values are spoken about instead of proportions, we must find the threshold similarity value ($s_{w}$) that would result in that proportion.
+Because, in the algorithm, similarity values are spoken about instead of proportions, we must find the threshold similarity value ($s_{w}$) that would result in that proportion.
 
 \[
 S_{1}=\left\{ s_{i}\in S\mid s_{i}\leq s_{w}\right\} 
@@ -401,8 +404,8 @@ $\beta$ is then set to that $s_{w}$ value.
 
 \subsubsection{Algorithm Outline}
 \begin{enumerate}
-	\item Initially $\beta$ is simply set to $\alpha$, but is updated according to the formula above each time to candidate set becomes empty.
-	\item The candidate is sorted from highest density to lowest density, and items are taken in order until the stopping condition is reached.
+	\item Initially $\beta$ is simply set to $\alpha$, but is updated according to the formula above each time the Candidate Set becomes empty.
+	\item The Candidate Set is sorted from highest density to lowest density, and items are taken in order until the stopping condition is reached.
 \end{enumerate}
 
 \subsubsection{Factor Summaries}
@@ -425,7 +428,7 @@ Hu explains that $w$ is a balancing factor between Density and Diversity\citep{H
 \end{itemize}
 
 \subsection{Experimental Results}
-In \citet{Hu2011}, Hu finds that w=$0.25$ gives the best results for the data sets she used. She also finds that 
+In \citet{Hu2011}, Hu finds that $w=0.25$ gives the best results for the data sets she used. 
 
 Hu also finds that the EGAL strategy with $w=0.25$ compares favourably with Random Sampling, and also beats Diversity-only and Density-only sampling.
 
@@ -438,7 +441,7 @@ The approach of picking a similarity value to achieve that partitioning also fee
 
 \section{Rong Hu's Work on Aggregating Confidence Measures}
 \subsection{Introduction}
-Confidence probably needs to be initially distinguished from Competence before continuing. Confidence relates to how confident the system is regarding the Classification of an unseen instance(e.g. the probability of the most likely Label as determined by the Classifier), whereas Competence relates to the overall capability of the system. It is Confidence measures that are dealt with here.
+Before continuing, Confidence probably needs to be initially distinguished from Competence. Confidence relates to how confident the system is regarding the Classification of an unseen instance(e.g. the probability of the most likely Label as determined by the Classifier), whereas Competence relates to the overall capability of the system. It is Confidence measures that are dealt with here.
 
 In her thesis\citep{Hu2011}, Hu outlines a Selection Strategy based on using a single Confidence Measure (essentially, the same as standard Uncertainty Sampling, but using the Confidence Measure to determine what the Case Base is most uncertain of), but expands on this to present an algorithm which attempts to aggregate multiple Confidence Measures, to produce an algorithm that performs better than using any one of the Confidence Measures alone.
 
@@ -465,6 +468,9 @@ where \footnote{The measure is based just on indexes. It seems slightly strange 
 \end{itemize}
 
 This represents the average index of the first k unlike Neighbours in the Case's sorted Nearest Neighbour list. Intuitively, a larger average index is preferable, as this somewhat indicates that there wasn't much uncertainty, when the closer neighbours were voting for the predicted Label.
+\vspace{10pt}
+
+\begin{samepage}
 
 \subsubsection{Similarity Ratio}
 \[
@@ -477,7 +483,9 @@ where:
 	\item $\epsilon$ is a smoothing value to allow for situations where an example may have no NLNs or NUNs ($\epsilon$ = 0.0001 is used in all of her evaluations). Top and bottom have this value to give a ratio of 1 when no NLNs or NUNs, since technically the ratio is 0:0 - a ratio of 1.
 \end{itemize}
 
-This represents the ratio of the Similarity values between a Case's k Nearest Like Neighbours, and k Nearest Unlike Neighbours. Intuitively, a higher ratio is better, as this would indicate that the classifier should be certain about its classification, since the Cases with the same label as the predicted label are relatively a lot closer than the ones of a different label.
+This represents the ratio of the Similarity values between a Case's k Nearest Like Neighbours, and its k Nearest Unlike Neighbours. Intuitively, a higher ratio is better, as this would indicate that the Classifier should be certain about its classification, since the Cases with the same Label as the predicted Label are relatively a lot closer than the ones of a different Label.
+
+\end{samepage}
 
 \subsubsection{Similarity Ratio Within K}
 \[
@@ -493,12 +501,15 @@ where:
 
 This measure is similar to the above measure, except that instead of considering the k Nearest Like Neighbours, and the k Nearest Unlike Neighbours, it just considers the Like and Unlike Neighbours within the first k Nearest Neighbours (be they like, or unlike).
 
-\subsection{Combining the confidence Measures}
+\subsection{Combining the Confidence Measures}
 
 \subsubsection{Overview}
-Firstly, in a machine learning fashion, the threshold values are determined for each measure for each Label that indicate confidence for that Label. These predicted values are then used in assembling a non-confident set, from which elements are Selected in a least-confident-first style. This selection happens in `batches', after which the algorithm is re-initialized for the next batch. This is repeated until the Stopping Criteria is met.
+Firstly, in a machine learning fashion, the threshold values are determined for each measure for each Label that indicate confidence for that Label. These predicted values are then used in assembling a non-confident set, from which elements are Selected in a least-confident-first style. This selection happens in `batches', after which the algorithm is re-initialized for the next batch. This is repeated until the Stopping Condition is met.
+
+\pagebreak
 
 \begin{samepage}
+
 \subsubsection{The Algorithm}
 \begin{figure}[h!]
 \includegraphics[scale=0.75]{./Others/Hu2011AggregrateAlgorithm}
@@ -507,7 +518,7 @@ Firstly, in a machine learning fashion, the threshold values are determined for 
 \end{samepage}
 
 \subsubsection{Initializing the Case Base}
-Before the main algorithm which combines the confidence measures is initiated, the Case Base is initially seeded with a Deterministic variation on Furthest-First Initialization, as presented in \citet{Greene2007}
+Before the main algorithm which combines the confidence measures is initiated, the Case Base is initially seeded with a Deterministic variation on Furthest-First Initialization, as presented in \citet{Greene2007}.
 
 \subsubsection{Confidence Measure Threshold Initialization}
 For \textbf{each} measure, the confidence threshold needs to identified for \textbf{each} class.
@@ -517,18 +528,18 @@ For each measure, predictions with confidence values higher than the predicted c
 Details surrounding how exactly these thresholds are set can be found in \citet{Delany2005}, but roughly, values are chosen on a per-dataset basis through experimentation, with a threshold calculated for each measure for each Label (i.e. cross product style) that maximizes Confidence-accuracy, but keeps False Positives to zero.
 
 \subsubsection{Operation}
-The algorithm essentially operates on (repeatedly) building 2 sets - the Confident Set, and the Non-Confident Set - from the Unlabelled data.
+The algorithm essentially operates on (repeatedly) building two sets from the Unlabelled Data - the Confident Set, and the Non-Confident Set.
 
 The Confident Set is composed of Cases for which any of their Confidence Measures exceeded the Measure's Confidence Threshold. The \emph{score} associated with each Case is the maximum of all the Confidence Measures for that Case.
 
 The Non-Confident Set is composed of Cases which do not appear in the Confident Set, but the \emph{score} associated with each Case is the minimum of all the confidence measures for that Case. 
 
-This min-max combination was chosen as it performed the best in Hu's preliminary experiments when she considered multiple variations.\footnote{I really question this approach . . .}. Measures for each Case ``are normalised using statistical normalisation after performing a log transformation to correct those with skewed distributions''\citep{Hu2011}.
+This min-max combination was chosen as it performed the best in Hu's preliminary experiments when she considered multiple variations\footnote{I really question this approach . . .}. Measures for each Case ``are normalised using statistical normalisation after performing a log transformation to correct those with skewed distributions''\citep{Hu2011}.
 
 After the Confident and Non-Confident sets are built, selection begins. First elements in the Non-Confident Set are selected, and once it is expended, elements from the Confident Set are selected. Selection occurs from each of the sets in a lowest-score-first order. A batch size which is an input to the algorithm indicates how many should be selected in this \emph{batch}, before restarting the entire process, and beginning the selection of a new batch from the start again.
 
 \subsection{Experiment Results}
-Hu finds that using the aggregated confidence measure performs marginally (though not significantly) better than using any one of the confidence measures alone and also than Uncertainty Sampling.
+Hu finds that using the aggregated confidence measure performs marginally (though not significantly) better than using any one of the confidence measures alone, and also than Uncertainty Sampling.
 
 
 \subsection{Comments}
@@ -547,7 +558,7 @@ The paper and thesis section seem rather unspecific about how the measures are n
 	
 	In this case, the range of values over which the measure falls is normalized - giving the same minimum and maximum value possible for each measure. I don't think the measure threshold could then also be normalized, leading to different measures very likely having different thresholds. 
 	
-	If any measure passes its respective threshold though, the maximum measure's value is chosen as the Case's score, but this score may have nothing to do with the measure that actually caused the Case to fail to be classed as confident. Scores are subsequently compared with other scores
+	If any measure passes its respective threshold though, the maximum measure's value is chosen as the Case's score, but this score may have nothing to do with the measure that actually caused the Case to fail to be classed as confident. Scores are subsequently compared with other scores.
 	
 	e.g. for a given class, 
 	\begin{itemize}
@@ -584,7 +595,7 @@ As a result of the above, we decided not to proceed with using Hu's aggregation 
 \subsection{Purpose}
 The purpose of the system is to allow evaluation of and comparison between different Selection Strategies in a Pool-Based Active Learning context.
 
-It achieves this by executing each of the Selection Strategies on several data sets from an initially empty Case Base. At each Selection Strategy Selection, it runs a KNN based Classifier on the Case Base, evaluating its capability to correctly classify the instances in a test set.
+It achieves this by executing each of the Selection Strategies on several data sets from an initially empty Case Base. At each Selection in the Selection Strategy, it runs a KNN based Classifier on the Case Base, evaluating its capability to correctly classify the instances in a test set.
 
 \subsection{Technologies}
 Weka\citep{prog:weka}, a Java based Machine Learning framework, was initially briefly investigated, but due to my familiarity with Python, Orange\citep{prog:orange} was used as the core Machine Learning component. It provided useful facilities to quickly get a basic evaluation platform up and running. As the platform progressed, most Orange dependencies were removed in favour of custom implementations due to the need for greater control, and a memory-management related bug which existed in Orange with regards its Python bindings for its C++ backend. Orange was subsequently just used for data loading, and distance computations.
@@ -639,6 +650,7 @@ CSV was chosen due to it being quite trivial to produce irrespective of the prog
 
 Google's blurb for Protocol Buffers is ``think XML, but smaller, faster, and simpler''\citep{prog:protocolbuffers}. It is a binary format for which a proxy can be automatically generated for Python (among many other languages). It is used as the preferred method of loading data with precomputed distances in the presented platform, due to its compact representation, and efficient loading.
 
+\begin{samepage}
 These files store essentially the same information in a similar method as the CSV style presented above. The devised protocol specification is as follows:
 \begin{verbatim}
 message Case{
@@ -659,8 +671,8 @@ message PrecomputedDistanceData{
 }
 \end{verbatim}
 
+\end{samepage}
 Most bits to the protocol are self explanatory. The number following each field is simply the field ID. In the Protocol Buffers specification, each field must have an integer ID, with each ID unique within its local namespace. The ``[packed=true]'' section is simply an optimization that allows the Protocol Buffers engine store the repeated numeric values in as compact a representation as it can.
-
 
 \subsection{Experiment Definitions}
 The definitions for the experiments to run need to be provided to the platform. Each experiment consists of data\footnote{ The data is provided as (training set, test set) pairs to allow for Cross-Validation, etc.} and the Selection Strategies to run on the data.
@@ -672,13 +684,14 @@ This allows for new Selection Strategies to be added and run, without re-computi
 
 It also allows for the graphs, etc. to be generated separately from the main experiment running\footnote{This can be useful, as then all the plotting/graphing dependencies need not be installed on all machines/platforms the experiment is being executed on.}, and due to ease of re-combining existing results, allows the experiment to be split, and different Selection Strategies be evaluated on separate machines concurrently.
 
-\section{Experiment Execution}
+\pagebreak
 
+\section{Experiment Execution}
 \subsection{Selection Strategy Evaluation}
 \subsubsection{Overview}
 In Selection Strategy evaluation, the purpose is to execute a Selection Strategy against unlabelled training data\footnote{It's not really unlabelled - it's just from the perspective of the Selection Strategy it's unlabelled.}, to choose Cases from the set and put them in the Case Base until the Stopping Condition is satisfied.
 
-After each Selection, a KNN based classifier is given the Case Base as training data, and run on the test set, and the Classification Accuracy recorded.
+After each Selection, a KNN based classifier is given the Case Base as training data, and run on the test set, with the resulting Classification Accuracy recorded.
 
 The motivation is to judge how good each Selection Strategy is at selecting Cases to maximize the ability of the Case Base to classify unseen instances.
 
@@ -769,7 +782,7 @@ For each data-set and subsequently for each Selection Strategy - the evaluation 
 
 Within the compressed Selection Strategy Results Archive, these are labelled 0.csv, 1.csv, etc. with each corresponding to the fold number in the Cross Validation splits of the data set.
 
-Each csv contains essentially 3 items. \footnote{The format of these 3 items is somewhat hacky, and was went for purely in laziness. Splitting into separate files would have added unnecessary complexity when so many other aspects of the project needed time.}
+Each csv contains essentially 3 items \footnote{The format of these 3 items is somewhat hacky, and was went for purely in laziness. Splitting into separate files would have added unnecessary complexity when so many other aspects of the project needed time.}:
 
 \begin{enumerate}
 	\item Results for various Case Base sizes, with each Result instance denoted with:
@@ -795,19 +808,19 @@ Cases which a given Selection Strategy chooses are highlighted at each Selection
 
 Because Selections can't really be averaged across the different Folds in the Cross Validation, a PDF file is generated for each Cross Validation fold. Grey Nodes represent Test Cases, Black Nodes represent Unlabelled Cases, and Green Nodes represent Nodes selected by the Selection Strategy.
 
-Due to the flattening of varying dimensionality Data Sets, the usefulness of these graphs vary widely depending on the Data Sets used, so it is not useful in all cases.
+Due to the flattening of varying dimensionality Data Sets, the usefulness of these graphs vary widely depending on the Data Sets used, so it is not beneficial for all Data Sets.
 
 \subsection{Experiments Summary}
-A summary CSV file is also output for the Experiments executed during a run of the platform. It simply gives a tabular breakdown of Data Set vs Selection Strategy of AULC values.
+A summary CSV file is also output for the Experiments executed during a run of the platform. It simply gives a tabular breakdown of Data Set vs Selection Strategy AULC values.
 
 \chapter{Competence Models\label{cha:CompetenceModels}}
 \section{Overview}
 
-Delaney, in her work, expanded upon the definitions of Coverage and Reachability sets (as described in \citet{Smyth1995}) to include their counterparts, what she terms ``Liability'' and ``Dissimilarity'' respectively\citep{Delany2009}. She subsequently uses these concepts in defining Case Profiles, which she uses Case Base Maintenance strategies.
+Delaney, in her work, expanded upon the definitions of Coverage and Reachability sets (as described in \citet{Smyth1995}) to include their counterparts, what she terms ``Liability'' and ``Dissimilarity'' respectively\citep{Delany2009}. She subsequently uses these concepts in defining Case Profiles, which she uses in Case Base Maintenance strategies.
 
 From Delaney's work, we hope to expand on her boolean RCDL Profile concepts, and attempt to use them in an Active Learning Selection Strategy role.
 
-This chapter first outlines the fundamental concepts involved in RCDL profiles as presented by Delaney, and subsequently expands on these to describe how we use them in our Selection Strategy context.
+This chapter first outlines the fundamental concepts involved in RCDL profiles as presented by Delaney, and subsequently expands on these to describe how we use them in a Selection Strategy context.
 
 \section{Fundamentals}
 \subsection{Classifies / Misclassifies}
@@ -1225,7 +1238,7 @@ The algorithm presented does not allow for supposing the removal of a Case from 
 \subsection{Testing and Validation}
 Testing was performed in Unit-Test style to ensure the RCDL Profiles achieved using the Incremental Strategy presented correlated exactly with a simple brute-force strategy. This was done on each of the datasets used.
 
-\medspace
+\vspace{10pt}
 
 \begin{samepage}
 \subsubsection{Brute Force Algorithm}
@@ -1300,7 +1313,7 @@ foreach case in dataset:
 \includegraphics[width=10cm]{./ExperimentResults/WinXwinTimings}
 \end{figure}
 
-\subsubsection{Complexity Analysis}
+%\subsubsection{Complexity Analysis}
 %TODO Write the Complexity Analysis Section.
 
 \section{Types of RCDL Changes from adding a Single Case to the Case Base}
@@ -1553,30 +1566,15 @@ A downside of this strategy though is that it is liable to get `stuck' in relati
 \chapter{Experimental Analysis\label{cha:expanalysis}}
 \section{Datasets Used}
 \subsection{Non-Textual}
-\subsubsection*{Breathalyzer}\label{sec:breathalyzer}
-\subsubsection*{Dermatology}\label{sec:dermatology}
-\subsubsection*{Glass}\label{sec:glass}
-\subsubsection*{Haberman}\label{sec:haberman}
-\subsubsection*{Heart Disease}\label{sec:heart_disease}
-\subsubsection*{Hepatitis}\label{sec:hepatitis}
-\subsubsection*{Iris}\label{sec:iris}
-\subsubsection*{Lung Cancer}\label{sec:lung_cancer}
-\subsubsection*{TA Evaluation}\label{sec:taevaluation}
-\subsubsection*{Wine}\label{sec:wine}
-\subsubsection*{Zoo}\label{sec:zoo}
+
 \subsection{Textual}
-
-\section{Basic Selection Strategies}
-
-
-\section{Competence-based Selection Strategies}
 
 \section{Results}
 Results are presented using a learning curve (Accuracy vs Case-Base Size). The AULC figure is also calculated.
 
 \subsection{Summary}
 \begin{sidewaystable}
-\DTLdisplaydb{summary}
+{\small \DTLdisplaydb{summary}}
 \end{sidewaystable}
 \subsection{Non-Textual Datasets}
 
@@ -1590,7 +1588,7 @@ with open("./ExperimentResults/summary.csv") as f:
         print
         print r'\begin{figure}[h!]'
         print r'\includegraphics[width=0.98\textwidth]{./Plots/' + ds + '}'
-        print r"\caption{Learning Curve Plots for `" + ds + "' Dataset}"
+        print r"\caption{Learning Curve Plots for the `" + ds + "'\citep{data:" + ds + "} Dataset}"
         print r'\end{figure}'
         print
 \end{python}
@@ -1670,9 +1668,6 @@ Due to some of the technologies involved currently requiring a *nix environment,
 
 \subsubsection*{Lyx}
 
-
-
-
 \subsubsection*{PdfRider}
 http://pdfrider.codeplex.com
 Extracting pages
@@ -1699,6 +1694,8 @@ http://unxutils.sourceforge.net/
 
 \subsubsection*{Putty}
 
+\subsubsection*{VirtualBox}
+
 \subsubsection*{PythonBrew}
 
 \section{Cut Sections}
@@ -1720,83 +1717,6 @@ and non-weighted voting is used, then it is correctly classified `y' and:
 \end{itemize}
 
 Here, no knowledge of $NN_{3}(case_{1})$ is maintained. I believe it would be more natural to have the Dissimilarity Set to include cases that were \emph{fighting} against the correct classification, even if the case was correctly classified.
-
-\subsection{Smyth \& McKenna's Work on Competence Models}
-\subsubsection{Introduction}
-Barry Smyth and Elizabeth McKenna performed interesting research on using a clustering techniques to expand on the work of \citet{Smyth1995} \citep{Smyth1998}.
-
-\subsubsection{Coverage}
-Coverage is defined in terms of the Retrieval and Adaptation Spaces.
-
-\paragraph{Retrieval Space}
-
-These are simply the cases retrieved from the Case Base for a given case.
-
-\[ RetrievalSpace(c \in C) = \left\{ c' in C : c' \text{ is retrieved for c} \right\} \]
-
-\paragraph{Adaptation Space}
-
-\[ AdaptationSpace(c \in C) = \left\{ c' \in C : c' \text{ can be adapted to solve } c \right\} \]
-
-\paragraph{Coverage}
-
-The Coverage of a case is defined as the intersection between that case's Retrieval and Adaptation Spaces. \footnote{Intersection because all of those that could be adapted to solve this case may not be retrieved, and ones may be retrieved that cannot be adapted (depending on the retrieval mechanism used).}
-
-\[ Coverage(c \in C) = \left\{ c' \in C : c' \in RetrievalSpace(c) \cap AdaptationSpace(c) \right\} \]
-
-
-\subsubsection{Competence Group}
-The most interesting part of the paper is their notion of a Competence Group. They argue that the fundamental unit of competence should not be at the case level, but instead should be at a cluster level, where clustering is performed by the notion of Shared Coverage.
-
-Two cases exhibit Shared Coverage if their Coverage Sets overlap. A Competence Group is then defined as a maximal  collection  of  cases  exhibiting  shared Coverage \footnote{Of particular note here is that maximal means that it is not necessary that each set intersect directly with every other set - but that each case in the group is simply \emph{reachable} by means of Shared Coverage links by every other case in the group. In graph terms, we would speak of the graph's components - each component a maximally connected set of nodes - with an edge between two nodes representing Shared Coverage between those two nodes.}.
-
-\subsubsection{Case \& Group Density}
-
-Case Density as per Smyth and McKenna's definition is a case's Average Similarity with the other things in a given group. \footnote{Similarity is taken to be a function that, given 2 cases, computes the similarity between those two cases on a scale from 0 to 1, where 0 is in no way similar, and 1 is exactly the same.}
-
-\[
-CaseDensity(c,G)=\frac{\underset{c'\in G-\{c\}}{\sum}Sim(c,c')}{\left|G\right|-1}
-\]
-
-Group density they define as the average similarity of each thing in the group with the rest of the group from 0 to 1 - i.e. on average how similar are the things in the group to each another.
-
-\[
-GroupDensity(G)=\frac{\underset{c\in G}{\sum}CaseDensity(c,G)}{\left|G\right|}
-\]
-
-\subsubsection{Group Coverage}
-The competence measure of a group of cases is that of Group Coverage, and is defined as follows:
-
-\[
-GroupCoverage(G)=1+\left[\left|G\right|\bullet(1-GroupDensity(G))\right]
-\]
-
-Intuitively - it's bad to have a lot of redundancy, so we want things to be not too close together - therefore \emph{goodness} is inversely proportional to average similarity. Larger groups (as long as not dense) give greater coverage - therefore directly proportional to size.
-
-Actual Reasoning could be looked on as follows:
-\begin{itemize}
-	\item GroupDensity gives average similarity within the group (from 0 to 1 - 0 being not at all similar, 1 being exactly the same).
-	\item 1-Group Similarity gives average dissimilarity within the group.
-	\item Multiplying this average by G the total dissimilarity between the members of the group. \footnote{Another way of looking at it - gives a \emph{strength} of how relevant this group is. (e.g. a group of 2 needs to be taken with a pinch of salt vs a group of 1,000)}
-	\item 1 added for when no dissimilarity (either identical cases or single case in the group), these should still have weighting.
-\end{itemize}
-
-\subsubsection{Case Base Coverage}
-The overall Case Base coverage (on which Case Base competence is believed in the paper to follow) as simply the sum of the Group Coverages of all the individual Competence Groups in the Case Base.
-
-\[
-Coverage(G)=\underset{G_{i}\in G}{\sum}GroupCoverage(G_{j})
-\]
-
-\subsubsection{Experimental Conclusions}
-Smyth and McKenna found a close correspondence between their Case Base Coverage competence model, and the true competence of the Case Base against the test sets\citep{Smyth1998}.
-
-\subsubsection{Comments}
-Smyth and McKenna's general argument on how it is difficult to establish an individual case's competence seems valid. It is much more natural to define competence characteristics based on groups of cases. 
-
-Traditionally, when talking about grouping, it seems to have been done through clustering, or simply at the case level by having the notion of a case's neighbourhood (which can be defined in various ways - such as within a radius, the k nearest, etc.).
-
-The notion of defining competence groups through graph-style application of maximally connected components is an interesting one. Here, specifically, edges are based on Shared Coverage, but one can easily see how this approach could be applied based on other criteria to represent an edge.
 
 \bibliographystyle{unsrtnat}
 \bibliography{library}
