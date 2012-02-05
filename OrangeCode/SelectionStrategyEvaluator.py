@@ -31,6 +31,7 @@ import random
 import tarfile, StringIO
 from os.path import splitext
 from utils import average
+from utils import try_convert_to_num as convert
 
 def to_numerically_indexed(sequence):
     index_dict = {}
@@ -66,14 +67,6 @@ class ResultSet(list):
     
     def deserialize(self, stream):
         logging.debug("Starting CSV reading from stream %s" % stream)
-        
-        def convert(cell):
-            if cell.isdigit():
-                return int(cell)
-            try:
-                return float(cell)
-            except ValueError:
-                return cell
         
         reader = csv.reader(stream)
         rows = [map(convert, row)

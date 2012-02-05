@@ -77,6 +77,14 @@ def meanstdv(x):
 def count_iterable(i):
     return sum(1 for e in i)
 
+def try_convert_to_num(cell):
+    if cell.isdigit():
+        return int(cell)
+    try:
+        return float(cell)
+    except ValueError:
+        return cell
+
 # http://preshing.com/20110924/timing-your-code-using-pythons-with-statement
 import time
 
