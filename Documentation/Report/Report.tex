@@ -19,6 +19,8 @@
 \newcolumntype{x}[1] {>{\raggedright}p{#1}} %http://nepsweb.co.uk/docs/tableTricks.pdf
 
 \DTLloaddb{summary}{./ExperimentResults/summary.csv}
+\DTLloaddb{textual_summary}{./ExperimentResults/textual_summary.csv}
+
 \title{Competence-Driven Active Learning}
 \author{Charles McCarthy\\
   106380221\\
@@ -68,7 +70,7 @@ I hereby declare that:
 \chapter*{Acknowledgements}
 While much of the work carried out was based on external literature, a great deal of advice and direction was gained from the weekly meetings with my project supervisor, Dr. Derek Bridge.
 
-The impact of casual conversations with classmates P\'{a}draig \'{O}'D\'{u}inn, Barry Hurley and Kevin Leo should also be acknowledged. P\'{a}draig, in his research, encountered similar issues to myself on occasion, and would often share his insights into how he got around them. Barry was useful in offering Latex help, and was sometimes consulted while I was learning it. Kevin had a great deal of python and general *nix experience, and offered advice and assistance whenever particularly frustrating issues were encountered (which would usually be prompted by me ranting about them during our lunchtime card games).
+The impact of casual conversations with classmates P\'{a}draig \'{O}'D\'{u}inn, Barry Hurley and Kevin Leo should also be acknowledged. P\'{a}draig, in his research, encountered similar issues to myself on occasion, and would often share his insights into how he got around them. Barry was useful in offering LaTeX help, and was sometimes consulted while I was learning it. Kevin had a great deal of python and general *nix experience, and offered advice and assistance whenever particularly frustrating issues were encountered (which would usually be prompted by me ranting about them during our lunchtime card games).
 
 \tableofcontents
 
@@ -1572,28 +1574,40 @@ A downside of this strategy though is that it is liable to get `stuck' in relati
 \section{Results}
 Results are presented using a learning curve (Accuracy vs Case-Base Size). The AULC figure is also calculated.
 
-\subsection{Summary}
 \begin{sidewaystable}
-{\small \DTLdisplaydb{summary}}
+\subsection{Summary}
+
+\subsubsection{Non-Textual}
+{\footnotesize \DTLdisplaydb{summary}}
+
+\subsubsection{Textual}
+{\small \DTLdisplaydb{textual_summary}}
 \end{sidewaystable}
-\subsection{Non-Textual Datasets}
 
 \begin{python}
 import csv
-with open("./ExperimentResults/summary.csv") as f:
-    r = csv.reader(f)
-    r = list(r)
-    datasets = r[0][1:]
-    for ds in datasets:
-        print
-        print r'\begin{figure}[h!]'
-        print r'\includegraphics[width=0.98\textwidth]{./Plots/' + ds + '}'
-        print r"\caption{Learning Curve Plots for the `" + ds + "'\citep{data:" + ds + "} Dataset}"
-        print r'\end{figure}'
-        print
+
+cat_to_files = [("Non-Textual", "./ExperimentResults/summary.csv"),
+                ("Textual", "./ExperimentResults/textual_summary.csv")
+                ]
+
+for (cat, fn) in cat_to_files:
+    print r'\subsection{' + cat + r' Datasets}'
+    print 
+    with open(fn) as f:
+        r = csv.reader(f)
+        r = list(r)
+        datasets = r[0][1:]
+        for ds in datasets:
+            print
+            print r'\begin{figure}[h!]'
+            print r'\includegraphics[width=0.98\textwidth]{./Plots/' + ds + '}'
+            print r"\caption{Learning Curve Plots for the `" + ds + "'\citep{data:" + ds + "} Dataset}"
+            print r'\end{figure}'
+            print
 \end{python}
 
-\subsection{Textual Datasets}
+\section{Selection Graphs}
 
 \chapter{Conclusions and Future Work\label{cha:conclusions}}
 
@@ -1602,103 +1616,6 @@ with open("./ExperimentResults/summary.csv") as f:
 
 \section{Possible Future Work Areas} \footnote{I'm staying away from simply saying ``Future Work'', since I have little to no intention of actually doing any of the following, unless it's actually something I want to progress in any future projects.}
 
-
-
-(Start a revolution in the research community - code should always accompany the paper)
-
-\chapter{Appendix}
-\section{Open source Technologies Used}
-
-\subsection{Development Related}
-
-\subsubsection*{Python}
-\emph{Python}\citep{prog:python} is a high-level programming language that allows for rapid development. It was chosen due to the author's familiarity with the language, its prettiness, the large availability of Open Source libraries for it, and the need for rapid development due to the relatively short timespan of the Final Year Project.
-
-\subsubsection*{git}
-\emph{Git}\citep{prog:git} was the source-control system used, with GitHub as the host. It was primarily chosen due to its powerful support for maintaining local repositories in addition to remote ones. This came in very useful during the times I was without network access.
-
-\subsubsection*{TortoiseGit}
-\emph{TortoiseGit}\citep{prog:tortoisegit} is an incredibly easy to use interface to Git on Windows, and was used as the primary means of interacting with Git when working in a Windows environment.
-
-\subsubsection*{PyPy}
-\emph{PyPy}\citep{prog:pypy} is an alternative implementation from the standard cPython interpreter, and can often give significant performance gains to Python programs. The downside is that id doesn't support SWIG (the layer which allows interface with C++ and other code), and thus rules out the use of many libraries, and thus is not appropriate for all Python programs.
-
-PyPy was tried in the project after the Orange dependencies were removed, but it was found not to give a worthwhile performance improvement, so cPython was used instead. The probable reason for this is the frequent usage of operations such as list comprehensions that are already quite optimized in the cPython implementation.
-
-\subsubsection*{Orange}
-\emph{Orange}\citep{prog:orange} is a Machine Learning framework with bindings for Python. It was used heavily initially, but as the project progressed, our usage patterns differed compared to what it was designed for, leading to significant memory related issues. We thus elected to just use it for data-loading, and distance computation, implementing the other bits we needed ourselves.
-
-It was chosen as opposed to the other Machine Learning frameworks available for Python, as it seemed the most mature and diverse of group.
-
-\subsubsection*{Matplotlib}
-\emph{Matplotlib}\citep{prog:matplotlib} is a very popular plotting library for Python, meant to provide a feature-rich, Open Source alternative to Matlab, and Mathematica.
-
-It was used at the outset of the project to perform initial plotting, but was later abandoned in favour of PyX due to its non-pythonic interface which was meant more for interactive use.
-
-\subsubsection*{PyX}
-\emph{PyX}\citep{prog:pyx} is a graphics package for Python. It was used in the project for producing plots, and was chosen for its very Latex-friendly output formats, good documentation, and well formed interface.
-
-\subsubsection*{Eclipse}
-\emph{Eclipse} was the IDE used for all development. It was chosen due to its extreme extensibility and the author's prior familiarity with it.
-
-\subsubsection*{Pydev}
-\emph{Pydev}\citep{prog:pydev} is a Python plugin for Eclipse that allows Eclipse to be used as a full-fledged Python IDE. It features a debugger, syntax awareness, auto completion, and other features one would expect from an IDE.
-
-\subsubsection*{Aptana}
-\emph{Aptana} is another Eclipse plugin that is primarily aimed at Web Development, though does add some small additional Python features, and includes Git integration.
-
-\subsubsection*{Ubuntu}
-Due to some of the technologies involved currently requiring a *nix environment, \emph{Ubuntu}\citep{prog:ubuntu} was chosen as the main OS in which to do the development and experiment-running related to the project.
-
-\subsubsection*{SciKit Learn}
-\subsubsection*{cProfile}
-\subsubsection*{Run Snake Run}
-\subsubsection*{bpython}
-\subsubsection*{Graphviz}
-\subsubsection*{PyGraphviz}
-\subsubsection*{PyPdf}
-\subsubsection*{Google Protocol Buffers}
-\subsubsection*{Nose}
-\subsubsection*{latexcodec (Python Package)}
-
-\subsection{Documentation Related}
-\subsubsection*{Dia}
-\subsubsection*{Latex}
-\subsubsection*{TexStudio}
-
-\subsubsection*{Lyx}
-
-\subsubsection*{PdfRider}
-http://pdfrider.codeplex.com
-Extracting pages
-\subsubsection*{PdfEditor}
-%http://code.google.com/p/pdfeditor/downloads/detail?name=PdfEditorInstallator.msi&can=2&q=
-\subsubsection*{Briss}
-http://sourceforge.net/projects/briss/ - pdf cropping
-\subsubsection*{Datatool}
-Nevermind: Deprecated (but useful!) latex package to import CSVs.
-Tool for dealing with csv files
-
-\subsubsection*{extraplaceins}
-http://lexfridman.com/blogs/research/2011/03/06/prevent-figures-from-floating-outside-sections-in-latex/
-
-\subsubsection*{natbib}
-
-\subsubsection*{python.sty}
-
-\subsection{Misc}
-\subsubsection*{WinSCP}
-
-\subsubsection*{UnxUtils}
-http://unxutils.sourceforge.net/
-
-\subsubsection*{Putty}
-
-\subsubsection*{VirtualBox}
-
-\subsubsection*{PythonBrew}
-
-\section{Cut Sections}
 \subsection{Criticism against Reachability/Dissimilarity Sets}
 A Case either has a Reachability set, or Dissimilarity set - never both. This either-or nature is convenient for Delany's binary-style analysis, but throws away all information about the \emph{competing} set (be it Reachability, or Dissimilarity).
 
@@ -1717,6 +1634,152 @@ and non-weighted voting is used, then it is correctly classified `y' and:
 \end{itemize}
 
 Here, no knowledge of $NN_{3}(case_{1})$ is maintained. I believe it would be more natural to have the Dissimilarity Set to include cases that were \emph{fighting} against the correct classification, even if the case was correctly classified.
+
+
+\chapter{Appendix}
+\section{Project Source Code}
+This Project's source code has been placed online\citep{web:projectsourcecode}. Aside from the aim for this project to be as Open Source as possible, it is my strong belief that any research which actually aims to advance a given field should have all the things required to reproduce the results publicly available without having to make explicit requests to the authors. 
+
+It surprises me the massive body of research that doesn't follow this methodology - especially research which is publicly funded. It is important that external parties have full opportunities to validate experiment results. Small bugs in programs may cause entire projects to have invalid (though convincing) results, and while this would be disastrous for the researchers involved to have these discovered publicly, it is necessary for the actual progression of scientific knowledge.
+
+By having all backing materials available, it also allows other researchers to continue with the original research, as opposed to starting from scratch and re-developing all the architecture necessary again and again.
+
+\section{Open source Technologies Used}
+\subsection{Development Tools}
+\subsubsection*{TortoiseGit}
+\emph{TortoiseGit}\citep{prog:tortoisegit} is an incredibly easy to use interface to Git on Windows, and was used as the primary means of interacting with Git when working in a Windows environment.
+
+\subsubsection*{Eclipse}
+\emph{Eclipse}\citep{prog:eclipse} was the IDE used for all development. It was chosen due to its extreme extensibility and the author's prior familiarity with it.
+
+\subsubsection*{Pydev}
+\emph{Pydev}\citep{prog:pydev} is a Python plugin for Eclipse that allows Eclipse to be used as a full-fledged Python IDE. It features a debugger, syntax awareness, auto completion, and other features one would expect from an IDE.
+
+\subsubsection*{Aptana}
+\emph{Aptana}\citep{prog:aptana} is another Eclipse plugin that is primarily aimed at Web Development, though does add some small additional Python features, and includes Git integration.
+
+\subsubsection*{RunSnakeRun}
+\emph{RunSnakeRun}\citep{prog:runsnakerun} is a Python profiling output viewer. It was very useful in helping identify areas of code which would likely provide the largest performance gains if refactored.
+
+\subsubsection*{bpython}
+\emph{bpython}\citep{prog:bpython} is ``a fancy interface to the Python interpreter for Unix-like operating systems''. It was used as the primary Python interactive interface throughout the project, due to its productivity-improving features such as auto-complete, and documentation string showing.
+
+\subsubsection*{Graphviz}
+\emph{Graphviz}\citep{prog:graphviz} is a tool which provides many utilities for graph layout and visualization. It is highly developed and allows massive scope in specifying customizations. It was used in generating the Selection Graphs for the different Selection Strategies. 
+
+\subsection{Development Technologies}
+
+\subsubsection*{Python}
+\emph{Python}\citep{prog:python} is a high-level programming language that allows for rapid development. It was chosen due to the author's familiarity with the language, its prettiness, the large availability of Open Source libraries for it, and the need for rapid development due to the relatively short timespan of the Final Year Project.
+
+\subsubsection*{git}
+\emph{Git}\citep{prog:git} was the source-control system used, with GitHub as the host. It was primarily chosen due to its powerful support for maintaining local repositories in addition to remote ones. This came in very useful during the times I was without network access.
+
+\subsubsection*{PyPy}
+\emph{PyPy}\citep{prog:pypy} is an alternative implementation from the standard cPython interpreter, and can often give significant performance gains to Python programs. The downside is that id doesn't support SWIG (the layer which allows interface with C++ and other code), and thus rules out the use of many libraries, and thus is not appropriate for all Python programs.
+
+PyPy was tried in the project after the Orange dependencies were removed, but it was found not to give a worthwhile performance improvement, so cPython was used instead. The probable reason for this is the frequent usage of operations such as list comprehensions that are already quite optimized in the cPython implementation.
+
+\subsubsection*{Orange}
+\emph{Orange}\citep{prog:orange} is a Machine Learning framework with bindings for Python. It was used heavily initially, but as the project progressed, our usage patterns differed compared to what it was designed for, leading to significant memory related issues. We thus elected to just use it for data-loading, and distance computation, implementing the other bits we needed ourselves.
+
+It was chosen as opposed to the other Machine Learning frameworks available for Python, as it seemed the most mature and diverse of group.
+
+\subsubsection*{Matplotlib}
+\emph{Matplotlib}\citep{prog:matplotlib} is a very popular plotting library for Python, meant to provide a feature-rich, Open Source alternative to Matlab, and Mathematica.
+
+It was used at the outset of the project to perform initial plotting, but was later abandoned in favour of PyX due to its non-pythonic interface which was meant more for interactive use.
+
+\subsubsection*{PyX}
+\emph{PyX}\citep{prog:pyx} is a graphics package for Python. It was used in the project for producing plots, and was chosen for its very LaTeX-friendly output formats, good documentation, and well formed interface.
+
+\subsubsection*{SciKit Learn}
+\emph{SciKit Learn}\citep{prog:sklearn} ``is a Python module integrating classic machine learning algorithms in the tightly-knit world of scientific Python packages''. It was used for the Cross Validation splitting, and also for textual dataset loading and vectorizing.
+
+During the progression of the project, a bug was identified in this package, and a fix and unit test submitted to its repository\citep{web:scikitpullreq}.
+
+\subsubsection*{NumPy}
+\emph{NumPy}\citep{prog:numpy} is ``the fundamental package needed for scientific computing with Python''. It allows for very performant numerical computations in Python. It was used for generating the Cosine Similarity between the tf-idf document vectors obtained from SciKit-Learn for the Textual Datasets.
+ 
+\subsubsection*{cProfile}
+\emph{cProfile}\citep{prog:cprofile} is the main recommended profiling engine for Python, achieving relatively low overhead compared to the traditional profile module. It came bundled with Python from v2.5 onwards and is based on the lsprof\citep{prog:lsprof} library. It was used in the project for all Profiling, when performance improvements were needed.
+
+\subsubsection*{PyGraphviz}
+\emph{PyGraphviz}\citep{prog:pygraphviz} is one of a number of Python interfaces to Graphviz - both in aiding generating `.dot' files, and also in generating the graphs through the Graphviz binary. It was used in the project as the primary mechanism of interacting with Graphviz for the generation of Selection Graphs. 
+
+\subsubsection*{pyPdf}
+\emph{pyPdf}\citep{prog:pypdf} is a pure-Python toolkit for PDF manipulation. It was used in the project to combine Selection Graphs into a single multi-page PDF.
+
+\subsubsection*{Protocol Buffers}
+\emph{Protocol Buffers}\citep{prog:protocolbuffers} `are a way of encoding structured data in an efficient yet extensible format''. They are Google's primary data-interchange format, and were used in the project for storing Precomputed Distance style Datasets.
+
+\subsubsection*{Nose}
+\emph{Nose}\citep{prog:nose} is a very nice Python unit test runner, which supports concurrent usage of multiple types of Python unit tests. It was used in the project for executing the various doctests and unit tests written for the project code.
+
+\subsubsection*{latexcodec}
+\emph{latexcodec}\citep{prog:latexcodec} is a Python Package which allows easy encoding of text into a LaTeX-escaped format. It was used in generating the program outputs, so that they could be included directly in LaTeX.
+
+\subsection{Documentation Related}
+
+\subsubsection*{python.sty}
+\emph{python.sty}\citep{prog:pythonsty} is a LaTeX package that provides the capability to embed Python code in a LaTeX file, and include the output of the code at that position in the file. It was incredibly useful in automatically including the platform outputs of experiments in the report by programatically iterating through the results, and outputting the appropriate LaTeX code.
+
+\subsubsection*{LaTeX}
+LaTeX\citep{prog:latex} is ``a high-quality typesetting system''. It was used to write the report that accompanied the project.
+
+\subsubsection*{TexStudio}
+\emph{TexStudio}\citep{prog:texstudio} is an Open Source, Cross-Platform LaTeX IDE, providing rich support and integration with LaTeX. It was used as the primary editor for writing the report.
+
+\subsubsection*{Datatool}
+\emph{Datatool}\citep{prog:datatool} is a LaTeX package for the loading and manipulation of data. It was used to load the platform's output CSV files into LaTeX, and display them as tables of data.
+
+\subsubsection*{extraplaceins}
+\emph{extraplaceins}\citep{prog:extraplaceins} is a LaTeX package which extends the standard `placeins' package. It includes capabilities to prevent figures in LaTeX from floating outside sections. It was used in the report to force diagrams to stay in their desired places.
+
+\subsubsection*{LyX}
+\emph{LyX}\citep{prog:lyx} is an Open Source, Cross-Platform document processor built around LaTeX. I found it slightly kludgey for writing `pure' LaTeX, but it was very useful for generating the source for some of the more complicated tables used in the report. 
+
+\subsubsection*{LibreOffice}
+\emph{LibreOffice}\citep{prog:libreoffice} is an Open Source alternative to Microsoft Office, and was used for writing the Presentation for the project to present on the Project Open Day.
+
+\subsubsection*{briss}
+\emph{briss}\citep{prog:briss} is a simple Cross-Platform GUI for the cropping PDFs. It was used for cropping extracted PDF pages to include just the Algorithms from Hu's report, excluding the other text around the Algorithms.
+
+\subsubsection*{natbib}
+\emph{natbib}\citep{prog:natbib} is a LaTeX package that provides additional functionality for Bibliography presentation compared to the default. It was used in the project to get Year-style references for citations.
+
+\subsubsection*{Dia}
+\emph{Dia}\citep{prog:dia} is an Open Source alternative to Microsoft Visio, and was used to draw the visual examples presented in this report.
+
+\subsubsection*{PDF Rider}
+\emph{PDF Rider}\citep{prog:pdfrider} is a ``utility for doing some simple manipulations to PDF documents''. It was used for extracting individual pages from Hu's report so as to include the Algorithms presented verbatim.
+
+\subsubsection*{TexStudio}
+\emph{TexStudio}\citep{prog:texstudio} is an Open Source, Cross-Platform LaTeX IDE, providing rich support and integration with LaTeX. It was used as the primary editor for writing the report.
+
+\subsection{Misc}
+
+\subsubsection*{Ubuntu}
+Due to some of the technologies involved currently requiring a *nix environment, \emph{Ubuntu}\citep{prog:ubuntu} was chosen as the main OS in which to do the development and experiment-running related to the project.
+
+\subsubsection*{WinSCP}
+\emph{WinSCP}\citep{prog:winscp} is an SFTP, SCP and FTP client for Windows. It was used for downloading experiment results from the remote college server used for executing the larger experiment.
+
+\subsubsection*{UnxUtils}
+\emph{UnxUtils}\citep{prog:unxutils} is a package that includes a group of common *nix utilities ported to native Windows binaries. It was used to get the python.sty LaTeX package executing correctly (the package relying on the `cat' *nix command).
+
+\subsubsection*{PuTTY}
+\emph{PuTTY}\citep{prog:putty} is a Telnet and SSH client. It was used for remotely executing commands on the college server used in running experiments, aswell as tunnelling traffic through a publicly accessible server to the remote server (which was on a private network on which the public one was also connected).
+
+\subsubsection*{VirtualBox}
+\emph{VirtualBox}\citep{prog:virtualbox} is a Cross-Platform virtualization program - an Open Source alternative to the likes of VMWare and HyperV. It was used for running my Ubuntu environment, making it easily transferable across different systems. This allowed me to not have to worry about installing all the project dependencies on all the systems I was using for experiment running.
+
+\subsubsection*{PythonBrew}
+\emph{PythonBrew}\citep{prog:pythonbrew} is a small utility for setting up multiple concurrently usable versions of Python in one's home directory. It was used in setting up a bare-bones experiment running environment on the college server used, which was operating on an old version of Ubuntu (which only had Python 2.5.2 installed).
+
+\subsubsection*{LyX}
+\emph{LyX}\citep{prog:lyx} is an Open Source, Cross-Platform document processor built around LaTeX. I found it slightly kludgey for writing `pure' LaTeX, but it was very useful for generating the source for some of the more complicated tables used in the report. 
+
 
 \bibliographystyle{unsrtnat}
 \bibliography{library}
