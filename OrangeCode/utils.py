@@ -73,6 +73,9 @@ def meanstdv(x):
     std = sqrt(std / float(n-1)) 
     return mean, std
 
+# http://stackoverflow.com/questions/390852/is-there-any-built-in-way-to-get-the-length-of-an-iterable-in-python
+def count_iterable(i):
+    return sum(1 for e in i)
 
 # http://preshing.com/20110924/timing-your-code-using-pythons-with-statement
 import time
