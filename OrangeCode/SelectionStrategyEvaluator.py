@@ -11,7 +11,7 @@ from PrecomputedDistance import Instance
 from SelectionStrategy import Selection
 from Knn import KNN
 import math
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 try:
     import pyx
 except:
@@ -30,8 +30,7 @@ from itertools import compress, imap, izip, islice, izip_longest, chain, combina
 import random
 import tarfile, StringIO
 from os.path import splitext
-from utils import average
-from utils import try_convert_to_num as convert
+from utils import average, try_convert_to_num as convert, MyStringIO
 
 def to_numerically_indexed(sequence):
     index_dict = {}
@@ -382,7 +381,7 @@ class Experiment:
 class ExperimentResult(OrderedDict):
     def load_from_csvs(self, name_to_stream_generator_pairs):
         for (variation_name, stream_generator) in name_to_stream_generator_pairs:
-            with stream_generator() as stream:                
+            with stream_generator() as stream:            
                 result_set = MultiResultSet()
                 result_set.deserialize(stream)
                 self[variation_name] = result_set
@@ -392,8 +391,44 @@ class ExperimentResult(OrderedDict):
         for (variation_name, result_set) in self.items():
             with stream_from_name_getter(variation_name) as stream:
                 result_set.serialize(stream)
+    
+    def write_to_selection_graphs_tar(self, stream_from_name_getter, 
+                                  data_info, write_all_selections=False):
+        
+        # variation_name: [(cv_no, mem_stream]]
+        vn_result_store = defaultdict(list)
+        
+        vn_stream_store = {}
+        
+        def get_stream_from(variation_name, cv_no):
+            if not vn_stream_store.has_key(variation_name):
+                s = stream_from_name_getter(variation_name)
+                vn_stream_store[variation_name] = s
+            
+            if vn_stream_store[variation_name] is None:
+                return None
+            
+            mem_stream = MyStringIO(False)
+            vn_result_store[variation_name].append((cv_no, mem_stream))
+            return mem_stream
                 
-    def write_to_selection_graphs(self, stream_from_name_getter, 
+        self.write_to_selection_graphs(get_stream_from, data_info, write_all_selections)
+        
+        _format="pdf"
+        for (vn, results) in vn_result_store.items():
+            stream = vn_stream_store[vn]
+            with stream as stream, \
+                 tarfile.open(mode="w:gz", fileobj=stream) as tar:
+                for (cv_no, mem_stream) in results:
+                    mem_stream.seek(0)
+                    mem_stream = StringIO.StringIO(buf=mem_stream.buf)
+                    mem_stream.seek(0)    
+                    info = tar.tarinfo("CV%02d.%s" % (cv_no, _format))
+                    info.size = len(mem_stream.buf)
+                    tar.addfile(info, fileobj=mem_stream)
+        
+    
+    def write_to_selection_graphs(self, stream_from_name_cv_getter, 
                                   data_info, write_all_selections=True):
         if not (sys.modules.has_key('pygraphviz') and sys.modules.has_key('pyPdf')):
             raise ImportError('pygraphviz/pypdf not available on this system.')
@@ -450,46 +485,41 @@ class ExperimentResult(OrderedDict):
 
         for (variation_name, multi_result_set) in self.items():
             logging.debug("Generating graph for variation %s" % variation_name)
-            stream = stream_from_name_getter(variation_name)
-            if stream is None:
-                continue
             
-            with stream as stream, \
-                 tarfile.open(mode="w:gz", fileobj=stream) as tar:
-    
-                    for (cv_no, resultset) in enumerate(multi_result_set.all_results):
-                        logging.debug("Generating graph for cv %d" % cv_no)
-                        output = PdfFileWriter()
-                        
-                        for e in resultset.test_set:
-                            set_node_as_test(G, e)
-    
-                        for (j, result) in enumerate(sorted(resultset, 
-                                                            key=lambda r: r.case_base_size)):
-                            _format="pdf"
-                            
-                            if result.selections is not None:
-                                for sel in result.selections:
-                                    set_node_selected(G, sel)
-                            
-                            if write_all_selections or j == len(resultset) - 1: # Changing to just gen-ing last.
-                                mem_stream = StringIO.StringIO()
-                                G.draw(mem_stream, format=_format)
-                                mem_stream.seek(0)
-                                
-                                input1 = PdfFileReader(mem_stream)
-                                output.addPage(input1.getPage(0))
-                        
+            for (cv_no, resultset) in enumerate(multi_result_set.all_results):
+                stream = stream_from_name_cv_getter(variation_name, cv_no)
+                if stream is None:
+                    continue
+                
+                logging.debug("Generating graph for cv %d" % cv_no)
+                output = PdfFileWriter()
+                
+                for e in resultset.test_set:
+                    set_node_as_test(G, e)
+
+                for (j, result) in enumerate(sorted(resultset, 
+                                                    key=lambda r: r.case_base_size)):
+                    _format="pdf"
+                    
+                    if result.selections is not None:
+                        for sel in result.selections:
+                            set_node_selected(G, sel)
+                    
+                    if write_all_selections or j == len(resultset) - 1: # Changing to just gen-ing last.
                         mem_stream = StringIO.StringIO()
-                        output.write(mem_stream)
-                        mem_stream.seek(0)    
-                        info = tar.tarinfo("CV%02d.%s" % (cv_no, _format))
-                        info.size = len(mem_stream.buf)
-    
-                        tar.addfile(info, fileobj=mem_stream)
+                        G.draw(mem_stream, format=_format)
+                        mem_stream.seek(0)
                         
-                        for e in resultset.test_set:
-                            set_node_as_train(G, e)
+                        input1 = PdfFileReader(mem_stream)
+                        output.addPage(input1.getPage(0))
+                
+                try:
+                    output.write(stream)
+                finally:
+                    stream.close()
+                
+                for e in resultset.test_set:
+                    set_node_as_train(G, e)
                         
         logging.info("Ending Graph Generation")
     

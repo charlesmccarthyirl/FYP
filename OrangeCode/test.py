@@ -155,9 +155,14 @@ def main(experiment, named_data_sets, experiment_directory,
                                                    in results.items()])
             
         if do_create_graphs:
+            
+            def my_lambda(variation_name):
+                fn = tgz_filename_getter(variation_name, os.path.join(full_result_path, 'selection_graphs')) 
+                s = stream_getter(fn, True)
+                return s
+            
             try:
-                results.write_to_selection_graphs(lambda variation_name: stream_getter(tgz_filename_getter(variation_name, os.path.join(full_result_path, 'selection_graphs')), True), 
-                                                  data_info,
+                results.write_to_selection_graphs_tar(my_lambda, data_info,
                                                   write_all_selections)
             except ImportError, ex:
                 logging.info("Unable to generate selection graphs for %s data set. Graphing module unavailable in system: %s" %(data_set_name, ex)) 

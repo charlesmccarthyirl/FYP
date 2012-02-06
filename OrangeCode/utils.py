@@ -1,5 +1,16 @@
 import os
 from operator import gt, lt
+from StringIO import StringIO
+
+class MyStringIO(StringIO):
+    def __init__(self, do_delete_on_close=True, *args, **kwargs):
+        self.do_delete_on_close = do_delete_on_close
+        StringIO.__init__(self, *args, **kwargs)
+    
+    def close(self):
+#        self.closed = True
+        if self.do_delete_on_close:
+            StringIO.close(self)
 
 def stream_getter(filename, none_on_exists=False):
     path = os.path.dirname(filename)
