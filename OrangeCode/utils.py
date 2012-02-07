@@ -97,13 +97,12 @@ def try_convert_to_num(cell):
         return cell
 
 # http://preshing.com/20110924/timing-your-code-using-pythons-with-statement
-import time
-
+from monotonic import monotonic_time
 class Timer:
     def __enter__(self):
-        self.start = time.clock()
+        self.start = monotonic_time()
         return self
 
     def __exit__(self, *args):
-        self.end = time.clock()
+        self.end = monotonic_time()
         self.interval = self.end - self.start

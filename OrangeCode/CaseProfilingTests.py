@@ -48,10 +48,8 @@ def testIncrementalRcdl(data_info_loader, assertTrue=None, do_cumulative_increme
     i = 1
     for case in data:
         # Use the profile builder to get the rcdl profiles
-        start = time.clock()
-        profile_builder.put(case)
-        end = time.clock()
-        pb_interval = end - start
+        with Timer() as pb_timer:
+            profile_builder.put(case)
         
         profile_builder_rcdl_profiles = profile_builder.case_info_lookup
         
@@ -64,18 +62,14 @@ def testIncrementalRcdl(data_info_loader, assertTrue=None, do_cumulative_increme
         distance_measurer = distance_constructor(profile_builder.case_base)
         nns_getter = nns_getter_generator(profile_builder.case_base)
         
-        start = time.clock()
-        brute_force_rcdl_profiles = build_rcdl_profiles_brute_force(profile_builder.case_base, classifier_generator, distance_measurer, nns_getter, oracle)
-        end = time.clock()
-        bf_interval = end - start
+        with Timer() as bf_timer:
+            brute_force_rcdl_profiles = build_rcdl_profiles_brute_force(profile_builder.case_base, classifier_generator, distance_measurer, nns_getter, oracle)
         
         if do_cumulative_incremental:
             # Use incremental brute force to get rcdl profiles
-            start = time.clock()
-            bf_incr_rcdl_profiles = build_rcdl_incr_bf(profile_builder.case_base, 
+            with Timer() as bf_incr_timer:
+                bf_incr_rcdl_profiles = build_rcdl_incr_bf(profile_builder.case_base, 
                                                        profile_builder_getter)
-            end = time.clock()
-            bf_incr_interval = end - start
         
         # Make sure that they're the same size so I don't 'miss' any
         assertTrue(len(profile_builder_rcdl_profiles) == len(brute_force_rcdl_profiles))
@@ -88,9 +82,9 @@ def testIncrementalRcdl(data_info_loader, assertTrue=None, do_cumulative_increme
             if do_cumulative_incremental:
                 assertTrue(pb_case_profile == bf_incr_rcdl_profiles[pb_case])
         
-        ts = [i, pb_interval, bf_interval]
+        ts = [i, pb_timer.interval, bf_timer.interval]
         if do_cumulative_incremental:
-            ts.append(bf_incr_interval)
+            ts.append(bf_incr_timer.interval)
         
         timings.append(ts)
         
