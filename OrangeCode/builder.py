@@ -17,6 +17,8 @@ non_textual_dir_name = "non_textual"
 textual_dir_name = "textual"
 
 if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s %(message)s',level=logging.INFO)
+    
     STORAGE_DIR = os.path.expanduser(STORAGE_DIR)
     REPORT_DIR = os.path.expanduser(REPORT_DIR)
     
