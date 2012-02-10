@@ -84,15 +84,20 @@ def log_throwaway(to_log):
     def inner(*args):
         mp.get_logger().info(to_log)
 
-def main_gen_raw_results(experiment, named_data_sets, experiment_directory):
-    mp.log_to_stderr()
-    logger = mp.get_logger()
-    logger.setLevel(logging.INFO)
+def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_multi=False):
+    if do_multi:
+        mp.log_to_stderr()
+        logger = mp.get_logger()
+        logger.setLevel(logging.INFO)
+        pool = mp.Pool()
+        my_apply = pool.apply_async
+    else:
+        logger = logging.info
+        my_apply = lambda ex, args: ex(*args)
     
     experiment_obj = get_experiment_obj(experiment)
     named_data_sets_obj = get_named_data_sets_obj(named_data_sets)
     
-    pool = mp.Pool()
     for (data_set_name, data_set_generator) in named_data_sets_obj:
         logging.info("Beginning processing on %s" % data_set_name)
         l_experiment, data_info = get_exp_ds_pair(experiment_obj, data_set_generator)
@@ -108,12 +113,13 @@ def main_gen_raw_results(experiment, named_data_sets, experiment_directory):
                 continue
             
             logging.info("Starting evaluation on variation %s" % variation_name)
-            pool.apply_async(main_gen_raw_results_only, 
-                         (experiment, named_data_sets, experiment_directory, data_set_name, variation_name), 
-                        
-                        callback=log_throwaway("Finishing evaluation on variation %s" % variation_name))
-    pool.close()
-    pool.join()
+            
+            my_apply(main_gen_raw_results_only, 
+                         (experiment, named_data_sets, experiment_directory, 
+                          data_set_name, variation_name))
+    if do_multi:
+        pool.close()
+        pool.join()
         
 def get_stream_from_name_getter_for(raw_results_dir):
     def internal(variation_name):
@@ -122,10 +128,12 @@ def get_stream_from_name_getter_for(raw_results_dir):
 
 def main(experiment, named_data_sets, experiment_directory, 
          do_create_graphs=True, do_create_summary=True,
-         write_all_selections=False, latex_encode=True):
+         write_all_selections=False, latex_encode=True,
+         do_multi=False):
     logging.info("Beginning generating raw results")
-    main_gen_raw_results(experiment, named_data_sets, experiment_directory)
-    logging.info("Ending generating raw results.")
+    if do_multi:
+        main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_multi)
+        logging.info("Ending generating raw results.")
     
     logging.info("Beginning Nicity Processing.")
     experiment = get_experiment_obj(experiment)
