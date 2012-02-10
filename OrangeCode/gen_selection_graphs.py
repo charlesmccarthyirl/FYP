@@ -13,7 +13,7 @@ from itertools import chain
 
 if __name__ == '__main__':
     parser = optparse.OptionParser("usage: %prog [options] data_info_name input_results_file output_file")
-    parser.add_option('--cv', help='Column to include', dest='cv',
+    parser.add_option('--cv', help='Cross Validation to include', dest='cv',
                       default=0, action='store', type='int')
     parser.add_option('--generateall', help='boolean option', dest='generate_all',
                       default=False, action='store_true')
