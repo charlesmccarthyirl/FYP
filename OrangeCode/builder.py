@@ -10,6 +10,10 @@ from glob import glob
 import shutil
 import logging
 
+def maybe_make_dirs(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
 STORAGE_DIR = "~/FYP/data_dir/"
 REPORT_DIR = "~/FYP/experiment_outputs/"
 
@@ -22,8 +26,8 @@ if __name__ == '__main__':
     STORAGE_DIR = os.path.expanduser(STORAGE_DIR)
     REPORT_DIR = os.path.expanduser(REPORT_DIR)
     
-    os.makedirs(STORAGE_DIR)
-    os.makedirs(REPORT_DIR)
+    maybe_make_dirs(STORAGE_DIR)
+    maybe_make_dirs(REPORT_DIR)
     
     runs = [
             (non_textual_dir_name, "DataSets"),
@@ -32,7 +36,7 @@ if __name__ == '__main__':
     
     for (cat_name, dsfn) in runs:
         d = os.path.join(STORAGE_DIR, cat_name)
-        os.makedirs(d)
+        maybe_make_dirs(d)
         logging.info("Beginning experiment execution on %s" % dsfn)
         call("python", "-O", "test.py", "experiment1", dsfn, d, "0", shell=True)
         for fn in glob(os.path.join(STORAGE_DIR, "*.pdf")):
@@ -60,8 +64,8 @@ if __name__ == '__main__':
     dsn = 'zoo'
     ssdir = os.path.join(STORAGE_DIR, 'selection_graphs')
     rsdir = os.path.join(STORAGE_DIR, 'selection_graphs')
-    os.makedirs(ssdir)
-    os.makedirs(rsdir)
+    maybe_make_dirs(ssdir)
+    maybe_make_dirs(rsdir)
     for fn in glob(os.path.join(STORAGE_DIR, dsn, "*.tar.gz")):
         vn = os.path.splitext(os.path.splitext(os.path.basename(fn))[0])[0]
         out_file = os.path.join(ssdir, vn + ".pdf")
