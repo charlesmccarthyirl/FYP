@@ -1,5 +1,16 @@
 import os
 from operator import gt, lt
+from StringIO import StringIO
+
+class MyStringIO(StringIO):
+    def __init__(self, do_delete_on_close=True, *args, **kwargs):
+        self.do_delete_on_close = do_delete_on_close
+        StringIO.__init__(self, *args, **kwargs)
+    
+    def close(self):
+#        self.closed = True
+        if self.do_delete_on_close:
+            StringIO.close(self)
 
 def stream_getter(filename, none_on_exists=False):
     path = os.path.dirname(filename)
@@ -73,15 +84,25 @@ def meanstdv(x):
     std = sqrt(std / float(n-1)) 
     return mean, std
 
+# http://stackoverflow.com/questions/390852/is-there-any-built-in-way-to-get-the-length-of-an-iterable-in-python
+def count_iterable(i):
+    return sum(1 for e in i)
+
+def try_convert_to_num(cell):
+    if cell.isdigit():
+        return int(cell)
+    try:
+        return float(cell)
+    except ValueError:
+        return cell
 
 # http://preshing.com/20110924/timing-your-code-using-pythons-with-statement
-import time
-
+from monotonic import monotonic_time
 class Timer:
     def __enter__(self):
-        self.start = time.clock()
+        self.start = monotonic_time()
         return self
 
     def __exit__(self, *args):
-        self.end = time.clock()
+        self.end = monotonic_time()
         self.interval = self.end - self.start

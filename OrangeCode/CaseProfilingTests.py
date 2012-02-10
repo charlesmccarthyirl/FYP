@@ -10,12 +10,22 @@ from BreadAndButter import k, classifier_generator as _classifier_generator, nns
 from CaseProfiling import build_rcdl_profiles_brute_force, CaseProfileBuilder
 from utils import Timer
 from itertools import chain
-import random, csv, os
+import random, csv, os, time
 
 def do_nothing(*args, **kwargs):
     pass
 
-def testIncrementalRcdl(data_info_loader, assertTrue=None):
+def build_rcdl_incr_bf(
+                case_base, 
+                blank_profile_getter):
+    profile_builder = blank_profile_getter()
+    for case in case_base:
+        profile_builder.put(case)
+    
+    return profile_builder.case_info_lookup
+
+        
+def testIncrementalRcdl(data_info_loader, assertTrue=None, do_cumulative_incremental=False):
     assertTrue = assertTrue or do_nothing
 
     data_info = data_info_loader()
@@ -30,8 +40,9 @@ def testIncrementalRcdl(data_info_loader, assertTrue=None):
     classifier_generator = lambda training_data: _classifier_generator(training_data, distance_constructor, possible_classes, oracle)
     nns_getter_generator = lambda training_data: _nns_getter_generator(training_data, distance_constructor, possible_classes, oracle)
     
-    profile_builder = CaseProfileBuilder(k, _classifier_generator, distance_constructor, 
+    profile_builder_getter = lambda: CaseProfileBuilder(k, _classifier_generator, distance_constructor, 
                                          _nns_getter_generator, oracle, possible_classes)
+    profile_builder = profile_builder_getter()
     
     timings = []
     i = 1
@@ -39,6 +50,7 @@ def testIncrementalRcdl(data_info_loader, assertTrue=None):
         # Use the profile builder to get the rcdl profiles
         with Timer() as pb_timer:
             profile_builder.put(case)
+        
         profile_builder_rcdl_profiles = profile_builder.case_info_lookup
         
         # Just make sure it added stuff to the case base ok
@@ -49,17 +61,32 @@ def testIncrementalRcdl(data_info_loader, assertTrue=None):
         # Use Brute Force to get the rcdl profiles
         distance_measurer = distance_constructor(profile_builder.case_base)
         nns_getter = nns_getter_generator(profile_builder.case_base)
+        
         with Timer() as bf_timer:
             brute_force_rcdl_profiles = build_rcdl_profiles_brute_force(profile_builder.case_base, classifier_generator, distance_measurer, nns_getter, oracle)
         
+        if do_cumulative_incremental:
+            # Use incremental brute force to get rcdl profiles
+            with Timer() as bf_incr_timer:
+                bf_incr_rcdl_profiles = build_rcdl_incr_bf(profile_builder.case_base, 
+                                                       profile_builder_getter)
+        
         # Make sure that they're the same size so I don't 'miss' any
         assertTrue(len(profile_builder_rcdl_profiles) == len(brute_force_rcdl_profiles))
+        if do_cumulative_incremental:
+            assertTrue(len(profile_builder_rcdl_profiles) == len(bf_incr_rcdl_profiles))
         
         # Iterate through each profile, and make sure its brute force equivalent is the same
         for (pb_case, pb_case_profile) in profile_builder_rcdl_profiles.items():
             assertTrue(pb_case_profile == brute_force_rcdl_profiles[pb_case])
+            if do_cumulative_incremental:
+                assertTrue(pb_case_profile == bf_incr_rcdl_profiles[pb_case])
         
-        timings.append((i, pb_timer.interval, bf_timer.interval))
+        ts = [i, pb_timer.interval, bf_timer.interval]
+        if do_cumulative_incremental:
+            ts.append(bf_incr_timer.interval)
+        
+        timings.append(ts)
         
         i += 1
     
