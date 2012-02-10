@@ -38,7 +38,7 @@ if __name__ == '__main__':
         d = os.path.join(STORAGE_DIR, cat_name)
         maybe_make_dirs(d)
         logging.info("Beginning experiment execution on %s" % dsfn)
-        call("python", "-O", "test.py", "experiment1", dsfn, d, "0", shell=True)
+        call(["python", "-O", "test.py", "experiment1", dsfn, d, "0"], shell=True)
         for fn in glob(os.path.join(STORAGE_DIR, "*.pdf")):
             shutil.copyfile(fn, os.path.join(REPORT_DIR, os.path.basename(fn)))
         shutil.copyfile(os.path.join(STORAGE_DIR, "summary.csv"),
@@ -51,14 +51,14 @@ if __name__ == '__main__':
     timings_fn = os.path.join(STORAGE_DIR, dsn + ".csv")
     if not os.path.exists(timings_fn):
         logging.info("Generating timings for %s" % dsn)
-        call("python", "-O", "CaseProfilingTimings.py", dsn,
-             timings_fn, shell=True)
+        call(["python", "-O", "CaseProfilingTimings.py", dsn,
+             timings_fn], shell=True)
     
     timings_pdf_fn = os.path.join(REPORT_DIR, dsn + "_timings_incr_only.pdf")
     
     logging.info("Plotting timings")
-    call("python", "-O", "plotter.py", timings_fn, timings_pdf_fn, 
-         "-c", "1",  "--y_title",  "Time to build RCDL profiles (/s)", "--name", dsn)
+    call(["python", "-O", "plotter.py", timings_fn, timings_pdf_fn, 
+         "-c", "1",  "--y_title",  "Time to build RCDL profiles (/s)", "--name", dsn], shell=True)
     
     logging.info("Generating selection graphs")
     dsn = 'zoo'
@@ -71,7 +71,7 @@ if __name__ == '__main__':
         out_file = os.path.join(ssdir, vn + ".pdf")
         if not os.path.exists(out_file):
             logging.info("Generating selection graph for variation %s" % vn)
-            call("python", "-O", "gen_selection_graphs.py", dsn, fn, out_file) 
+            call(["python", "-O", "gen_selection_graphs.py", dsn, fn, out_file], shell=True) 
         shutil.copyfile(out_file,
                         os.path.join(rsdir, os.path.basename(out_file)))
         
