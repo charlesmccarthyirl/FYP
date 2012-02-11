@@ -40,14 +40,14 @@ def get_training_test_sets_extractor(random_seed_generator=random_seed_generator
         return splits
     return split_data
 
-def create_named_experiment_variations_generator(named_selection_strategy_generators):
-    return lambda *args, **kwargs: [ (name, 
-                                      ExperimentVariation(classifier_generator, 
-                                                          probability_generator, 
-                                                          nns_getter_generator,
-                                                          selection_strategy_generator))
-                                     for (name, selection_strategy_generator) 
-                                     in named_selection_strategy_generators]
+def create_named_experiment_variations(named_selection_strategy_generators):
+    return  [ (name, 
+              ExperimentVariation(classifier_generator, 
+                                  probability_generator, 
+                                  nns_getter_generator,
+                                  selection_strategy_generator))
+             for (name, selection_strategy_generator) 
+             in named_selection_strategy_generators]
     
 def create_experiment(stopping_condition_generator, named_experiment_variations, random_seed_generator=random_seed_generator):
     return Experiment(oracle_generator_generator,
@@ -63,8 +63,7 @@ data_files_dict = dict(((os.path.basename(df), df) for df in data_files))
 def load_data_info(
         base_filename, 
         random_seed_generator=random_seed_generator, 
-        distance_constructor=None,
-        **kwargs):
+        distance_constructor=None):
     filename = data_files_dict[base_filename]
     
     logging.debug("Beginning load_data_info of %s" % base_filename)
@@ -78,10 +77,21 @@ def load_data_info(
         random_function = random.Random(random_seed).random
         random.shuffle(data_info.data, random_function)
     
-    for (k, v) in kwargs.items():
-        setattr(data_info, k, v)
-    
     return data_info
+
+def gen_data_info_loader(base_filename, 
+        random_seed_generator=random_seed_generator, 
+        distance_constructor=None, **kwargs):
+    actual = [None]
+    def my_load():
+        if not actual[0]:
+            logging.info("Loading %s" % base_filename)
+            actual[0] = load_data_info(base_filename, random_seed_generator, distance_constructor)
+        return actual[0]
+    for (k, v) in kwargs.items():
+        setattr(my_load, k, v)
+    
+    return my_load
 
 def _translate_bit(bit):
     if isinstance(bit, dict) :
@@ -95,7 +105,7 @@ def _translate_bit(bit):
 
 def create_named_data_set_generators(base_data_set_infos):
     base_data_set_infos = map(_translate_bit, base_data_set_infos)
-    return [((data_set_info["base_filename"]).split(".")[0], partial(load_data_info, **data_set_info)) 
+    return [((data_set_info["base_filename"]).split(".")[0], gen_data_info_loader(**data_set_info)) 
             for data_set_info in base_data_set_infos]
 
 def gen_case_profile_ss_generator(case_profile_measure_generator, op=SingleCompetenceSelectionStrategy.take_maximum):

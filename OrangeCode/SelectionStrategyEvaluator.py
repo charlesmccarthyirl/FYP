@@ -326,22 +326,17 @@ class Experiment:
         return Experiment(self.oracle_generator_generator, 
                           self.stopping_condition_generator, 
                           self.training_test_sets_extractor, 
-                          self.named_experiment_variations_generator)
+                          self.named_experiment_variations)
     
     def __init__(self, 
                  oracle_generator_generator,
                  stopping_condition_generator,
                  training_test_sets_extractor,
-                 named_experiment_variations_generator):
+                 named_experiment_variations):
         self.oracle_generator_generator = oracle_generator_generator
         self.stopping_condition_generator = stopping_condition_generator
         self.training_test_sets_extractor = training_test_sets_extractor
-        self.named_experiment_variations_generator = named_experiment_variations_generator
-    
-    def generate_named_experiment_variations(self, data_info):
-        return self.named_experiment_variations_generator(data_info.data, 
-                                                          data_info.oracle)
-        
+        self.named_experiment_variations = named_experiment_variations
     
     def execute_on_only(self, data_info, variation):
         evaluator = SelectionStrategyEvaluator(self.oracle_generator_generator(data_info.oracle), 
@@ -358,15 +353,16 @@ class Experiment:
         
         return variation_result
     
-    def execute_on(self, data_info, existing_named_variation_results=None, stream_from_name_getter=None): 
+    def execute_on(self, data_info_generator, existing_named_variation_results=None, stream_from_name_getter=None): 
         named_variation_results = ExperimentResult()
-
-        named_experiment_variations = self.generate_named_experiment_variations(data_info)
-        for (variation_name, variation) in named_experiment_variations:
+        data_info = None
+        for (variation_name, variation) in self.named_experiment_variations:
             assert isinstance(variation, ExperimentVariation)
             if existing_named_variation_results.has_key(variation_name):
                 variation_result = existing_named_variation_results[variation_name]
             else:
+                if not data_info:
+                    data_info = data_info_generator()
                 variation_result = self.execute_on_only(data_info, variation)
                 
                 if stream_from_name_getter is not None:

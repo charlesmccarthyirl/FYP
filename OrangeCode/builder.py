@@ -43,7 +43,7 @@ if __name__ == '__main__':
         d = os.path.join(STORAGE_DIR, cat_name)
         maybe_make_dirs(d)
         logging.info("Beginning experiment execution on %s" % dsfn)
-        my_call(["python", "-O", "test.py", "experiment1", dsfn, d, "0"])
+        my_call(["python", "-O", "test.py", "experiment1", dsfn, d])
         for fn in glob(os.path.join(d, "*.pdf")):
             shutil.copyfile(fn, os.path.join(REPORT_DIR, os.path.basename(fn)))
         shutil.copyfile(os.path.join(d, "summary.csv"),
