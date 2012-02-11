@@ -10,6 +10,7 @@ from glob import glob
 import shutil
 import logging
 from pprint import pprint
+from itertools import chain
 
 def maybe_make_dirs(path):
     if not os.path.exists(path):
