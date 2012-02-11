@@ -45,18 +45,16 @@ def get_existing_variation_results_nfs_pairs(raw_results_dir):
 
 def get_exp_ds_pair(experiment, data_set_generator):
     l_experiment = experiment.copy()
-        
-    data_set = data_set_generator()
     
-    if hasattr(data_set, 'sc'):
-        sc = getattr(data_set, 'sc')
+    if hasattr(data_set_generator, 'sc'):
+        sc = getattr(data_set_generator, 'sc')
         if isinstance(sc, int):
             i = sc # Can't go using sc in the lambda, and assigning to it. Will be passing a function then.
             sc = lambda *args, **kwargs: BudgetBasedStoppingCriteria(i)
             
         l_experiment.stopping_condition_generator = sc
     
-    return (l_experiment, data_set)
+    return (l_experiment, data_set_generator)
 
 def main_gen_raw_results_only(experiment, named_data_sets, 
                               experiment_directory, data_set_name, 
@@ -68,13 +66,13 @@ def main_gen_raw_results_only(experiment, named_data_sets,
     named_data_sets_dict = dict(named_data_sets_obj)
     data_set_generator = named_data_sets_dict[data_set_name]
     
-    l_experiment, data_info = get_exp_ds_pair(experiment_obj, data_set_generator)
-    named_experiment_variations = l_experiment.generate_named_experiment_variations(data_info)
+    l_experiment, data_info_generator = get_exp_ds_pair(experiment_obj, data_set_generator)
+    named_experiment_variations = l_experiment.named_experiment_variations
     
     named_experiment_variations_dict = dict(named_experiment_variations)
     variation = named_experiment_variations_dict[variation_name]
     
-    variation_result = l_experiment.execute_on_only(data_info, variation)
+    variation_result = l_experiment.execute_on_only(data_info_generator, variation)
     stream_from_name_getter = get_stream_from_name_getter_for(raw_results_dir)
     
     with stream_from_name_getter(variation_name) as stream:
@@ -100,8 +98,8 @@ def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_m
     
     for (data_set_name, data_set_generator) in named_data_sets_obj:
         logging.info("Beginning processing on %s" % data_set_name)
-        l_experiment, data_info = get_exp_ds_pair(experiment_obj, data_set_generator)
-        named_experiment_variations = l_experiment.generate_named_experiment_variations(data_info)
+        l_experiment, data_info_generator = get_exp_ds_pair(experiment_obj, data_set_generator)
+        named_experiment_variations = l_experiment.named_experiment_variations
         
         full_result_path, raw_results_dir = get_frp_rrp(experiment_directory, data_set_name)
         name_to_file_stream_getter_pairs = get_existing_variation_results_nfs_pairs(raw_results_dir)
@@ -126,10 +124,8 @@ def get_stream_from_name_getter_for(raw_results_dir):
         return stream_getter(tgz_filename_getter(variation_name, raw_results_dir))
     return internal
 
-def main(experiment, named_data_sets, experiment_directory, 
-         do_create_graphs=True, do_create_summary=True,
-         write_all_selections=False, latex_encode=True,
-         do_multi=False):
+def main(experiment, named_data_sets, experiment_directory,
+        do_create_summary=True, latex_encode=True, do_multi=True):
     logging.info("Beginning generating raw results")
     if do_multi:
         main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_multi)
@@ -144,7 +140,7 @@ def main(experiment, named_data_sets, experiment_directory,
     for (data_set_name, data_set_generator) in named_data_sets:
         logging.info("Beginning processing on %s" % data_set_name)
         
-        l_experiment, data_info = get_exp_ds_pair(experiment, data_set_generator)
+        l_experiment, data_info_generator = get_exp_ds_pair(experiment, data_set_generator)
         
         full_result_path, raw_results_dir = get_frp_rrp(experiment_directory, data_set_name)
         
@@ -154,26 +150,13 @@ def main(experiment, named_data_sets, experiment_directory,
         existing_results.load_from_csvs(name_to_file_stream_getter_pairs)
         
         stream_from_name_getter = get_stream_from_name_getter_for(raw_results_dir)
-        results = l_experiment.execute_on(data_info, existing_results, 
+        results = l_experiment.execute_on(data_info_generator, existing_results, 
                                           stream_from_name_getter=stream_from_name_getter)
 
         if do_create_summary:
             summary_results[data_set_name] = OrderedDict([(var_name, var_result.AULC()) 
                                                    for (var_name, var_result) 
                                                    in results.items()])
-            
-        if do_create_graphs:
-            
-            def my_lambda(variation_name):
-                fn = tgz_filename_getter(variation_name, os.path.join(full_result_path, 'selection_graphs')) 
-                s = stream_getter(fn, True)
-                return s
-            
-            try:
-                results.write_to_selection_graphs_tar(my_lambda, data_info,
-                                                  write_all_selections)
-            except ImportError, ex:
-                logging.info("Unable to generate selection graphs for %s data set. Graphing module unavailable in system: %s" %(data_set_name, ex)) 
             
         try:
             g = results.generate_graph(data_set_name)
@@ -218,9 +201,7 @@ if __name__ == "__main__":
     experiment = sys.argv[1]
     named_data_sets = sys.argv[2]
     experiment_directory = os.path.expanduser(sys.argv[3])
-    do_create_graph = sys.argv[4] != "0"
-    write_all_selections = len(sys.argv) > 5 and sys.argv[5] == "1"
     if not os.path.exists(experiment_directory):
         os.makedirs(experiment_directory)
-    main(experiment, named_data_sets, experiment_directory, do_create_graph, write_all_selections=write_all_selections)
+    main(experiment, named_data_sets, experiment_directory)
 #    cProfile.run("main(experiment, named_data_sets, experiment_directory)", "mainProfile")
