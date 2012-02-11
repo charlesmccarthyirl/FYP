@@ -46,9 +46,8 @@ named_selection_strategy_generators = [
                                        ("CompStrat 3 - NCATMaxDMin", 
                                         gen_case_profile_ss_generator2(SizeDeviationCombo)),
                                                                   
-                                       
                                        ]
 
-named_experiment_variations_generator = create_named_experiment_variations_generator(named_selection_strategy_generators)
+named_experiment_variations = create_named_experiment_variations(named_selection_strategy_generators)
 
-experiment = create_experiment(stopping_condition_generator, named_experiment_variations_generator)
+experiment = create_experiment(stopping_condition_generator, named_experiment_variations)
