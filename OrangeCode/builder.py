@@ -59,12 +59,12 @@ if __name__ == '__main__':
         logging.info("Generating timings for %s" % dsn)
         my_call(["python", "-O", "CaseProfilingTimings.py", dsn,
              timings_fn])
-    
-    timings_pdf_fn = os.path.join(REPORT_DIR, dsn + "_timings_incr_only.pdf")
-    
+        
     logging.info("Plotting timings")
-    my_call(["python", "-O", "plotter.py", timings_fn, timings_pdf_fn, 
-         "-c", "1",  "--y_title",  "Time to build RCDL profiles (/s)", "--name", dsn])
+    for (name, columns) in [('incr_only', [1]), ('all', [1, 2, 3])]:
+        timings_pdf_fn = os.path.join(REPORT_DIR, dsn + "_timings_" + name + ".pdf")
+        my_call(["python", "-O", "plotter.py", timings_fn, timings_pdf_fn, 
+                 "-c"] + map(str, columns) + ["--y_title",  "Time to build RCDL profiles (/s)", "--name", dsn])
     
     logging.info("Generating selection graphs")
     dsn = 'zoo'
