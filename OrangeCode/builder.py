@@ -65,7 +65,7 @@ if __name__ == '__main__':
     for (name, columns) in [('incr_only', [1]), ('all', [1, 2, 3])]:
         timings_pdf_fn = os.path.join(REPORT_DIR, dsn + "_timings_" + name + ".pdf")
         my_call(["python", "-O", "plotter.py", timings_fn, timings_pdf_fn] 
-                +list(chain((("-c", str(c)) for c in columns))) + ["--y_title",  "Time to build RCDL profiles (/s)", "--name", dsn])
+                +list(chain(*[("-c", str(c)) for c in columns])) + ["--y_title",  "Time to build RCDL profiles (/s)", "--name", dsn])
     
     logging.info("Generating selection graphs")
     dsn = 'zoo'
