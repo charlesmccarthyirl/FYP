@@ -73,7 +73,7 @@ if __name__ == '__main__':
     rsdir = os.path.join(STORAGE_DIR, 'selection_graphs')
     maybe_make_dirs(ssdir)
     maybe_make_dirs(rsdir)
-    for fn in glob(os.path.join(STORAGE_DIR, dsn, "*.tar.gz")):
+    for fn in glob(os.path.join(STORAGE_DIR, non_textual_dir_name, dsn, 'raw_results', "*.tar.gz")):
         vn = os.path.splitext(os.path.splitext(os.path.basename(fn))[0])[0]
         out_file = os.path.join(ssdir, vn + ".pdf")
         if not os.path.exists(out_file):
