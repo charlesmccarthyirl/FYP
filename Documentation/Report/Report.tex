@@ -19,8 +19,10 @@
 
 \newcolumntype{x}[1] {>{\raggedright}p{#1}} %http://nepsweb.co.uk/docs/tableTricks.pdf
 
-\DTLloaddb{summary}{./ExperimentResults/summary.csv}
+\DTLloaddb{summary}{./ExperimentResults/non_textual_summary.csv}
 \DTLloaddb{textual_summary}{./ExperimentResults/textual_summary.csv}
+\DTLloaddb{non_textual_data_stats}{./ExperimentResults/non_textual_data_stats.csv}
+\DTLloaddb{textual_data_stats}{./ExperimentResults/textual_data_stats.csv}
 
 \title{Competence-Driven Active Learning}
 \author{Charles McCarthy\\
@@ -1325,7 +1327,7 @@ foreach case in dataset:
 \subsubsection{Timings}
 \begin{figure}[h!] 
 \centering
-\includegraphics[width=400pt]{./ExperimentResults/WinXwin_timings_full}
+\includegraphics[width=400pt]{./ExperimentResults/WinXwin_timings_all}
 \end{figure}
 
 \begin{figure}[h!] 
@@ -1653,9 +1655,11 @@ In each, the new Case is somehow aiding in the incorrect Classification of an ex
 
 \chapter{Experimental Analysis\label{cha:expanalysis}}
 \section{Datasets Used}
-\subsection{Non-Textual}
+\subsubsection{Non-Textual}
+\DTLdisplaydb{non_textual_data_stats}
 
-\subsection{Textual}
+\subsubsection{Textual}
+\DTLdisplaydb{textual_data_stats}
 
 \section{Results}
 Results are presented using a learning curve (Accuracy vs Case-Base Size). The AULC figure is also calculated.
@@ -1667,14 +1671,17 @@ Results are presented using a learning curve (Accuracy vs Case-Base Size). The A
 {\footnotesize \DTLdisplaydb{summary}}
 
 \subsubsection{Textual}
-{\small \DTLdisplaydb{textual_summary}}
+{\footnotesize \DTLdisplaydb{textual_summary}}
 \end{sidewaystable}
 
 \begin{python}
 import csv
+import os
 
-cat_to_files = [("Non-Textual", "./ExperimentResults/summary.csv"),
-                ("Textual", "./ExperimentResults/textual_summary.csv")
+exp_results_dir = "./ExperimentResults/"
+
+cat_to_files = [("Non-Textual", exp_results_dir + "non_textual_summary.csv"),
+                ("Textual", exp_results_dir + "textual_summary.csv")
                 ]
 
 for (cat, fn) in cat_to_files:
@@ -1687,9 +1694,10 @@ for (cat, fn) in cat_to_files:
         for ds in datasets:
             print
             print r'\begin{figure}[h!] \centering'
-            print r'\includegraphics[width=0.98\textwidth]{./Plots/' + ds + '}'
-            print r"\caption{Learning Curve Plots for the `" + ds + "' \citep{data:" + ds + "} Dataset}"
+            print r'\includegraphics[width=0.98\textwidth]{' + exp_results_dir + ds + '}'
+            print r"\caption*{Learning Curve Plots for the `" + ds + "' \citep{data:" + ds + "} Dataset}"
             print r'\end{figure}'
+            print r'\vspace{10pt}'
             print
 \end{python}
 
