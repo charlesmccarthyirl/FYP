@@ -37,7 +37,7 @@ if __name__ == '__main__':
             label_to_decimals.sort(key=itemgetter(1), reverse=True)
             
             if options.do_cite:
-                data_set_name = "%s\\citep{data:%s}" % (data_set_name, data_set_name)
+                data_set_name = "%s \\citep{data:%s}" % (data_set_name, data_set_name)
                 
             writer.writerow((data_set_name, 
                              len(data_info.data), 
