@@ -70,7 +70,7 @@ if __name__ == '__main__':
     logging.info("Generating selection graphs")
     dsn = 'zoo'
     ssdir = os.path.join(STORAGE_DIR, 'selection_graphs')
-    rsdir = os.path.join(STORAGE_DIR, 'selection_graphs')
+    rsdir = os.path.join(REPORT_DIR, 'selection_graphs')
     maybe_make_dirs(ssdir)
     maybe_make_dirs(rsdir)
     for fn in glob(os.path.join(STORAGE_DIR, non_textual_dir_name, dsn, 'raw_results', "*.tar.gz")):
