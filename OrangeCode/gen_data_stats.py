@@ -21,7 +21,7 @@ if __name__ == '__main__':
     
     with open(output_filename, 'wb') as summary_stream:
         writer = csv.writer(summary_stream)
-        writer.writerow(('Dataset', '# Instances', '# Labels', 'Label Distribution'))
+        writer.writerow(('Dataset', 'Num Instances', 'Num Labels', 'Label Distribution'))
         for (data_set_name, data_set_generator) in named_data_sets:
             data_info = data_set_generator()
             assert(isinstance(data_info, DataInfo))
