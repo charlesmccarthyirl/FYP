@@ -1649,9 +1649,9 @@ There are two types of Cases which can appear in the new Case's Liability Set:
 	\item A Case which has enough sway with an existing Case to cause the Case to go from correctly classified, to incorrectly classified.
 \end{enumerate}
 
-In each, the new Case is somehow aiding in the incorrect Classification of an existing Case in the Case Base.
+In each, the new Case is somehow aiding in the incorrect Classification of an existing Case in the Case Base. If we forget about the possibility of mislabelled data, the intuition is that this is generally a bad thing - we are 'overpowering' a neighbourhood of the Case Base with data which could cause mislabelling.
 
-??
+Totalling here, as in other strategies, is probably not the best approach - but as a simplistic initial investigatory strategy, we try to minimise the total of the new Case's Liability set summed over the different possible Supposes.
 
 \chapter{Experimental Analysis\label{cha:expanalysis}}
 \section{Datasets Used}
@@ -1848,9 +1848,6 @@ During the progression of the project, a bug was identified in this package, and
 \subsubsection*{PDF Rider}
 \emph{PDF Rider} \citep{prog:pdfrider} is a ``utility for doing some simple manipulations to PDF documents''. It was used for extracting individual pages from Hu's report so as to include the Algorithms presented verbatim.
 
-\subsubsection*{TexStudio}
-\emph{TexStudio} \citep{prog:texstudio} is an Open Source, Cross-Platform \LaTeX{} IDE, providing rich support and integration with \LaTeX{}. It was used as the primary editor for writing the report.
-
 \subsection{Misc}
 
 \subsubsection*{Ubuntu}
@@ -1871,8 +1868,6 @@ Due to some of the technologies involved currently requiring a *nix environment,
 \subsubsection*{PythonBrew}
 \emph{PythonBrew} \citep{prog:pythonbrew} is a small utility for setting up multiple concurrently usable versions of Python in one's home directory. It was used in setting up a bare-bones experiment running environment on the college server used, which was operating on an old version of Ubuntu (which only had Python 2.5.2 installed).
 
-\subsubsection*{LyX}
-\emph{LyX} \citep{prog:lyx} is an Open Source, Cross-Platform document processor built around \LaTeX{}. I found it slightly kludgey for writing `pure' \LaTeX{}, but it was very useful for generating the source for some of the more complicated tables used in the report. 
 
 
 \bibliographystyle{unsrtnat}
