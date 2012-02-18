@@ -1410,53 +1410,23 @@ In the example, C2, C5 and C6 were the contributing neighbours to C4's incorrect
 \end{itemize}
 
 
-\begin{tabular}{|x{40pt}|x{40pt}|x{40pt}|x{250pt}|}
+\begin{tabular}{|x{40pt}|x{40pt}|x{250pt}|}
 \hline 
-\raggedright{{\small Case Correctly Classified}} & \raggedright{{\small Shunted Contrib'd}} & \raggedright{{\small New Contrib'd}} & {\small Action}\tabularnewline 
+\raggedright{{\small Case Correctly Classified}} & \raggedright{{\small Shunted Contrib'd}} & {\small Action}\tabularnewline 
 \hline 
-1 & 1 & 1 & 
-\begin{itemize}
-	\item \textit{Shunted} removed from \textit{Case}'s Reachability
-	\item \textit{Case} removed from \textit{Shunted}'s Coverage
-	\item \textit{New} added to \textit{Case}'s Reachability (covered under Direct above)
-	\item \textit{Case} added to \textit{New}'s Coverage (covered under Direct above)
-\end{itemize} \tabularnewline
-\hline 
-1 & 1 & 0 & 
+1 & 1 &
 \begin{itemize}
 	\item \textit{Shunted} removed from \textit{Case}'s Reachability
 	\item \textit{Case} removed from \textit{Shunted}'s Coverage
 \end{itemize} \tabularnewline
 \hline 
-1 & 0 & 1 & 
-\begin{itemize}
-	\item \textit{New} added to \textit{Case}'s Reachability (covered under Direct above)
-	\item \textit{Case} added to \textit{New}'s Coverage(covered under Direct above)
-\end{itemize} \tabularnewline
-\hline 
-1 & 0 & 0 & Uninteresting – a Case was shunted, but neither it nor the new Case contributed – so no set changes. \tabularnewline
-\hline 
-0 & 1 & 1 & 
-\begin{itemize}
-	\item \textit{Shunted} removed from \textit{Case}'s Dissimilarity
-	\item \textit{Case} removed from \textit{Shunted}'s Liability
-	\item \textit{New} added to \textit{Case}'s Dissimilarity (covered under Direct above)
-	\item \textit{Case} added to \textit{New}'s Liability (covered under Direct above)
-\end{itemize} \tabularnewline
-\hline 
-0 & 1 & 0 & 
+0 & 1 & 
 \begin{itemize}
 	\item \textit{Shunted} removed from \textit{Case}'s Dissimilarity
 	\item \textit{Case} removed from \textit{Shunted}'s Liability
 \end{itemize} \tabularnewline
 \hline 
-0 & 0 & 1 & 
-\begin{itemize}
-	\item \textit{New} added to \textit{Case}'s Dissimilarity (covered under Direct above)
-	\item \textit{Case} added to \textit{New}'s Liability (covered under Direct above)
-\end{itemize} \tabularnewline
-\hline 
-0 & 0 & 0 & Uninteresting – a Case was shunted, but neither it nor the new Case contributed – so no set changes. \tabularnewline
+0 & 0/1 & Uninteresting. A case was shunted, but it didn't contribute previously, so it will be unaffected by the shunting. \tabularnewline
 \hline 
 \end{tabular}
 
@@ -1508,21 +1478,9 @@ Incorrect to Correct &
 \cline{4-6} 
 \multicolumn{1}{c}{} & \multicolumn{1}{c}{} &  & \multicolumn{3}{c|}{New Case's rNNs}\tabularnewline
 \cline{3-6} 
-\multicolumn{1}{c}{} &  & New Case's NNs & Direct & Shunt & Flip\tabularnewline
-\hline 
-\multirow{2}{*}{Reachability} & Add & X & X &  & X\tabularnewline
-\cline{2-6} 
- & Remove &  &  & X & X\tabularnewline
-\hline 
-\multirow{2}{*}{Coverage} & Add & X & X &  & X\tabularnewline
-\cline{2-6} 
- & Remove &  &  & X & X\tabularnewline
-\hline 
-\multirow{2}{*}{Dissimilarity} & Add & X & X &  & X\tabularnewline
-\cline{2-6} 
- & Remove &  &  & X & X\tabularnewline
-\hline 
-\multirow{2}{*}{Liability} & Add & X & X &  & X\tabularnewline
+\multicolumn{1}{c}{} &  & New Case & Direct & Shunt & Flip\tabularnewline
+\hline
+\multirow{2}{*}{Any RCDL Set} & Add & X & X &  & X\tabularnewline
 \cline{2-6} 
  & Remove &  &  & X & X\tabularnewline
 \hline 
@@ -1536,7 +1494,7 @@ When an Unlabelled Case is evaluated for inclusion in the Case Base, the actual 
 For some strategies, the deviation between the changes for the different possible labels is also of interest.
 
 \section{Selection Strategies}
-\subsection{CompStrat 1 - NRATMin: New Case Reachability Added Total Minimisation}
+\subsection{CompStrat 1 - NRATMin: New Case Reachability Added Total Minimisation\label{sec:compstrat1}}
 When Supposing a single Case for addition to the Case Base, irrespective of the label we choose to suppose, the Case Base will classify it with only one label. E.g. in Figure \ref{fig:NNsCorrect}, irrespective of if we Suppose Cn to be a triangle, or a circle, the Case Base will still classify it a circle. Thus, the Reachability Set of Cn will only get populated in one instance – when we Suppose Cn to be the same label as the Case Base classifies it.
 
 This holds true in Supposing any Case for the Case Base. A Supposed Case will only have its Reachability Set populated for one single label for a Case Base state – the label that the Case Base classifies it as. Assuming a non-empty Case Base, for when the Reachability Set is populated - the cardinality of the set will always be between 1 and k.
@@ -1640,7 +1598,7 @@ Total &= (|L| - 2)\times |C_{N}| +(|L| - 1)\times (k - |C_{N}|) \\
 &= (|L| - 1) \times k - |C_{N}| \\
 \end{align*} 
 
-The $ (|L| - 1) \times k $ part will be a constant for a single Case Base state. $|C_{N}|$ represents the number of disagreeing Neighbours. A high number of disagreeing Neighbours would indicate that the Case Base is relatively uncertain about the classification. Thus - a strategy to semi-emulate Uncertainty Sampling (though in a more course manner) is to maximise $|C_{N}|$. To do this, we should minimise $Total$.
+The $ (|L| - 1) \times k $ part will be a constant for a single Case Base state. $|C_{N}|$ represents the number of disagreeing Neighbours. A high number of disagreeing Neighbours would indicate that the Case Base is relatively uncertain about the classification. Thus - a strategy to semi-emulate Uncertainty Sampling (though in a less fine-grained manner) is to maximise $|C_{N}|$. To do this, we should minimise $Total$.
 
 \subsection{CompStrat 5 – NLATMin: New Case Liability Added Total Minimisation}
 There are two types of Cases which can appear in the new Case's Liability Set:
@@ -1651,7 +1609,34 @@ There are two types of Cases which can appear in the new Case's Liability Set:
 
 In each, the new Case is somehow aiding in the incorrect Classification of an existing Case in the Case Base. If we forget about the possibility of mislabelled data, the intuition is that this is generally a bad thing - we are 'overpowering' a neighbourhood of the Case Base with data which could cause mislabelling.
 
-Totalling here, as in other strategies, is probably not the best approach - but as a simplistic initial investigatory strategy, we try to minimise the total of the new Case's Liability set summed over the different possible Supposes.
+Totalling here, as in other strategies, is probably not the best approach - but as a simplistic initial investigatory strategy, we try to minimise the total of the new Case's Liability Set summed over the different possible Supposes.
+
+\subsection{CompStrat 6 – OCAPlRSubFATMin: Other Cases Coverage Added Plus Removed (Subtract Flip-related Added) Total Minimisation}
+
+\subsubsection{Direct}
+
+The direct rNN's Coverage added is equivalent to the new case's Reachability added. See Section \ref{sec:compstrat1} for justification on minimisation.
+
+\subsubsection{Shunted}
+
+When a Case is shunted from an NNs set by the new Case, its Coverage set size might be reduced by one (i.e. a Coverage set removal). Many such removals (at least in the situation of a relatively populated Case Base) would indicate that the new Case is making an area more dense.
+
+\subsubsection{Flip}
+
+If the new Case causes a 'flip' in the correct classification status of an rNN, that rNN's other NNs may have gained or lost (or neither) items in their Coverage sets. The desire would be to minimise flips to incorrect classifications (Flip related Coverage removals), but increase flips to correct classification (Flip related Coverage adds).
+
+Because the overall aim in the strategy is 'minimisation', to give positive contribution to Flip Related Coverage adds, and negative contribution to Flip Related Coverage removals, we subtract Flip Related Coverage adds, and add Flip Related Coverage removals
+
+\subsubsection{Overall Formula}
+\[  
+  T~=~Direct_{C+}~+~Shunted_{C-}~-~Flip_{C+}~+~Flip_{C-}
+\]
+
+This value is computed for each candidate Case, summed across the possible labels. The candidate Case with the minimum value is selected.
+
+\subsection{CompStrat 7 – ??: ??}
+\subsection{CompStrat 8 – NLATMin: New Case Liability Added Total Minimisation}
+\subsection{CompStrat 9 – NLATMin: New Case Liability Added Total Minimisation}
 
 \chapter{Experimental Analysis\label{cha:expanalysis}}
 \section{Datasets Used}
