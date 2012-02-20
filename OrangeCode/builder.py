@@ -70,16 +70,9 @@ if __name__ == '__main__':
     
     logging.info("Generating selection graphs")
     dsn = 'zoo'
-    ssdir = os.path.join(STORAGE_DIR, 'selection_graphs')
     rsdir = os.path.join(REPORT_DIR, 'selection_graphs')
-    maybe_make_dirs(ssdir)
     maybe_make_dirs(rsdir)
-    for fn in glob(os.path.join(STORAGE_DIR, non_textual_dir_name, dsn, 'raw_results', "*.tar.gz")):
-        vn = os.path.splitext(os.path.splitext(os.path.basename(fn))[0])[0]
-        out_file = os.path.join(ssdir, vn + ".pdf")
-        if not os.path.exists(out_file):
-            logging.info("Generating selection graph for variation %s" % vn)
-            my_call(["python", "-O", "gen_selection_graphs.py", dsn, fn, out_file]) 
-        shutil.copyfile(out_file,
-                        os.path.join(rsdir, os.path.basename(out_file)))
+    r_dir = os.path.join(STORAGE_DIR, non_textual_dir_name, dsn, 'raw_results')
+    logging.info("Generating selection graphs")
+    my_call(["python", "-O", "gen_selection_graphs.py", dsn, r_dir, rsdir, '--experiment experiment1']) 
         
