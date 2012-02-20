@@ -33,7 +33,7 @@ named_selection_strategy_generators = [
                                         ("Uncertainty Sampling", classifier_output_selection_strategy_generator),
                                        ("Margin Sampling", margin_sampling_selection_strategy_generator),
                                        ("Maximum Diversity Sampling", maximum_diversity_selection_strategy_generator),
-                                       ("Maximum Density*Diversity", maximum_dtd_selection_strategy_generator),
+                                       ("Maximum Density Times Diversity", maximum_dtd_selection_strategy_generator),
                                    
                                        ("CompStrat 1 - NRATMin", 
                                         gen_case_profile_ss_generator(ExampleReachabilityOnlyCompetenceMeasure, 
