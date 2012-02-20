@@ -11,10 +11,7 @@ import shutil
 import logging
 from pprint import pprint
 from itertools import chain
-
-def maybe_make_dirs(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
+from utils import maybe_make_dirs
 
 def my_call(args):
     pprint(" ".join(args))
@@ -49,10 +46,14 @@ if __name__ == '__main__':
             shutil.copyfile(fn, os.path.join(REPORT_DIR, os.path.basename(fn)))
         shutil.copyfile(os.path.join(d, "summary.csv"),
                         os.path.join(REPORT_DIR, cat_name + "_summary.csv"))
-        logging.info("Generating data stats")
-        args = ["python", "-O", "gen_data_stats.py", '--cite', dsfn,
-             os.path.join(REPORT_DIR, cat_name + "_data_stats.csv")]
-        my_call(args)
+        
+        # TODO: Should really check that it has all the data stats first.
+        data_stat_fn = os.path.join(REPORT_DIR, cat_name + "_data_stats.csv")
+        if not os.path.exists(data_stat_fn):
+            logging.info("Generating data stats")
+            args = ["python", "-O", "gen_data_stats.py", '--cite', dsfn,
+                    data_stat_fn]
+            my_call(args)
     
     dsn = 'WinXwin'
     timings_fn = os.path.join(STORAGE_DIR, dsn + ".csv")

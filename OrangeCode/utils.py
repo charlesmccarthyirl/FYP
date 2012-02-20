@@ -106,3 +106,7 @@ class Timer:
     def __exit__(self, *args):
         self.end = monotonic_time()
         self.interval = self.end - self.start
+
+def maybe_make_dirs(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
