@@ -514,7 +514,7 @@ class ExperimentResult(OrderedDict):
                 finally:
                     stream.close()
                 
-                for e in resultset.test_set:
+                for e in chain(resultset.test_set, resultset.training_set):
                     set_node_as_train(G, e)
                         
         logging.info("Ending Graph Generation")
