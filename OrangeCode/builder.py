@@ -74,5 +74,5 @@ if __name__ == '__main__':
     maybe_make_dirs(rsdir)
     r_dir = os.path.join(STORAGE_DIR, non_textual_dir_name, dsn, 'raw_results')
     logging.info("Generating selection graphs")
-    my_call(["python", "-O", "gen_selection_graphs.py", dsn, r_dir, rsdir, '--experiment experiment1']) 
+    my_call(["python", "-O", "gen_selection_graphs.py", dsn, r_dir, rsdir, '--experiment", "experiment1']) 
         
