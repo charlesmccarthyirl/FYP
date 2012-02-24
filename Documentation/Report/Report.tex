@@ -906,7 +906,7 @@ Therefore, for $ Misclassifies(t, c) $:
 \includegraphics[width=120pt]{./Drawn/EqualDistanceMisclassifiesEg}
 \end{figure}
 
-e.g  in the above example, the circled Case $x$ is incorrectly classified as red by the Case Base (with k=6). Here, the 3 reds (c2, c3 and c4) and the 1 blue (c1) contribute to the incorrect classification, and thus:
+e.g  in the above example, the Case $x$ is incorrectly classified as a circle by the Case Base (with k=6). Here, the 3 circles (c2, c3 and c4) and the 1 square (c1) contribute to the incorrect classification, and thus:
 \begin{itemize}
 	\item $Misclassifies(x,c)~\forall c\in\{c1,c2,c3,c4\}$
 \end{itemize}
@@ -1226,7 +1226,7 @@ If a Case is correctly classified by the Case Base, its Reachability set will be
 \paragraph{Effect of a correct-classification-status changing}
 Firstly, we need only worry about if the correct-classification-status of a Case changes with the addition of a new Case, as opposed to if the classification alone changes.
 
-E.g. if a Case's actual label was `green', it was previously classified `blue', and with the addition of the new Case, it's classified `red', it has still been incorrectly classified both before and after the addition of the new Case, therefore we do not need to worry about scrubbing.
+E.g. if a Case's actual label was `triangle', it was previously classified `square', and with the addition of the new Case, it's classified `circle', it has still been incorrectly classified both before and after the addition of the new Case, therefore we do not need to worry about scrubbing.
 
 If however the correct-classification-status of a Case $c$ does change, we need to perform \emph{scrubbing} on some of the RCDL sets.
 
@@ -1247,7 +1247,7 @@ Similarly, if it went from incorrectly classified to correctly classified:
 \end{itemize}
 
 \paragraph{Not allowing supposing of an already present Case}
-The algorithm presented does not allow for an already present Case in the Case Base to be \emph{supposed} (e.g. if x is in the Case Base with label `blue', what would happen if x was actually `red').
+The algorithm presented does not allow for an already present Case in the Case Base to be \emph{supposed} (e.g. if x is in the Case Base with label `square', what would happen if x was actually `circle').
 
 \paragraph{Not allowing for supposing the removal of a Case}
 The algorithm presented does not allow for supposing the removal of a Case from the Case Base (e.g. what would happen if I removed x from the Case Base?), though it could be updated to support this scenario.
@@ -1296,7 +1296,6 @@ foreach case in case_base:
 \medspace
 \vspace{10pt}
 
-\begin{samepage}
 \subsubsection{The Test}
 \begin{code}
 Shuffle the dataset
@@ -1322,8 +1321,6 @@ foreach case in dataset:
       bf_case_profile = Get pb_case's Case Profile from bf_profiles
       assert that pb_case_profile == bf_case_profile
 \end{code}
-
-\end{samepage}
 
 \subsubsection{Timings}
 \begin{figure}[h!] 
