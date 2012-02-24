@@ -3,7 +3,7 @@ Random Selection,\textbf{114.780},103.915,104.067,112.086
 Uncertainty Sampling,110.037,100.494,\textbf{105.946},109.355
 Margin Sampling,110.037,100.494,\textbf{105.946},109.355
 Maximum Diversity Sampling,107.281,96.892,102.930,107.854
-Maximum Density*Diversity,104.229,98.143,101.480,105.348
+Maximum Density Times Diversity,104.229,98.143,101.480,105.348
 CompStrat 1 - NRATMin,111.850,105.710,104.537,\textbf{113.788}
 CompStrat 2 - NCADMin,110.863,103.050,103.087,108.149
 CompStrat 3 - NCATMaxDMin,110.416,\textbf{105.782},96.717,111.749
