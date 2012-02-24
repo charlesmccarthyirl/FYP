@@ -11,10 +11,7 @@ import shutil
 import logging
 from pprint import pprint
 from itertools import chain
-
-def maybe_make_dirs(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
+from utils import maybe_make_dirs
 
 def my_call(args):
     pprint(" ".join(args))
@@ -49,10 +46,14 @@ if __name__ == '__main__':
             shutil.copyfile(fn, os.path.join(REPORT_DIR, os.path.basename(fn)))
         shutil.copyfile(os.path.join(d, "summary.csv"),
                         os.path.join(REPORT_DIR, cat_name + "_summary.csv"))
-        logging.info("Generating data stats")
-        args = ["python", "-O", "gen_data_stats.py", '--cite', dsfn,
-             os.path.join(REPORT_DIR, cat_name + "_data_stats.csv")]
-        my_call(args)
+        
+        # TODO: Should really check that it has all the data stats first.
+        data_stat_fn = os.path.join(REPORT_DIR, cat_name + "_data_stats.csv")
+        if not os.path.exists(data_stat_fn):
+            logging.info("Generating data stats")
+            args = ["python", "-O", "gen_data_stats.py", '--cite', dsfn,
+                    data_stat_fn]
+            my_call(args)
     
     dsn = 'WinXwin'
     timings_fn = os.path.join(STORAGE_DIR, dsn + ".csv")
@@ -69,16 +70,9 @@ if __name__ == '__main__':
     
     logging.info("Generating selection graphs")
     dsn = 'zoo'
-    ssdir = os.path.join(STORAGE_DIR, 'selection_graphs')
     rsdir = os.path.join(REPORT_DIR, 'selection_graphs')
-    maybe_make_dirs(ssdir)
     maybe_make_dirs(rsdir)
-    for fn in glob(os.path.join(STORAGE_DIR, non_textual_dir_name, dsn, 'raw_results', "*.tar.gz")):
-        vn = os.path.splitext(os.path.splitext(os.path.basename(fn))[0])[0]
-        out_file = os.path.join(ssdir, vn + ".pdf")
-        if not os.path.exists(out_file):
-            logging.info("Generating selection graph for variation %s" % vn)
-            my_call(["python", "-O", "gen_selection_graphs.py", dsn, fn, out_file]) 
-        shutil.copyfile(out_file,
-                        os.path.join(rsdir, os.path.basename(out_file)))
+    r_dir = os.path.join(STORAGE_DIR, non_textual_dir_name, dsn, 'raw_results')
+    logging.info("Generating selection graphs")
+    my_call(["python", "-O", "gen_selection_graphs.py", dsn, r_dir, rsdir, '--experiment', 'experiment1']) 
         
