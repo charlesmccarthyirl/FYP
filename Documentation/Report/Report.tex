@@ -18,6 +18,7 @@
 \usepackage{caption}
 \usepackage{fancyvrb}
 \usepackage{float}
+\usepackage[parfill]{parskip} %http://stackoverflow.com/questions/3159606/latex-have-new-line-between-paragraphs-no-indentation
 
 \newcolumntype{x}[1] {>{\raggedright}p{#1}} %http://nepsweb.co.uk/docs/tableTricks.pdf
 
@@ -161,7 +162,7 @@ When new data is added to the Case Base, there is no real cost in re-training th
 \subsection{Oracle}
 The \emph{Oracle} is the entity which the system may consult if it wishes to determine the true label for a Case.
 
-Often, the Oracle is a Human Expert familiar with the domain who must manually label the Case. Though the Oracle may also just be another system, but for which there is some expense\footnote{Here, we use the word `expense' in its broadest possible meaning. It may be financially expensive, computationally expensive, or simply take an exceedingly long amount of time to run. In any event, `expense' refers to some undesirable operation for which we want to minimise the number of calls.} in using to determine a label. 
+Often, the Oracle is a Human Expert familiar with the domain who must manually label the Case. Though the Oracle may also just be another system, but for which there is some expense\footnote{Here, we use the word `expense' in its broadest possible meaning. It may be financially expensive, computationally expensive, or simply take an exceedingly long amount of time to run. In any event, `expense' refers to some undesirable operation for which we want to minimize the number of calls.} in using to determine a label. 
 
 \subsection{Selection Strategy}
 While the term \emph{Selection Strategy} can have slightly different meanings given the type of Active Learning being considered, we will subsequently use the phrase to mean the algorithmic approach taken to determine which Unlabelled Cases to query against the Oracle for their true labels, and put in the Case Base.
@@ -177,7 +178,7 @@ The Oracle is willing to classify only a fixed number of Cases.
 The system stops asking the Oracle for a label after it is capable of achieving a certain classification accuracy on its test set.
 
 \subsection{System Competence Gain}
-\emph{System Competence} with regards a Case Based Reasoning System relates to how well the system is able to solve new unseen instances using its Case Base. Selection Strategies, in their selections, generally try to maximise their notion of \emph{System Competence Gain} - the increase in System Competence caused by the addition of the chosen Case to the Case Base.
+\emph{System Competence} with regards a Case Based Reasoning System relates to how well the system is able to solve new unseen instances using its Case Base. Selection Strategies, in their selections, generally try to maximize their notion of \emph{System Competence Gain} - the increase in System Competence caused by the addition of the chosen Case to the Case Base.
 
 \section{Variations / Related Areas}
 Many variations on the concept of Active Learning exist. The following is intended to give just a small subset of examples, as opposed to an exhaustive listing. Further information can be gleaned from \citet{Settles2010}.
@@ -529,16 +530,12 @@ This measure is similar to the $SimRatio$ measure, except that instead of consid
 \subsubsection{Overview}
 Firstly, in a machine learning fashion, the threshold values are determined for each measure for each label that indicate confidence for that label. These predicted values are then used in assembling a non-confident set, from which elements are Selected in a least-confident-first style. This selection happens in `batches', after which the algorithm is re-initialized for the next batch. This is repeated until the Stopping Condition is met.
 
-\pagebreak
-
-\begin{samepage}
-
+\begin{figure}[h!] 
 \subsubsection{The ACMS Algorithm}
-\begin{figure}[h!] \centering
+\centering
 \includegraphics[scale=0.75]{./Others/Hu2011AggregrateAlgorithm}
 \caption*{Hu's Algorithm for the Aggregated Confidence Measures Selection Strategy}
 \end{figure}
-\end{samepage}
 
 \subsubsection{Initializing the Case Base}
 Before the main algorithm which combines the confidence measures is initiated, the Case Base is initially seeded with a Deterministic variation on Furthest-First Initialization, as presented in \citet{Greene2007}.
@@ -626,12 +623,11 @@ Weka \citep{prog:weka}, a Java based Machine Learning framework, was initially b
 
 For plotting, matplotlib \citep{prog:matplotlib} was initially used, but due to its very non-pythonic interface, we changed to using PyX \citep{prog:pyx}, which also provided much better support for \LaTeX{} style file formats.
 
-\begin{samepage}
+\begin{figure}[h!]
 \subsection{High Level Data Flow Diagram}
-\begin{figure}[h!] \centering
+ \centering
 \includegraphics[width=10cm]{./Drawn/DataFlowDiagram}
 \end{figure}
-\end{samepage}
 
 \section{Inputs}
 \subsection{Data Files}
@@ -750,23 +746,21 @@ An overview of KNN Classification can be found online \citep{web:knntut}.
 
 10-Fold Cross Validation is used for training/testing against the data. Initially Orange was used to provide Stratified Folds, but later, during the Orange-dependency-removal stage - a simplistic non-stratified implementation was adapted from the SciKit Learn library \citep{prog:sklearn}.
 
-Many walkthroughs of K-Fold Cross Validation exist online \citep{web:kfolddemo}, but the basic approach is to split the data into k sets, followed by iteratively choosing one of the sets as the test set, and the union of the remaining sets as the training set. Thus, the testing is repeated k times. The results of the k tests are then averaged to produce a single result.
+Many walkthroughs of K-Fold Cross Validation exist online \citep{web:kfolddemo}, but the basic approach is to split the data into k sets, followed by iteratively choosing one of the sets as the test set, and the union of the remaining sets as the training set. The results of the k tests are averaged to produce a single result.
 
 \subsubsection{Basic Evaluation Algorithm}
+\nopagebreak[4]
 \begin{code}
 let result_sets = \{\}
 for each (training_set, test_set) in the CV Sets:
   let unlabelled_set = training_set
-  let case_base = \{\}
-  let result_set = \{\}
+  let case_base = \{\}, result_set = \{\}
   while the stopping criteria is not met:
-    let selections = select cases from the 
-                     unlabelled_set using the 
-                     selection strategy.
+    let selections = select cases from unlabelled_set using 
+                     the selection strategy.
     ask oracle for labels for all of selections
     remove selections from unlabelled_set
     add selections to case_base with their labels
-  
     let result = Result from testing the classifier
                  built using case_base on test_set
     add result to result_set
@@ -843,38 +837,35 @@ A summary CSV file is also output for the Experiments executed during a run of t
 \chapter{Competence Models\label{cha:CompetenceModels}}
 \section{Overview}
 
-Delaney, in her work, expanded on the definitions of Coverage and Reachability sets (as described in \citet{Smyth1995}) to include their counterparts, which she terms ``Liability'' and ``Dissimilarity'' respectively \citep{Delany2009}. She subsequently uses these concepts in defining Case Profiles, which she uses in Case Base Maintenance strategies.
+\citet{Delany2009} expanded on the definitions of Coverage and Reachability sets (as described in \citet{Smyth1995}) to include their counterparts, which she terms ``Liability'' and ``Dissimilarity'' respectively. She uses these concepts in defining Case Profiles, and experimenting with Case Base Maintenance strategies.
 
-From Delaney's work, we hope to expand on her boolean RCDL Profile concepts, and attempt to use them in an Active Learning Selection Strategy role.
-
-This chapter first outlines the fundamental concepts involved in RCDL profiles as presented by Delaney, and subsequently expands on these to describe how we use them in a Selection Strategy context.
+We hope to expand on her boolean RCDL Profile concepts, and attempt to use them in an Active Learning Selection Strategy role.
 
 \section{Fundamentals}
 \subsection{Nearest Neighbours / Reverse Nearest Neighbours}
-Before considering the definitions of the RCDL sets, it is useful to consider the notion of nearest neighbours and reverse nearest neighbours, so that the RCDL sets can be framed in those terms.
+Before considering the definitions of the RCDL sets it is useful to consider the notion of nearest neighbours and reverse nearest neighbours, so that the RCDL sets can be framed in those terms.
 
 \subsubsection{Nearest Neighbours (NNs)}
-For a Case $c$, $ NNs(c) $ is the set of Cases within the K Nearest Neighbours of $c$, excluding $c$ itself.
+For a Case $c$, we define $NNs(c)$ as the set of Cases within the K Nearest Neighbours of $c$.
 
 \subsubsection{Reverse Nearest Neighbours (rNNs)}
-For a Case $c$, $ rNNs(c) $ is the set of Cases that have $c$ in their NNs set.
-
+For a Case $c$, $rNNs(c)$ is the set of Cases that have $c$ in their NNs set.
+\vspace{1em}
+\begin{samepage}
 \subsubsection{Example}
 \begin{figure}[h!] \centering
 \includegraphics[width=5cm]{./Drawn/RcdlNnRnnEg}
 \end{figure}
-
 For $k=3$:
 \begin{itemize}
 	\item $ t \in NNs(c) $
 	\item $ c \in rNNs(t) $
 \end{itemize}
+\end{samepage}
 
 \subsection{Classifies / Misclassifies}
 \subsubsection{Case Contribution\label{sec:contributes}}
-Both Classifies and Misclassifies are subsequently defined in terms of \emph{Case Contribution}.
-
-A Case $c$ \emph{contributes} to another Case $c'$'s classification if $c$ is retrieved as a nearest neighbour of $c'$ and $c$ aids 'positively' to $c'$'s classification (i.e. is the same label as $c'$ if $c'$ is correctly classified, or is a different label to  $c'$ if  $c'$ is incorrectly classified).
+A Case $c_{2}$ \emph{contributes} to another Case $c_{1}$'s classification if $c_{2}$ is retrieved as a nearest neighbour of $c_{1}$ and $c_{2}$ aids 'positively' to $c_{1}$'s classification (i.e. is the same label as $c_{1}$ if $c_{1}$ is correctly classified, or is a different label to $c_{1}$ if  $c_{1}$ is incorrectly classified).
 \subsubsection{Classifies}
 \begin{quote}
 $ Classifies(t, c) $ means that Case $c$ contributes to the correct classification of target Case $t$. This means that target Case $t$ is successfully classified and Case $c$ is returned as a nearest neighbour of Case $t$ and has the same classification as Case $t$ \citep{Delany2009}.
@@ -884,7 +875,7 @@ Therefore, for $ Classifies(t, c) $:
 \begin{enumerate}
 	\item $t$ must be correctly classified by the Case Base.
 	\item $c$ must be returned as a Neighbour of $t$ in that correct classification.
-	\item $c$ must be of the same label as $t$.
+	\item $c$ must be of the same label as $t$'s actual label\footnote{By ``actual label'', we mean the label that the instance actually has, irrespective of how the Case Base classifies it.}.
 \end{enumerate}
 
 \subsubsection{Misclassifies}
@@ -902,14 +893,18 @@ Therefore, for $ Misclassifies(t, c) $:
 \end{enumerate}
 
 \subsubsection{Example}
-\begin{figure}[h!] \centering
-\includegraphics[width=120pt]{./Drawn/EqualDistanceMisclassifiesEg}
-\end{figure}
 
-e.g  in the above example, the Case $x$ is incorrectly classified as a circle by the Case Base (with k=6). Here, the 3 circles (c2, c3 and c4) and the 1 square (c1) contribute to the incorrect classification, and thus:
+In the example presented in Figure \ref{fig:equaldistancemisclassifieseg}, the Case $x$ is incorrectly classified as a circle by the Case Base (with k=6). Here, the 3 circles (c2, c3 and c4) and the 1 square (c1) contribute to the incorrect classification, and thus:
 \begin{itemize}
 	\item $Misclassifies(x,c)~\forall c\in\{c1,c2,c3,c4\}$
 \end{itemize}
+
+\begin{figure}[h!] \centering
+\includegraphics[width=120pt]{./Drawn/EqualDistanceMisclassifiesEg}
+\caption{Example of Case Base incorrectly classifying a Case. x is classified as a Circle by the Case Base, whereas its actual label is a Triangle.}
+\label{fig:equaldistancemisclassifieseg}
+\end{figure}
+
 
 
 \subsection{RCDL Definitions}
@@ -936,7 +931,7 @@ These are all the Cases $ t \in rNNs(c) $ such that $t$ is incorrectly classifie
 \section{Delaney's Analysis}
 
 \subsection{Case Classifications}
-Through the definitions of the RCDL Sets - Delaney notes the following \citep{Delany2009}\footnote{The two enumerations following of profile analysis are taken verbatim from the cited paper. They gives a good break-down of the possibilities, and are simply useful to keep in mind when considering the rest of the RCDL approach - hence their inclusion.}:
+Through the definitions of the RCDL Sets - Delaney notes the following \citep{Delany2009}\footnote{The following profile analysis is taken verbatim from the cited paper. They gives a good break-down of the possibilities, and are simply useful to keep in mind when considering the rest of the RCDL approach - hence their inclusion.}:
 
 \begin{enumerate}
 	\item Firstly, it is possible to indicate whether the Case is correctly or incorrectly classified by the Case Base. This is identified by the Case having either a reachability set (R) or a dissimilarity set (D).
@@ -959,27 +954,27 @@ Through enumeration of the possible RCDL Combinations - 8 possible Profiles exis
 
 
 \subsection{Experimental Conclusions}
-In her experiments, Delaney investigates the effect of removing Cases with different RCDL profiles on Case Base competence. She also compares the strategies with other Noise-removal strategies, and frames them in RCDL terms.
+In her experiments, Delaney investigates the effect of removing Cases with different RCDL profiles on Case Base competence. She also compares her strategies with other Noise-removal strategies, and frames them in RCDL terms.
 
 While the specific results vary between datasets, Delaney notes that there was a consistent improvement with the removal of just DL \& DCL Cases from the datasets. 
 
-The reader is recommended to consult \citet{Delany2009} for the thorough analysis.
+The reader is recommended to consult \citet{Delany2009} for the thorough analysis. For the purpose of our work, the specific results are not of great importance, since we wish to try using the RCDL profiles for Active Learning in a Pool Based scenario.
 
 \section{Continuing From Delaney's Work}
-The simplicity of the boolean set-non-emptiness characteristic of the Case profiles Delaney defines has its serious merits. It is relatively easy to understand and reason about. 
+The simplicity of the boolean set-non-emptiness characteristic of the Case profiles Delaney defines has its merits. It is relatively easy to understand and reason about. 
 
-It does however throw away much potentially useful information by not trying to do any reasoning about the contents of the sets.
+It does, however, throw away a lot of potentially useful information by not trying to do any reasoning about the contents of the sets.
 
 In our work, we expand on the RCDL approach by using it in a non-boolean way for Active Learning Selection Strategies.
 
 \section{RCDL Consequences}
 
 \subsection{Either-or nature of Reachability and Dissimilarity Sets}
-If a Case has a non empty Reachability Set then it has been classified correctly by the Case Base and, as such, will have an empty Dissimilarity Set and vice versa.
+If a Case has a non-empty Reachability Set then it has been classified correctly by the Case Base and, as such, will have an empty Dissimilarity Set and vice versa.
 
-Intuitively - these sets simply represent the set of Cases that contribute to a Case's classification (with the notion of \emph{contributes} as outlined above on page \pageref{sec:contributes}). 
+Intuitively, these sets simply represent the set of Cases that contribute to a Case's classification (with the notion of \emph{contributes} as outlined in section \ref{sec:contributes}). 
 
-If the Case is correctly classified, this set is said to be the Reachability Set, whereas if incorrectly classified, it is termed the Dissimilarity Set.
+If the Case is correctly classified, this set is referred to as the Reachability Set, whereas if incorrectly classified, it is referred to as the Dissimilarity Set.
 
 \subsection{Reachability-Coverage / Liability-Dissimilarity Duality\label{sec:duality}}
 Simply put, if Case $c$ occurs in Case $t$'s Reachability set, Case $t$ occurs in $c$'s Coverage set. Similarly with Liability and Dissimilarity.
@@ -1007,22 +1002,22 @@ This point is easier to understand just by intuition around the plain-English de
 This is obvious from looking at the formulas, but is worth pointing out for future notes.
 
 \subsection{Reachability/Dissimilarity concerned with Nearest Neighbours, Coverage/Liability with Reverse Nearest Neighbours \label{sec:RdWithNnClWithRnn}}
-This can simply be derived through the definitions above, but of primary note is that:
+This can simply be derived from the definitions above, but of primary note is that:
 \begin{itemize}
 	\item The Reachability and Dissimilarity Sets of a Case can be inferred by just looking at that Case's Nearest Neighbours.
-	\item The Coverage and Liability Sets of a Case can be inferred by just looking at that Case's Reverse Nearest Neighbours\footnote{This is assuming the Case Base's classification of each of the Reverse Nearest Neighbours is known. In our later work, it will be, as it will be cached anyway from previous Classification.}.
+	\item The Coverage and Liability Sets of a Case can be inferred by just looking at that Case's Reverse Nearest Neighbours\footnote{This is assuming the Case Base's classification of each of the Reverse Nearest Neighbours is known. In our later work, it will be, as it will be cached from previous Classification.}.
 \end{itemize}
 
 \subsection{Max Size of Reachability and Dissimilarity Sets bounded to K}
-Given that the Reachability and Dissimilarity Sets of a Case are always subsets of that Case's NNs, the maximum size is the size of the NNs set - K\footnote{This is assuming that a \emph{strict} KNN is used, where at max k neighbours are used even when ties exist.}.
+Given that the Reachability and Dissimilarity Sets of a Case are always subsets of that Case's NNs, the maximum size is K - the size of the NNs set\footnote{This is assuming that a \emph{strict} KNN is used, where at max k neighbours are used even when ties exist.}.
 
 \section{An Incremental Strategy to RCDL}
 \subsection{Justification} 
-In Delaney's work, it was sufficient to calculate the Case Base RCDL profiles in a brute-force manner, since it was the most efficient way for use in her Case Base Maintenance investigation on existing Case Bases. For Selection Strategies, this would not be the case, since the profiles would be need to be inferred many times for a changing Case Base.
+In Delaney's work, it was sufficient to calculate the Case Base RCDL profiles in a brute-force manner, since it was the most efficient way in her Case Base Maintenance investigation on existing Case Bases. For Selection Strategies this would not be the case, since the profiles would need to be inferred many times for a changing Case Base.
 
 It would also be useful to be able to determine what RCDL changes would occur in the RCDL profiles if a new Case was added with a given label. If this were to be done for each Unlabelled Case when selecting a Case to add to the Case Base, it would be very expensive to re-build the entire set of RCDL profiles for the Case Base each time.
 
-Thus, we decided to create an incremental strategy, in which the changes can also be inferred in linear time before actually \emph{adding} a Case.
+Thus, we decided to create an incremental strategy in which the changes can also be inferred in linear time before actually \emph{adding} a Case to the Case Base.
 
 \subsection{Desired Algorithm Structure}
 \subsubsection{Inputs}
@@ -1032,59 +1027,62 @@ Thus, we decided to create an incremental strategy, in which the changes can als
 	\item RCDL, NN, and rNN profiles for each of the Cases
 \end{itemize}
 
-For the remainder of this algorithm description, the term `Profile' is used to denote the RCDL profile plus NNs plus rNNs. i.e. 
-\begin{verbatim}
+\begin{samepage}
+For the remainder of this algorithm description, the term `Profile' is used to denote the RCDL profile with the NNs and rNNs:
+\nopagebreak[4]
+\begin{code}[numbers=none,frame=none]
 CaseProfile:  
-  Reachability Set:  {…}
-  Coverage Set:      {…}
-  Dissimilarity Set: {…}
-  Liability Set:     {…}
-  NNs:               {…}
-  rNNs:              {…}
-\end{verbatim}
-
+  Reachability Set:  \{...\}
+  Coverage Set:      \{...\}
+  Dissimilarity Set: \{...\}
+  Liability Set:     \{...\}
+  NNs:               \{...\}
+  rNNs:              \{...\}
+\end{code}
+\end{samepage}
 \subsubsection{Operations\label{sec:incralgstructops}}
-\paragraph{$Suppose(unlabelled\_instance, label)$}
-This operation should determine what changes would occur to the Profiles of the Cases in the Case Base if a given Unlabelled Instance was added to the Case Base, with a given label.
+\paragraph{$Suppose(unlabelled\_instance, label)$:}
+This operation should determine what changes would occur to the Profiles of the Cases in the Case Base if a given Unlabelled Instance was added to the Case Base with a given label\footnote{The label for the Unlabelled Instance will not be known prior to consulting the Oracle, so we only want to perform ``What-if'' analysis - i.e. ``What would happen happen if I added this Case to the Case Base, and it turned out to be this label''.}.
 
-A Change to a given Case may be denoted as the pair (Added, Removed), where Added and Removed in turn are simply partial Profiles. i.e.
-\begin{verbatim}
+A Change to a given Case may be denoted as the pair (Added, Removed), where Added and Removed in turn are simply partial Profiles:
+\begin{code}[numbers=none,frame=none]
 Change:
   Added:
-    Reachability Set:  {…}
-    Coverage Set:      {…}
-    Dissimilarity Set: {…}
-    Liability Set:     {…}
-    NNs:               {…}
-    rNNs:              {…}
+    Reachability Set:  \{...\}
+    Coverage Set:      \{...\}
+    Dissimilarity Set: \{...\}
+    Liability Set:     \{...\}
+    NNs:               \{...\}
+    rNNs:              \{...\}
   Removed:
-    Reachability Set:  {…}
-    Coverage Set:      {…}
-    Dissimilarity Set: {…}
-    Liability Set:     {…}
-    NNs:               {…}
-    rNNs:              {…}
-\end{verbatim}
+    Reachability Set:  \{...\}
+    Coverage Set:      \{...\}
+    Dissimilarity Set: \{...\}
+    Liability Set:     \{...\}
+    NNs:               \{...\}
+    rNNs:              \{...\}
+\end{code}
 
 The output for this algorithm will be a set of (Case, Change) pairs. For algorithmic ease, this also includes the input unlabelled Case, since technically, adding it will cause Cases to be added to its Reachability Set, etc. But understandably, for the input Case's Change, the Removed data will always be empty.
 
-\paragraph{$Add(labelled\_case)$}
+\paragraph{$Add(labelled\_case)$:}
 This operation simply adds a given Case to the Case Base, updating the Case Base's Profiles as appropriate. Operationally, this involves supposing that the Case was added with its label using the previous Suppose operation, and updating the Case Base's Profiles as per the returned set of (Case, Change) pairs.
 
+
 \subsection{Algorithm Outline}
-The rough approach taken is to first determine the changes which occurred to NNs and rNNs. From these, along with knowledge of the existing RCDL Profiles, the changes to Reachability, Coverage, Dissimilarity and Liability are inferred\footnote{For clarity, the outline refers to updating the actual Case Base Profiles collection, whereas really it's a Change object for each one that it modifies, and finally returns.}.
+The rough approach taken is to first determine the changes which occurred to NNs and rNNs. From these, along with knowledge of the existing RCDL Profiles, the changes to Reachability, Coverage, Dissimilarity and Liability are inferred\footnote{For clarity, the outline refers to updating the actual Case Base Profiles collection, whereas really it's a Change object for each one that it modifies, and finally returns. While, at this stage, this is simply an implementation detail, it will become important when we start using the Suppose operation (Section \ref{sec:actofsupposing}).}.
 
 \subsection{Figuring out NN / rNN changes}
 \subsubsection{Overview}
 When a Case is added to the Case Base, figuring out the Nearest Neighbour and Reverse Nearest Neighbours changes essentially involves two steps:
 \begin{enumerate}
-	\item Determine the new Case's Nearest Neighbours (which is now that Case's NNs set), and for each NN, add the new Case to NN's Reverse Nearest Neighbours set.
+	\item Determine the new Case's Nearest Neighbours, and for each NN, add the new Case to NN's Reverse Nearest Neighbours set.
 	\item Determine the existing Cases of the Case Base that have the new Case as a Nearest Neighbour, and deal with the change appropriately.
 \end{enumerate}
 
 The second step is trickier than the first, since the new Case may have displaced an existing Case from the NNs Set, therefore this needs to be taken into account when maintaining consistency of NNs to rNNs in all Cases concerned.
 
-\subsubsection{Algorithm}
+\subsubsection{Algorithm\label{sec:nnchangesalg}}
 \begin{code}
 // Sort out the new case's Nearest Neighbours
 Determine new case's NNs
@@ -1100,7 +1098,6 @@ For each existing case that has the new case as an NN:
     Remove existing case from the shunted case's rNNs
 \end{code}
 
-
 \subsubsection{Algorithm Notes}
 \paragraph{Determining if an existing Case has the new Case as an NN within k}
 Unfortunately, each Case in the Case Base needs to be examined to determine if it has the new Case as an NN. But because we have the NNs stored for each Case in the Case Base, the examination of each Case can be a relatively quick operation, versus the alternative of having to, for each Case, go through the entire Case Base to find its NNs if they weren't stored.
@@ -1112,26 +1109,24 @@ If a Case has a Nearest Neighbour added, then that Nearest Neighbour will get a 
 
 This allows us just to iterate through the NN changes, and infer the presence of the corresponding rNN change as a result.
 
+\paragraph{NN Shunting}
+We define a Case $A$ as \emph{shunting} another Case $N$ from the NNs set of $B$ if $N$ is removed as a Nearest Neighbour of $B$, and $A$ added.
+
+An example can be found by looking at Figure \ref{fig:flipprecedence}. Here, for $k=3$S, $Cn$ \emph{shunts} $C1$ from $Cp$'s NNs set.
+
 \subsection{The Incremental RCDL Profile Building Algorithm}
-\begin{samepage}
+
 \subsubsection{Overview}
-The algorithm uses the NN/rNN changes determined using the previous algorithm, and goes through each NN change type, handling as appropriate\footnote{Because of NN/rNN duality - rNN changes can be inferred.}. The core of the algorithm proceeds in roughly 2 parts:
+The algorithm uses the NN/rNN changes determined using the previous algorithm (Section \ref{sec:nnchangesalg}), and goes through each NN change\footnote{Because of NN/rNN duality - changes to rNNs, and sets relating to rNNs (Coverage and Liability), can be inferred.}, handling individually. The core of the algorithm proceeds in roughly two parts:
 \begin{enumerate}
 	\item Deal with the NN removals first
-	\item Deal with the NN adds, taking into account scrubbing and the effect of classification changes.
+	\item Deal with the NN additions, taking into account scrubbing and the effect of classification changes.
 \end{enumerate}
 
-The primary issue that needs care taken around is when the addition of the new Case causes the Classification of an existing Case in the Case Base to change - since the RCDL profiles relate heavily to whether a Case has been correctly classified or not.
+The primary issue that requires careful consideration is when the addition of the new Case causes the Classification of an existing Case in the Case Base to change - since the RCDL profiles relate heavily to whether a Case has been correctly classified or not.
 
-
-\end{samepage}
-
-
-\begin{samepage}
-
-\subsubsection{Algorithm}
-\vspace{10pt}
-
+\newpage
+\subsubsection{Algorithm} \nopagebreak[4]
 \begin{code}
 Compute the NN/rNN changes using the suppose_nn algorithm.
 foreach case in the NN/rNN changes:
@@ -1144,7 +1139,7 @@ foreach case in the NN/rNN changes:
       Remove removed_case from case's Dissimilarity set
       Remove case from removed_case's Liability set.
 
-  // Deal with NN adds, if present  
+  // Deal with NN additions, if present  
   Calculate case's new classification
   if the case's correct-classification-status changed:
     // Need to scrub appropriate RCDL sets
@@ -1164,7 +1159,6 @@ foreach case in the NN/rNN changes:
       Add c to case's Dissimilarity set
       Add case to c's Liability set
 \end{code}
-\end{samepage}
 
 \subsubsection{Algorithm Notes}
 \paragraph{Ability to just look at NN changes}
@@ -1277,15 +1271,15 @@ foreach case in case_base:
   case_rcdl.classification = classified_label
   
   if actual_label == classified_label:
-    helping_cases = {nn for nn in case_rcdl.nearest_neighbours 
-                     if oracle(nn) == actual_label}
+    helping_cases = \{nn for nn in case_rcdl.nearest_neighbours 
+                     if oracle(nn) == actual_label\}
     Add helping_cases to case_rcdl.reachability_set
     foreach hc in helping_cases:
       hc_rcdl = hc's RCDL Profile
       Add case to hc_rcdl.coverage_set
   else:
-    hurting_cases = {nn for nn in case_rcdl.nearest_neighbours 
-                     if oracle(nn) != case_actual_label}
+    hurting_cases = \{nn for nn in case_rcdl.nearest_neighbours 
+                     if oracle(nn) != case_actual_label\}
     Add hurting_cases to case_rcdl.dissimilarity_set
     foreach hc in hurting_cases:
       hc_rcdl = hc's RCDL Profile
@@ -1296,7 +1290,9 @@ foreach case in case_base:
 \medspace
 \vspace{10pt}
 
+\pagebreak
 \subsubsection{The Test}
+\nopagebreak[4]
 \begin{code}
 Shuffle the dataset
 incremental_builder = A new instance of the Incremental RCDL Builder
@@ -1495,7 +1491,7 @@ Incorrect to Correct &
 \end{tabular}
 	
 \section{Selection Strategy Pre-Notes}
-\subsection{The Act of Supposing}
+\subsection{The Act of Supposing\label{sec:actofsupposing}}
 When an Unlabelled Case is evaluated for inclusion in the Case Base, the actual label for the Case is unknown. It could have any of the possible labels. As a result, when considering a Case for inclusion, it is desirable to evaluate its benefit for all possible labels, possibly considering the likelihood of the label given what we already know through the Case Base.
 
 \subsection{Measure Deviation between the Possible labels}
@@ -1506,6 +1502,7 @@ It should first be noted that, due to the occurrence of Shunt and Flip type chan
 
 It would be useful for when developing new Selection Strategies to be able to determine whether a particular change were a `Direct', `Flip' or `Shunt'.
 
+\newpage
 \subsubsection{Suppose Change Set SFD Categorization Algorithm}
 \begin{code}
 Algorithm CategorizeChanges(ChangePairs, C\sbt{N}):
@@ -1537,7 +1534,45 @@ Algorithm CategorizeChanges(ChangePairs, C\sbt{N}):
 \end{code}
 
 \subsubsection{Flips taken to `overpower' Shunts}
-If a correct classification status flip occurs for a Case, and the shunted Case would have been removed by the flip anyway, even if it were not shunted, we choose to categorize this as a flip. The justification is for ease of algorithmic reasoning, and because flips are more informative than shunts.
+If a correct classification status flip occurs for a Case, and the shunted Case would have been removed by the flip anyway, even if it were not shunted, we choose to categorize this as a flip. 
+
+The justification for this is to not require similarity measures, or knowledge of k, at this stage of the algorithm, instead completely treating the computation of the profile changes as a black box, and operating only on the outputs of this black box.
+
+\paragraph{Example:} In Figure \ref{fig:flipprecedence}, k=3, and $Cn$ is the new Case added. Previously, $C1$, $C2$ and $C3$ were the NNs of $Cp$, and $Cp$ was incorrectly classified as a Circle. 
+
+At that time,
+\begin{itemize}
+	\item $ReachabilitySet(Cn)~=~\{~\}$
+	\item $DissimilaritySet(Cn)~=~\{C1,~C2\}$
+\end{itemize}
+
+\begin{samepage}
+When $Cn$ was added, $C1$ was shunted from its membership in the NNs set, $Cn$ is correctly classified as a Triangle by the Case Base, and the Correct Classification Status of $Cn$ is flipped. Now:
+\begin{itemize}
+	\item $ReachabilitySet(Cn)~=~\{C3,~Cp\}$
+	\item $DissimilaritySet(Cn)~=~\{~\}$
+\end{itemize}
+\end{samepage}
+
+\begin{figure}[h!] \centering
+\includegraphics[width=120pt]{./Drawn/FlipPrecedence}
+\caption{Example of a Flip/Shunt Scenario.}
+\label{fig:flipprecedence}
+\end{figure}
+
+The resultant `change' to the Case Base for $Cp$:
+\begin{itemize}
+	\item Added: 
+	\begin{itemize}
+		\item $ReachabilitySet(Cn)~=~\{C3,~Cp\}$
+	\end{itemize}
+	\item Removed:
+	\begin{itemize}
+		\item $DissimilaritySet(Cn)~=~\{C1,~C2\}$
+	\end{itemize}
+\end{itemize}
+
+From this information alone, we cannot infer which of $C1$ and $C2$ was shunted (or even that anything was shunted if we don't know $k$). To minimize the information requirements that this algorithm carries, we thus decide to consider $C1$ and $C2$ as flip-related changes.
 
 \subsubsection{Inferring the changes of Coverage / Liability from Reachability / Dissimilarity}
 The Duality property as described in Section \ref{sec:duality} allows us just to consider Reachability and Dissimilarity Changes, and infer Coverage and Liability Changes respectively. Reachability and Dissimilarity are chosen due to easier reasoning about programatically, since they deal with NNs as opposed to rNNs.
@@ -1545,10 +1580,12 @@ The Duality property as described in Section \ref{sec:duality} allows us just to
 The operation \verb!PlaceDuals(CPs)! represents iterating through a given Change Set, and for each Reachability / Dissimilarity related change, adding the corresponding duality set change (Coverage / Liability).
 
 \subsection{Counting Shunts}
-If such a shunt happens, it will happen for every possible label.
+If a shunt related remove happens, it will happen for \emph{every} possible label with no exception. This duplication holds no benefit for final weighting, since shunts would be counted for each of the number of labels there are. We therefore decided to only total shunts for a single label.
 
 \subsection{Counting Flips}
-If there are more than 2 labels and we totalled across different labels, both flip directions \emph{might} lead to multiple-counting, depending on the exact cause of the flip. We thus count unique flips.
+If there are more than 2 labels and we totalled across different labels, both flip directions \emph{might} lead to multiple-counting, depending on the exact cause of the flip. A flip may occur for some, or all of the supposed labels.
+
+We do not attempt to count unique instances here, as the weighting attached due to the duplicates is somewhat useful. If a flip occurs for e.g. 3 out of 4 labels for a Case, it is somewhat more relevant than if it occurs for 1 of the 4 labels.
 
 \section{Selection Strategies}
 \subsection{CompStrat 1 - NRATMin: New Case Reachability Added Total Minimisation\label{sec:compstrat1}}
@@ -1566,9 +1603,11 @@ The intuition around this strategy is that by trying to find Unlabelled Cases wh
 
 \begin{figure}[h!] \centering
 \includegraphics[width=200pt]{./Drawn/NCADMin}
+\caption{Example of classification boundary for 2 areas (Triangle and Circle), with two candidate Cases for selection, C1 and C2.}
+\label{fig:ncadmin}
 \end{figure}
 
-In the above example, k=4, and we have two candidate unlabelled cases C1 and C2. With the Case Base as it stands, the Classification Boundary we can guess is in the middle of the circle and triangle regions (denoted by the line).
+In the example presented in Figure \ref{fig:ncadmin}, k=4, and we have two candidate unlabelled cases C1 and C2. With the Case Base as it stands, the Classification Boundary we can guess is in the middle of the circle and triangle regions (denoted by the line).
  
 Intuitively - if we knew the value of C1, it would better tell us where the classification boundary should be. If it turned out to be a circle, it would push the Classification Boundary left towards the triangles. Similarly, if it turned out to be a triangle, it would push the Classification Boundary right towards the circles. 
 
@@ -1655,7 +1694,7 @@ Total &= (|L| - 2)\times |C_{N}| +(|L| - 1)\times (k - |C_{N}|) \\
 &= (|L| - 1) \times k - |C_{N}| \\
 \end{align*} 
 
-The $ (|L| - 1) \times k $ part will be a constant for a single Case Base state. $|C_{N}|$ represents the number of disagreeing Neighbours. A high number of disagreeing Neighbours would indicate that the Case Base is relatively uncertain about the classification. Thus - a strategy to semi-emulate Uncertainty Sampling (though in a less fine-grained manner) is to maximise $|C_{N}|$. To do this, we should minimise $Total$.
+The $ (|L| - 1) \times k $ part will be a constant for a single Case Base state. $|C_{N}|$ represents the number of disagreeing Neighbours. A high number of disagreeing Neighbours would indicate that the Case Base is relatively uncertain about the classification. Thus - a strategy to semi-emulate Uncertainty Sampling (though in a less fine-grained manner) is to maximize $|C_{N}|$. To do this, we should minimize $Total$.
 
 \subsection{CompStrat 5 - NLATMin: New Case Liability Added Total Minimisation}
 There are two types of Cases which can appear in the new Case's Liability Set:
@@ -1666,7 +1705,7 @@ There are two types of Cases which can appear in the new Case's Liability Set:
 
 In each, the new Case is somehow aiding in the incorrect Classification of an existing Case in the Case Base. If we forget about the possibility of mislabelled data, the intuition is that this is generally a bad thing - we are 'overpowering' a neighbourhood of the Case Base with data which could cause mislabelling.
 
-Totalling here, as in other strategies, is probably not the best approach - but as a simplistic initial investigatory strategy, we try to minimise the total of the new Case's Liability Set summed over the different possible Supposes.
+Totalling here, as in other strategies, is probably not the best approach - but as a simplistic initial investigatory strategy, we try to minimize the total of the new Case's Liability Set summed over the different possible Supposes.
 
 \subsection{CompStrat 6 - OCAPlRSubFATMin: Other Cases Coverage Added Plus Removed (Subtract Flip-related Added) Total Minimisation}
 
@@ -1680,9 +1719,9 @@ When a Case is shunted from an NNs set by the new Case, its Coverage set size mi
 
 \subsubsection{Flip}
 
-If the new Case causes a 'flip' in the correct classification status of an rNN, that rNN's other NNs may have gained or lost (or neither) items in their Coverage sets. The desire would be to minimise flips to incorrect classifications (Flip related Coverage removals), but increase flips to correct classification (Flip related Coverage adds).
+If the new Case causes a 'flip' in the correct classification status of an rNN, that rNN's other NNs may have gained or lost (or neither) items in their Coverage sets. The desire would be to minimize flips to incorrect classifications (Flip related Coverage removals), but increase flips to correct classification (Flip related Coverage additions).
 
-Because the overall aim in the strategy is 'minimisation', to give positive contribution to Flip Related Coverage adds, and negative contribution to Flip Related Coverage removals, we subtract Flip Related Coverage adds, and add Flip Related Coverage removals.
+Because the overall aim in the strategy is 'minimisation', to give positive contribution to Flip Related Coverage additions, and negative contribution to Flip Related Coverage removals, we subtract Flip Related Coverage additions, and add Flip Related Coverage removals.
 
 \subsubsection{Overall Formula}
 \[  
@@ -1691,8 +1730,24 @@ Because the overall aim in the strategy is 'minimisation', to give positive cont
 
 This value is computed for each candidate Case, summed across the possible labels. The candidate Case with the minimum value is selected.
 
-\subsection{CompStrat 7 - OR: ??}
-\subsection{CompStrat 8 - OL??: ?}
+\subsection{CompStrat 7 - ORSubFaTMin: Other Cases Reachability Subtract Flip Added Total Minimization}
+\subsubsection{Direct}
+A high number of additions to Direct Reachability Sets of Other cases would indicate that the new Case is in a relatively dense region. To attempt to increase the diversity of new Cases, we would thus like to minimize this.
+
+\subsubsection{Shunted}
+Shunting a 'helping' neighbour for an existing Case could be considered a bad thing, since we are moving in a neighbour for which an existing neighbour was already covering that space. We would like to minimize these.
+
+\subsubsection{Flip}
+Causing a flip to correctly classified is a positive thing (Flip related Reachability Additions), whereas causing a flip to incorrectly classified a bad (Flip related Reachability Removals).
+
+\subsubsection{Overall Formula}
+\[  
+  T~=~Direct_{R+}~+~Shunted_{R-}~+~Flip_{R-}~-~Flip_{R+}
+\]
+
+We would like to minimize this value overall.
+
+\subsection{CompStrat 8 - OLSrPlFrSubFaTMax: Other Cases Liability Shunted removed Plus Flip removed subtract Flip added Maximisation}
 \subsubsection{Direct}
 (No real point considering this with the whole double counting that cropped up in CompStrat 4.)
 
@@ -1700,19 +1755,30 @@ This value is computed for each candidate Case, summed across the possible label
 Causing a 'shunt' of a hurtful Case could be considered a positive action. The added Case that caused the shunt will hopefully add more information regarding that area of the state space. 
 
 \subsubsection{Flip}
-Causing a Case to flip to incorrectly classified would lead to flip related Liability adds, whereas causing a flip to correctly classified would lead to flip related Liability removals. 
+Causing a Case to flip to incorrectly classified would lead to flip related Liability additions, whereas causing a flip to correctly classified would lead to flip related Liability removals. We would like to minimize flips to incorrectly classified, while maximizing flips to correctly classified.
 
 \subsubsection{Overall Formula}
+\[  
+  T~=~Shunted_{L-}~+~Flip_{L-}~-~Flip_{L+}
+\]
 
-\subsection{CompStrat 9 - OD??: ??}
+This value is computed for each candidate Case, summed across the possible labels. The candidate Case with the maximum value is selected.
+
+\subsection{CompStrat 9 - ODSubFrTMin: Other Cases Dissimilarity Subtract Flip Removed Total Minimization}
 
 \subsubsection{Direct}
+A high number of additions to Direct Dissimilarity Sets of Other cases would indicate that the new Case is in a relatively dense region. To attempt to increase the diversity of new Cases, we would thus like to minimize this.
 
 \subsubsection{Shunted}
+To also aid in identifying diverse cases, we minimize the shunted neighbours here.
 
 \subsubsection{Flip}
+Causing a flip to correct classification (Flip related Dissimilarity Removals) could be construed as positive, whereas flips to incorrect classification (Flip related Dissimilarity Additions) as negative.
 
 \subsubsection{Overall Formula}
+\[  
+  T~=~Direct_{D+}~+~Shunted_{D-}~+~Flip_{D+}~-~Flip_{D-}
+\]
 
 \chapter{Experimental Analysis\label{cha:expanalysis}}
 \section{Datasets Used}
@@ -1762,7 +1828,6 @@ for (cat, fn) in cat_to_files:
             print
 \end{python}
 
-\section{Selection Graphs}
 \begin{python}
 import csv
 import os
@@ -1773,8 +1838,10 @@ with open(exp_results_dir + "non_textual_summary.csv") as f:
     r = csv.reader(f)
     r = list(r)
     variations = [row[0] for row in r[1:]]
-    for v in variations:
+    for (i, v) in enumerate(variations):
         print r'\begin{figure}[h!]'
+        if i == 0:
+            print r'\section{Selection Graphs}'
         print r'\subsection{' + v + '}'
         print r'\centering'
         print r'\includegraphics[width=0.98\textwidth]{"' + sel_graphs_dir + v + '"}'
