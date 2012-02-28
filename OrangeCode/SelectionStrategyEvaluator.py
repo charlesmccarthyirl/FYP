@@ -435,18 +435,24 @@ class ExperimentResult(OrderedDict):
             g.add_edge(a, b, len=length)
             
         def set_node_as_test(g, n):
-            g.get_node(n).attr['color'] = 'white'
+            g.get_node(n).attr['fillcolor'] = 'white'
+            g.get_node(n).attr['fontcolor'] = 'black'
+            g.get_node(n).attr['penwidth'] = '1.0'
         
         def set_node_as_train(g, n):
-            g.get_node(n).attr['color'] = 'black'
+            g.get_node(n).attr['color'] = 'gray'
+            g.get_node(n).attr['fontcolor'] = 'black'
+            g.get_node(n).attr['penwidth'] = '1.0'
         
         def set_node_selected(g, n):
-            g.get_node(n).attr['color'] = 'green'
+            g.get_node(n).attr['color'] = 'black'
+            g.get_node(n).attr['fontcolor'] = 'white'
+            g.get_node(n).attr['penwidth'] = '1.0'
         
         logging.debug("Beginning Add Graph Data")
         
         dm = data_info.distance_constructor(data_info.data)
-        G = pygraphviz.AGraph(overlap='scalexy',  splines='false', aspect='1.333')
+        G = pygraphviz.AGraph(overlap='scalexy',  splines='false', aspect='1.3333', start='1')
         
         G.edge_attr['color'] = 'gray'
         G.node_attr['style'] = 'filled'
@@ -474,7 +480,6 @@ class ExperimentResult(OrderedDict):
             set_node_as_train(G, n)
         
         logging.debug("Ending Add Graph Data")
-        
         logging.debug("Beginning Graph Layout")
         G.layout(prog="neato")
         logging.debug("Ending Graph Layout")
