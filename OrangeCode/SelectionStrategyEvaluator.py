@@ -545,7 +545,7 @@ class ExperimentResult(OrderedDict):
                                     title="%s (AULC: %.3f)" % (name, result_set.AULC())) 
                   for (name, result_set) in self.items()]
         
-        g.plot(points, [pyx.graph.style.line([pyx.color.gradient.ReverseRainbow])])
+        g.plot(points, [pyx.graph.style.line([pyx.color.lineargradient(pyx.color.grey(0), pyx.color.grey(0.5))])])
         
         if (title):
             title = title.replace("_", r"\_")
