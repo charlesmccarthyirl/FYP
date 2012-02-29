@@ -27,7 +27,6 @@ extraplaceins
 LyX
 LibreOffice
 briss
-natbib
 Dia
 PDF~Rider
 Ubuntu
