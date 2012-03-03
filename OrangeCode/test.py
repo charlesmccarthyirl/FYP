@@ -72,7 +72,7 @@ def main_gen_raw_results_only(experiment, named_data_sets,
     named_experiment_variations_dict = dict(named_experiment_variations)
     variation = named_experiment_variations_dict[variation_name]
     
-    variation_result = l_experiment.execute_on_only(data_info_generator, variation)
+    variation_result = l_experiment.execute_on_only(data_info_generator(), variation)
     stream_from_name_getter = get_stream_from_name_getter_for(raw_results_dir)
     
     with stream_from_name_getter(variation_name) as stream:
@@ -82,7 +82,7 @@ def log_throwaway(to_log):
     def inner(*args):
         mp.get_logger().info(to_log)
 
-def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_multi=False):
+def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_multi):
     if do_multi:
         mp.log_to_stderr()
         logger = mp.get_logger()
