@@ -9,6 +9,7 @@ from utils import average, meanstdv, lazyproperty, first
 from itertools import permutations, imap
 from CaseProfiling import RcdlCaseProfile, AddRemovalStore, SuppositionResults
 from functools import partial
+from operator import add, sub
 from math import ceil
 from SelectionStrategy import CompetenceMeasure, SelectionStrategy
 import itertools
@@ -34,16 +35,6 @@ class ExampleCoverageOnlyCompetenceMeasure(CaseProfileBasedCompetenceMeasure):
         mean, std = meanstdv([cov_len for (c, cov_len) in class_to_scores_normalized])
         
         return std
-
-class ExampleReachabilityOnlyCompetenceMeasure(CaseProfileBasedCompetenceMeasure):
-    def measure(self, example):
-        class_to_supposition_results = self.case_profile_builder.suppose_multiple(example, self.possible_classes)
-        class_to_scores = [(c, len(r.get(example, AddRemovalStore()).added.reachability_set)) for (c, r) in class_to_supposition_results]
-        
-        assert(len([p for p in class_to_scores if p[1] <= 1]))
-        
-        total = sum((el[1] for el in class_to_scores))
-        return total
             
 class CompetenceBasedSelectionStrategy(SelectionStrategy):
     def __init__(self, probability_generator, case_base, case_profile_builder=None, possible_classes=None, oracle=None, *args, **kwargs):
@@ -160,19 +151,43 @@ class SplitterHider:
         splitter = Splitter(supposition_results)
         return self.score_getter(splitter, *args, **kwargs)
 
-class Total:
-    def __init__(self, score_getter):
+class TotalOp:
+    def __init__(self, reducer, score_getter):
         '''
         
         @param score_getter: Given supposition results, returns a double of the score
         '''
+        self.reducer = reducer
         self.score_getter = score_getter
         
     def __call__(self, class_to_supposition_results, *args, **kwargs):
-        scores = [self.score_getter(supposition_results, *args, **kwargs) 
-                    for (label, supposition_results) in class_to_supposition_results]
-        return sum(scores)
+        scores = (self.score_getter(supposition_results, *args, **kwargs) 
+                    for (label, supposition_results) in class_to_supposition_results)
+        return self.reducer(scores)
 
+class Total(TotalOp):
+    def __init__(self, *args, **kwargs):
+        TotalOp.__init__(self, sum, *args, **kwargs)
+
+class Any(TotalOp):
+    def __init__(self, *args, **kwargs):
+        TotalOp.__init__(self, lambda seq: iter(seq).next(), *args, **kwargs)
+
+class Oper:
+    def __init__(self, bi_operator, *operands):
+        self.bi_operator = bi_operator
+        self.operands = operands
+        
+    def __call__(self, *args, **kwargs):
+        return reduce(self.bi_operator, (f(*args, **kwargs) for f in self.operands))
+
+class Plus(Oper):
+    def __init__(self, *operands):
+        Oper.__init__(self, add, *operands)
+
+class Minus(Oper):
+    def __init__(self, *operands):
+        Oper.__init__(self, sub, *operands)
 
 class GenericCompetenceMeasure(CaseProfileBasedCompetenceMeasure):
     def __init__(self, measurer, *args, **kwargs):
