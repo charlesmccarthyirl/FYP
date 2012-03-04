@@ -126,12 +126,13 @@ def get_stream_from_name_getter_for(raw_results_dir):
 
 def main(experiment, named_data_sets, experiment_directory,
         do_create_summary=True, latex_encode=True, do_multi=True):
-    logging.info("Beginning generating raw results")
     if do_multi:
-        main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_multi)
+        logging.info("Beginning generating raw results")
+        main_gen_raw_results(experiment, named_data_sets, experiment_directory, True)
         logging.info("Ending generating raw results.")
     
-    logging.info("Beginning Nicity Processing.")
+    if do_multi:
+        logging.info("Beginning Nicity Processing.")
     experiment = get_experiment_obj(experiment)
     named_data_sets = get_named_data_sets_obj(named_data_sets)
     
