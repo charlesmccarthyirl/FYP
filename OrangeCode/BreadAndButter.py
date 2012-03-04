@@ -9,7 +9,7 @@ import os, logging, itertools, random
 from SelectionStrategy import SingleCompetenceSelectionStrategy
 from CaseProfiling import CaseProfileBuilder
 
-RANDOM_SEED = 42
+RANDOM_SEED = 1330881940
 DATASETS_DIR = os.path.join(os.path.dirname(__file__), "../Datasets/")
 
 oracle_generator_generator = lambda true_oracle: lambda data, possible_classes, *args, **kwargs: Oracle(true_oracle)
