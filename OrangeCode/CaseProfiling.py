@@ -3,6 +3,7 @@ import logging
 from copy import copy
 from collections import defaultdict
 from utils import max_multiple
+from itertools import product
 
 class RcdlCaseProfile:
     def __init__(self, 
@@ -44,7 +45,7 @@ class RcdlCaseProfile:
                                       self.nearest_neighbours, self.reverse_nearest_neighbours, 
                                       self.classification)
         return new_profile
-    
+
     def difference_update(self, other_case_profile):
         for attr in ("reachability_set", "coverage_set", "dissimilarity_set", "liability_set", 
                      "nearest_neighbours", "reverse_nearest_neighbours"):
@@ -54,6 +55,9 @@ class RcdlCaseProfile:
         for attr in ("reachability_set", "coverage_set", "dissimilarity_set", "liability_set", 
                      "nearest_neighbours", "reverse_nearest_neighbours"):
             getattr(self, attr).update(getattr(other_case_profile, attr))
+    
+    def is_empty(self):
+        return self == RcdlCaseProfile()
 
 def build_rcdl_profiles_brute_force(case_base, classifier_generator, distance_measure, nns_getter, oracle):
     case_to_profile_dict = defaultdict(RcdlCaseProfile)
@@ -110,13 +114,97 @@ class AddRemovalStore:
         profile.update(self.added)
         if self.removed.classification is not None or self.added.classification is not None:
             profile.classification = self.added.classification
+    
+    @property
+    def did_flip(self):
+        return self.removed.reachability_set and self.added.dissimilarity_set \
+            or self.removed.dissimilarity_set and self.added.reachability_set
+        
 
 class SuppositionResults(dict):
+    def __init__(self, supposed_case, *args, **kwargs):
+        self.supposed_case = supposed_case
+        dict.__init__(self, *args, **kwargs)
+    
     def __copy__(self):
-        new_result = SuppositionResults()
+        new_result = SuppositionResults(self.supposed_case)
         for (k, v) in self.iteritems():
             new_result[k] = copy(v)
         return new_result
+    
+    def get_or_create(self, case):
+        t = self.get(case, None) 
+        if t is None:
+            t = AddRemovalStore()
+            self[case] = t
+        return t
+    
+    def _place_duals_directional(self, first_drill_down, set_a_name, set_b_name):
+        for (case, change) in self.items():
+            for o in getattr(getattr(change, first_drill_down), set_a_name):
+                o_change = self.get_or_create(o)
+                getattr(getattr(o_change, first_drill_down), set_b_name).add(case)
+    
+    def _place_duals(self, first_drill_down, set_a_name, set_b_name):
+        self._place_duals_directional(first_drill_down, set_a_name, set_b_name)
+        self._place_duals_directional(first_drill_down, set_b_name, set_a_name)
+    
+    def place_duals(self, placer=_place_duals):
+        '''
+        Use the duality property to place all the duals.
+        
+        placer will get (first drill down, nn set name, rnn set name)
+        
+        >>> s = SuppositionResults('a')
+        >>> change = s.get_or_create('a')
+        >>> s.place_duals()
+        >>> change.added.reachability_set.add('b')
+        >>> s.place_duals()
+        >>> s['a'].added.reachability_set
+        set(['b'])
+        >>> s['b'].added.coverage_set
+        set(['a'])
+        '''
+        first_drill_downs = ('added', 'removed')
+        duals = (('nearest_neighbours', 'reverse_nearest_neighbours'),
+                 ('reachability_set', 'coverage_set'),
+                 ('dissimilarity_set', 'liability_set'))
+        
+        for (fdd, (set_a_name, set_b_name)) in product(first_drill_downs, duals):
+            placer(self, fdd, set_a_name, set_b_name)
+    
+    def extract_directs_shunts_flips(self):
+        temp = SuppositionResults(self.supposed_case)
+        direct, shunt, flip = [copy(temp) for _ in xrange(3)]
+        
+        for c, change in self.iteritems():
+            if c == self.supposed_case:
+                # All changes regarding the new case are regarded as Direct, 
+                # no extra work needed
+                direct[c] = change
+                continue
+            
+            did_flip = change.did_flip
+            
+            for (cat, s) in product(("reachability", "dissimilarity"), 
+                                    ("added", "removed")):
+                for case_o in getattr(getattr(change, s), cat + "_set"):
+                    if case_o == self.supposed_case:
+                        t = direct
+                    elif did_flip and (case_o in change.removed.reachability_set # 2 statements necessary, as could have flipped but still be recognisable shunting.
+                                       or case_o in change.removed.dissimilarity_set):
+                        t = flip
+                    else:
+                        t = shunt
+                    getattr(getattr(t.get_or_create(c), s), cat + "_set").add(case_o)
+                     
+        # All Reachability and Dissimilarity Sets have been dealt with,now we
+        # need to use the Reachability and Dissimilarity sets of each to infer
+        # and make the changes for Coverage and Liability changes.
+        for cp in (direct, shunt, flip):
+            cp.place_duals(SuppositionResults._place_duals_directional)
+        
+        return (direct, shunt, flip)
 
 class CaseProfileBuilder:
     def __init__(self, k, classifier_generator, distance_constructor, 
@@ -172,7 +260,7 @@ class CaseProfileBuilder:
         '''
         assert(not self.case_info_lookup.has_key(case)) # Just don't want to deal with the hassle right now.
         
-        add_removals_dict = SuppositionResults()
+        add_removals_dict = SuppositionResults(case)
         
         def get_or_create(_case):
             if not add_removals_dict.has_key(_case):
@@ -255,6 +343,7 @@ class CaseProfileBuilder:
         assert(nn_changes is None or isinstance(nn_changes, SuppositionResults))
         
         add_removals_dict = copy(nn_changes) if nn_changes is not None else self.__suppose_nn(_case)
+        add_removals_dict.supposed_class = _class
         
         oracle = self.__get_oracle()
         def get_class(m_case):

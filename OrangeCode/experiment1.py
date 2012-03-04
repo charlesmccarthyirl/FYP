@@ -2,6 +2,7 @@ from SelectionStrategyEvaluator import *
 from BreadAndButter import *
 from CaseProfiling import *
 from SelectionStrategy import *
+from CompetenceSelectionStrategies import *
 from functools import partial
 from collections import OrderedDict
 
@@ -29,23 +30,24 @@ maximum_dtd_selection_strategy_generator = partial(SingleCompetenceSelectionStra
 
 
 named_selection_strategy_generators = [
-                                       ("Random Selection", random_selection_strategy_generator),
-                                        ("Uncertainty Sampling", classifier_output_selection_strategy_generator),
-                                       ("Margin Sampling", margin_sampling_selection_strategy_generator),
-                                       ("Maximum Diversity Sampling", maximum_diversity_selection_strategy_generator),
-                                       ("Maximum Density Times Diversity", maximum_dtd_selection_strategy_generator),
-                                   
-                                       ("CompStrat 1 - NRATMin", 
-                                        gen_case_profile_ss_generator(ExampleReachabilityOnlyCompetenceMeasure, 
-                                                                      op=SingleCompetenceSelectionStrategy.take_minimum)),
-                                   
-                                       ("CompStrat 2 - NCADMin", 
-                                        gen_case_profile_ss_generator(ExampleCoverageOnlyCompetenceMeasure, 
-                                                                      op=SingleCompetenceSelectionStrategy.take_minimum)),
-
-                                       ("CompStrat 3 - NCATMaxDMin", 
-                                        gen_case_profile_ss_generator2(SizeDeviationCombo)),
-                                                                  
+    ("Random Selection", random_selection_strategy_generator),
+    ("Uncertainty Sampling", classifier_output_selection_strategy_generator),
+    ("Margin Sampling", margin_sampling_selection_strategy_generator),
+    ("Maximum Diversity Sampling", maximum_diversity_selection_strategy_generator),
+    ("Maximum Density Times Diversity", maximum_dtd_selection_strategy_generator),
+    ("CompStrat 1 - NRATMin", 
+     gen_case_profile_ss_generator(
+        partial(GenericCompetenceMeasure, 
+                Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'a', 'r')))), 
+        op=SingleCompetenceSelectionStrategy.take_minimum)),
+        
+    ("CompStrat 2 - NCADMin", 
+     gen_case_profile_ss_generator(ExampleCoverageOnlyCompetenceMeasure, 
+                                  op=SingleCompetenceSelectionStrategy.take_minimum)),
+    
+    ("CompStrat 3 - NCATMaxDMin", 
+     gen_case_profile_ss_generator2(SizeDeviationCombo)),
+                              
                                        ]
 
 named_experiment_variations = create_named_experiment_variations(named_selection_strategy_generators)

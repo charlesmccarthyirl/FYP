@@ -5,11 +5,13 @@ Created on 23 Oct 2011
 '''
 from __future__ import division
 import random
-from utils import average, meanstdv
+from utils import average, meanstdv, lazyproperty
 from itertools import permutations, imap
 from CaseProfiling import RcdlCaseProfile, AddRemovalStore
 from functools import partial
 from math import ceil
+
+
 
 def index_of(collection, needle):
     i = 0
@@ -157,70 +159,3 @@ class SingleCompetenceSelectionStrategy(SelectionStrategy):
         
         return [Selection(selected_example, selected_i)]
 
-class CaseProfileBasedCompetenceMeasure(CompetenceMeasure):
-    def __init__(self, probability_generator, case_base, case_profile_builder=None, possible_classes=None, oracle=None, *args, **kwargs):
-        self.case_profile_builder = case_profile_builder
-        self._probability_getter = probability_generator(case_base, *args, possible_classes=possible_classes, oracle=oracle, **kwargs)
-        self.case_base = case_base
-        self.possible_classes = possible_classes
-        self.oracle = oracle
-
-    def measure(self, example):
-        pass
-
-class ExampleCoverageOnlyCompetenceMeasure(CaseProfileBasedCompetenceMeasure):
-    def measure(self, example):
-        class_to_supposition_results = self.case_profile_builder.suppose_multiple(example, self.possible_classes)
-        class_to_scores = [(c, len(r.get(example, AddRemovalStore()).added.coverage_set)) for (c, r) in class_to_supposition_results]
-        total = sum((el[1] for el in class_to_scores))
-        class_to_scores_normalized = [(c, score/total if total > 0 else score) for (c, score) in class_to_scores]
-        mean, std = meanstdv([cov_len for (c, cov_len) in class_to_scores_normalized])
-        
-        return std
-
-class ExampleReachabilityOnlyCompetenceMeasure(CaseProfileBasedCompetenceMeasure):
-    def measure(self, example):
-        class_to_supposition_results = self.case_profile_builder.suppose_multiple(example, self.possible_classes)
-        class_to_scores = [(c, len(r.get(example, AddRemovalStore()).added.reachability_set)) for (c, r) in class_to_supposition_results]
-        
-        assert(len([p for p in class_to_scores if p[1] <= 1]))
-        
-        total = sum((el[1] for el in class_to_scores))
-        return total
-            
-class CompetenceBasedSelectionStrategy(SelectionStrategy):
-    def __init__(self, probability_generator, case_base, case_profile_builder=None, possible_classes=None, oracle=None, *args, **kwargs):
-        self.case_profile_builder = case_profile_builder
-        self._probability_getter = probability_generator(case_base, *args, possible_classes=possible_classes, oracle=oracle, **kwargs)
-        self.case_base = case_base
-        self.possible_classes = possible_classes
-        self.oracle = oracle
-        SelectionStrategy.__init__(self, *args, **kwargs)
-        
-    def select(self, collection):
-        collection_supposes = [(e, self.case_profile_builder.suppose_multiple(e, self.possible_classes))
-                                for e in collection]  
-        selected = self._select_from_supposes(collection_supposes)
-        self.case_profile_builder.put(selected)
-        return selected
-    
-    def _select_from_supposes(self, collection_supposes):
-        pass
-
-class SizeDeviationCombo(CompetenceBasedSelectionStrategy):
-    def __calculate_size_deviation_pair(self, example, class_to_supposition_results):
-        class_to_scores = [(c, len(r.get(example, AddRemovalStore()).added.coverage_set)) for (c, r) in class_to_supposition_results]
-        total = sum((el[1] for el in class_to_scores))
-        mean, std = meanstdv([cov_len for (c, cov_len) in class_to_scores])
-        return (total, std)
-        
-    def _select_from_supposes(self, collection_supposes):
-        temp = ((e, self.__calculate_size_deviation_pair(e, r)) for (e, r) in collection_supposes)
-        temp = [(e, (total, std/total if total > 0 else std)) for (e, (total, std)) in temp]
-        temp.sort(key=lambda el: el[1][0], reverse=True) # Size first
-        top_bit_size = int(ceil(len(temp) * 0.25))
-        temp = temp[:top_bit_size]
-        el = min(temp, key=lambda el: el[1][1]) # Now deviation
-        return el[0]
-        
-        
