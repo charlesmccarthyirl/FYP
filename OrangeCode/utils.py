@@ -1,6 +1,19 @@
 import os
 from operator import gt, lt
 from StringIO import StringIO
+from itertools import ifilter
+
+def lazyproperty(method):
+    attr_name = '_' + method.__name__
+    @property
+    def _lazyprop(self):
+        if not hasattr(self, attr_name):
+            setattr(self, attr_name, method(self))
+        return getattr(self, attr_name)
+    return _lazyprop  
+
+def first(predicate, seq):
+    return iter(ifilter(predicate, seq)).next()
 
 class MyStringIO(StringIO):
     def __init__(self, do_delete_on_close=True, *args, **kwargs):
