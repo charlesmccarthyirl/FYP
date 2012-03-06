@@ -53,6 +53,7 @@
 
 \begin{abstract}
 An overview of the fundamental concepts in active learning, with particular focus on the use of Competence Models. Experimental analysis of basic selection strategy approaches, along with experiments on new Competence Model based approaches.
+%TODO:A larger abstract will spell out what the work has shown - i.e. results, more than background.
 \end{abstract}
 
 \chapter*{Declaration of Originality}
@@ -89,91 +90,157 @@ Barry and P\'{a}draig also assisted in reviewing this document, checking it for 
 \tableofcontents
 
 \chapter{Introduction}
-\section{Active Learning Overview}
+
+\section{Classification}
+
+Many overlooked everyday tasks involve classification of one form or another. 
+\begin{itemize}
+	\item Bouncers at pubs / clubs try to determine if patrons should be allowed entry or not. This represents binary classification: classification where only two labels are involved.
+	\item When we go to our cupboard and find bread gone past its expiration date, we might classify it as `fine', `iffy' or `asking for trouble'. This represents multi-label classification: classification where more than two labels are involved.
+	\item Spam / ham email classification - because general discussions of classification are not complete without mentioning this domain.
+\end{itemize}
+
+\emph{Classification} involves assigning some form of a label to an object (be it physical or theoretical).
+
+\section{Building Classifiers}
+Taking the potentially stale bread example, we might wish to somehow automate the process of classifying the bread. Doing this would likely involve us defining some characteristics related to the bread for which we might be able to base our decision, for example:
+
+\begin{itemize}
+	\item Number of days past expiration date
+	\item Type of bread (soda / white sliced / brown sliced)
+	\item Number of mould spots
+	\item Maximum mould spot diameter
+\end{itemize}
+
+ Measurable characteristics of a class of objects, in more technical terms, are called \emph{attributes}.
+ 
+ From these attributes, we might come up with rules based on our personal intuition to determine the label:
+ 
+ \begin{itemize}
+ 	\item If number of days past expiration $\le$ 0: Fine
+ 	\item Otherwise, if the number of mould spots $\le$ 2 and max mould diameter $\le$ 1cm: Fine
+ 	\item Otherwise, if it's soda bread: Iffy
+ 	\item Otherwise: Asking for trouble
+ \end{itemize}
+ 
+Manually creating classifiers can be a tedious process however, and while rule based systems are sometimes genuinely valid in certain domains like medical diagnosis, having a computer program capable of building a classifier is often very useful. 
+
+\section{Case-Based Classification using KNN}
+\subsection{Overview}
+One method of building a classifier is through the use of case-based reasoning systems. In this model, we have a relatively large set of cases (data instances within the domain, each characterized by attributes and a label). When a new unlabelled case is presented to the system, the system consults, in some fashion, its collection of labelled examples (collectively termed the \emph{case-base}) to try to infer the presented case's label.
+
+The consulting bit involves having a classifier trained from the case-base, and using the classifier to predict the new instance's label. The use of k-nearest neighbours classification fits the case-based reasoning concept quite well. There is no expense involved in the phase since the classifier simply runs directly off of the case-base.
+
+In k-nearest neighbours, when a new unseen case is presented to the classifier, the classifier finds cases in the case-base that are similar to the unseen case, and uses these cases (along with knowledge of their labels) to predict a label for the unseen case.
+
+\subsection{Similarity/Distance}
+
+The notion of \emph{similarity} or \emph{distance} between pairs of cases is necessary for KNN. As one would expect, the similarity between two cases is a numerical figure which represents how similar the cases are to one another. Inversely for distance.
+
+\subsection{Nearest Neighbours}
+
+KNN operates by retrieving a fixed quantity `k' of the new case's nearest neighbours within . `Nearest' is defined based on the distance metric used.
+
+\begin{figure}[h!] 
+\centering
+\includegraphics[scale=0.5]{./Drawn/KnnExample}
+\caption{Example of a new unlabelled case $C1$ added to a case-base, placed at distances relative to the existing cases in the case-base. At $k=3$, and KNN used, the shaded cases are retrieved as the 3-nearest neighbours. Assuming majority voting, it is classified a triangle.}
+\label{fig:knnexample}
+\end{figure}
+
+In the example presented in Figure \ref{fig:knnexample}, the shaded cases are retrieved as the nearest neighbours of the new unlabelled case $C1$. 
+
+\subsection{Performing the Classification}
+
+How the unlabelled case gets classified based on the retrieved nearest-neighbours depends on the voting method used, for example:
+\begin{itemize}
+	\item In majority voting, the most frequent label of the nearest neighbours is used. In the example, two vote `triangle', and one votes `square'. `Triangle' is the more frequent label of the retrieved neighbours, so it is classified `triangle'.
+	\item In distance weighted voting, votes are weighted based on the distance between the source of the label and new unlabelled case. Closer neighbours thus get a larger proportion of the vote than far-off neighbours.
+\end{itemize}
+
+Having k greater than one has the benefit of trying to minimize the affect of noise in the dataset. Using distance weighted voting as opposed to majority voting also shares this characteristic. 
+
+
+\section{Getting Labelled Training Data}
+
+To perform classification using KNN (or any other type of machine learning based classification), there is an unavoidable need for labelled training data to initially train the system. Inevitably, how one goes about generating that labelled training data becomes a concern.
+
+In general, the entity which the system may consult if it wishes to determine the true label for a case is termed the \emph{oracle}.
+
+While often, the oracle is a human expert familiar with the domain in question, the oracle may be any type of entity for which there is some expense\footnote{Here, we use the word `expense' in its broadest possible meaning. It may be financially expensive, computationally expensive, or simply take an exceedingly long amount of time to run. In any event, `expense' refers to some undesirable operation for which we want to minimize the number of calls.} in using to determine a label. 
+
+There is a limit to how much data we can ask the oracle to label. If a human expert is needed, this human factor in itself limits the quantity of data which can be labelled. The financial cost might be significant, and the availability of such an expert can also be a limiting factor. As a result of all this, the question of which data is worthwhile labelling comes up.
+
+\section{Active Learning}
 The key concept of active learning is that a machine learning program has a say in its own learning process, by being capable of choosing the data from which it learns. 
 
-This concept fits particularly well in the domain of case-based reasoning systems. In case-based Reasoning Systems, the system has a collection of cases for which it knows the label. When an unlabelled case is presented to the system, the system uses this collection to try to guess the label of the unlabelled case.
+Not all data is of equal benefit in labelling if it's at the expense of not labelling some other data. We may already have sufficient data for one are of the domain to be relatively confident in our classifications, but might have very little for some other part of the domain. Given that we can only label so much, it would be preferable to explore the more unknown part of the domain.
 
-The facet of active learning we will subsequently consider is known as \emph{pool-based sampling} in other literature \citep{Settles2010}, and is based on the idea that there is a large quantity of unlabelled cases available, but getting labels (which might involve consulting a human expert) is an expensive process, for which it is undesirable to apply to the entire unlabelled set. The aim of the system is to choose a subset of these unlabelled cases for which to request a label. These are then used as the system's pool of labelled cases which it will consult in future.
+The term \emph{selection strategy} is used to denote the algorithmic approach taken to determine which unlabelled cases to query against the oracle for their true labels, and put in the case-base. The \emph{stopping condition} of the system is the point at which the system must stop consulting the oracle.
 
-The system would like to maximize its classification accuracy for future cases, but resort to asking the oracle external to the system for a minimal number of labels.
+\section{Active Learning Application Domains}
 
-\section{Importance of Active Learning}
 There are many real-world domains in which a large quantity of unlabelled data is available, but labelling all of that data is not feasible. 
-
-A human expert is often needed to label instances of the data. This human factor limits the quantity of data which can be labelled. The financial cost can be significant, and the availability of such an expert can also be a limiting factor.
 
 Often the labelling process is in itself exceedingly slow compared to either the amount of unlabelled data available, or the rate at which new data is being collected. 
 
-Machine Learning seems a clear answer for these type of scenarios, but for Machine Learning, one still needs training data to initially train the system.
-
-\subsection{Examples of Active Learning Domains}
-\subsubsection{Recommendation Engines}
+\subsection{Recommendation Engines}
 In recommendation engines, the user can be thought of as the oracle. It is from user feedback (either implicit or explicit) that the recommendation engine can know if an item was relevant to the user or not. It is likely that there is a vast library from which a recommendation can come, but the quantity of user feedback may be limited.
 
 What is sometimes done in these systems is that the engine includes some results it is relatively certain will be relevant to the user, and others of which it is uncertain, but would like to gain feedback on from the user. Only comparatively few of these uncertain cases can be given to the user for feedback, as doing otherwise would negatively impact the user's experience.
 
 Choosing which uncertain cases to present to the user to maximize the system's competence-gain is therefore an important problem for the system.
 
-\subsubsection{Medical Data}
+\subsection{Medical Data}
 Medical data is another area in which active learning is of particular interest and relevance.
 
 Vast quantities of patient data exists, but each patient data instance is unlikely to have results of tests for every possible disease / condition. It is obviously preferable though to detect any illness or condition a person has as soon as possible, so that appropriate measures are taken. It is not feasible however to test each individual for every possible illness.
 
 When building a system to predict illnesses, one would want to minimize the number of physical tests to be carried out on patients for the purpose of training the system. It is in this way that active learning can have a useful role to play.
 
-\subsubsection{Computer Vision}
+\subsection{Computer Vision}
 Computer Vision is another area in which large quantities of data are available, and easy to generate, but manual labelling is incredibly tedious.
 
-\subsubsection{Text Classification}
+\subsection{Text Classification}
 With the proliferation of the internet, and in particular social media, text classification has an increasing number practical applications. The traditional example is that of email spam analysis, but more and more, sentiment analysis is becoming an active area of interest.
 
 Vast quantities of textual data are often available for the target domain, though initial labelling requires human involvement. Active learning can play a potentially very useful role in the process, helping in maximising the system gain with the minimum amount of data.
 
-\subsubsection{Voice Analysis}
+\subsection{Voice Analysis}
 
 Speech recognition is one area that can bring immense benefit to users, but for which manual labelling requires expert skills, and is painstakingly slow even with a trained expert's involvement. For such systems, it is highly desirable to reduce the quantity of data that must be manually labelled to bring the system to an acceptable rate.
 
-\section{Fundamental Concepts}
-\subsection{Case}
-A \emph{case} is simply a data instance within the domain, characterized by attributes and a label (which may be known, or unknown).
 
-\subsection{Pool-Based Active Learning}
-In particular, we concern ourselves with \emph{pool-based active learning}, and it is in this context that further concepts should be taken.
 
-In pool-based active learning, a pool of unlabelled cases are available, from which the system may choose cases to request a label for. The system uses these labelled cases to train a classifier.
+\section{Types of Active Learning}
+\subsection{Stream Based Learning}
+In \emph{Stream Based Learning}, the system does not just select at the outset from an unlabelled pool the cases to request labelling by the oracle. Instead, it is presented with a stream of cases, and for each case, it may either itself guess the classification (if it is relatively sure it is correct), or it may defer the decision to the oracle.
+
+This notion can sometimes be more useful - but it is unlikely in practice that the system would query at any arbitrary time for a label from the oracle, since the oracle may not be available at all times given the usual need of human involvement.
+
+What is more likely is that the system would keep note of cases it is very unsure of, guess the classification anyway if an immediate response is required, and at the next opportunity, query the oracle in batch regarding the true classification.
+
+\subsection{Query Synthesis}
+Although it can cause hassle for a human annotator, another variation is known as \emph{Query Synthesis}, in which the program actually constructs its own unlabelled data instances to present to the oracle (as opposed to the data being actual previously observed).
+
+The program is thus able to actively explore the domain space, as opposed to just waiting for data to try to infer this information.
+
+While unsuitable for many problem areas (in particular text), one could easily see how this model could be useful in the context of scientific experiments. The program may wish to make \emph{guesses} as to what would be useful data to get classified, so that it may further refine its knowledge of the domain.
+
+\citet{Settles2010} points to a good example involving a ``robotic scientist'' as described in \citet{King2009}.
+
+Query Synthesis is not really necessary in traditional pool-based sampling areas - since a large pool of truly observed (and therefore valid) unlabelled examples are present that should be representative of the type and distribution of problems which will be later presented to the system.
+
+\subsection{Pool-Based Sampling}
+
+The facet of active learning we will subsequently consider is known as \emph{pool-based sampling} in other literature \citep{Settles2010}, and is based on the idea that there is a large quantity of unlabelled cases available, but getting labels (which might involve consulting a human expert) is an expensive process, for which it is undesirable to apply to the entire unlabelled set. 
+
+The aim of the system is to choose a subset of these unlabelled cases for which to request a label. These are then used as the system's pool of labelled cases which it will consult in future. The system would like to maximize its classification accuracy for future cases, but resort to asking the oracle external to the system for a minimal number of labels.
 
 \begin{figure}[h!] \centering
 \includegraphics[width=10cm]{./Others/Settles2010PoolBasedImage}
 \caption*{Pool-Based Active Learning Cycle Diagram found in \citet{Settles2010}}
 \end{figure}
-
-\subsection{Case-base}
-The \emph{case-base} is the labelled pool of data which the overall system consults when a new unlabelled case is presented for classification.
-
-\subsection{Case-Based Classification using KNN}
-
-A k-nearest neighbours approach fits the case-base concept quite well. When a new unseen instance is presented to the classifier, the classifier can simply walk through the case-base to find cases which are similar to the presented instance. It can then use these labelled cases in some sort of Voting fashion to classify the presented instance.
-
-When new data is added to the case-base, there is no real cost in re-training the classifier, since re-training simply involves adding the new data to the set in which the KNN walks through (which can simply be the case-base itself).
-
-\subsection{Oracle}
-The \emph{oracle} is the entity which the system may consult if it wishes to determine the true label for a case.
-
-Often, the oracle is a human expert familiar with the domain who must manually label the case. Though the oracle may also just be another system, but for which there is some expense\footnote{Here, we use the word `expense' in its broadest possible meaning. It may be financially expensive, computationally expensive, or simply take an exceedingly long amount of time to run. In any event, `expense' refers to some undesirable operation for which we want to minimize the number of calls.} in using to determine a label. 
-
-\subsection{Selection Strategy}
-While the term \emph{selection strategy} can have slightly different meanings given the type of active learning being considered, we will subsequently use the phrase to mean the algorithmic approach taken to determine which unlabelled cases to query against the oracle for their true labels, and put in the case-base.
-
-\subsection{Stopping Condition}
-The \emph{Stopping Condition} of the system is the point at which the system must stop consulting the oracle.
-
-\subsubsection{Examples of stopping conditions}
-\paragraph{Oracle Budget} 
-The oracle is willing to classify only a fixed number of cases.
-
-\paragraph{Desired Classification Accuracy} 
-The system stops asking the oracle for a label after it is capable of achieving a certain classification accuracy on its test set.
 
 \section{Variations / Related Areas}
 Many variations on the concept of active learning exist. The following is intended to give just a small subset of examples, as found in \citet{Settles2010}.
@@ -196,36 +263,6 @@ In our evaluations and experimentation, we don't attempt to initially seed the c
 	\item Adding seeding would also add another factor for testing, as opposed to primarily testing the variance between different selection strategies.
 \end{enumerate}
 
-\subsubsection{Examples of Seeding Strategies}
-\begin{itemize}
-	\item Random Seeding
-	\item K Means
-	\item K Medoids
-\end{itemize}
-
-\subsection{Stream Based Learning}
-In \emph{Stream Based Learning}, the system does not just select at the outset from an unlabelled pool the cases to request labelling by the oracle. Instead, it is presented with a stream of cases, and for each case, it may either itself guess the classification (if it is relatively sure it is correct), or it may defer the decision to the oracle.
-
-This notion can sometimes be more useful - but it is unlikely in practice that the system would query at any arbitrary time for a label from the oracle, since the oracle may not be available at all times given the usual need of human involvement.
-
-What is more likely is that the system would keep note of cases it is very unsure of, guess the classification anyway if an immediate response is required, and at the next opportunity, query the oracle in batch regarding the true classification.
-
-\subsection{Query Synthesis}
-Although it can cause hassle for a human annotator, another variation is known as \emph{Query Synthesis}, in which the program actually constructs its own unlabelled data instances to present to the oracle (as opposed to the data being actual previously observed).
-
-The program is thus able to actively explore the domain space, as opposed to just waiting for data to try to infer this information.
-
-While unsuitable for many problem areas (in particular text), one could easily see how this model could be useful in the context of scientific experiments. The program may wish to make \emph{guesses} as to what would be useful data to get classified, so that it may further refine its knowledge of the domain.
-
-\citet{Settles2010} points to a good example involving a ``robotic scientist'' as described in \citet{King2009}.
-
-Query Synthesis is not really necessary in traditional pool-based sampling areas - since a large pool of truly observed (and therefore valid) unlabelled examples are present that should be representative of the type and distribution of problems which will be later presented to the system.
-
-\subsection{Batch Learning}
-In practice, it is unlikely that cases would be presented to the oracle one-at-a-time. What is more likely is that batches of cases are presented to the oracle.
-
-In our investigation, we do not perform batch learning - instead presenting cases one at a time to the oracle (equivalent to a batch size of 1).
-
 \subsection{Noisy Oracle}
 A \emph{Noisy oracle} relates to the oracle being wrong in its classification some of the time.
 
@@ -236,7 +273,12 @@ In many real-world applications, the cost associated with labelling a case can v
 
 In our investigation, we do not deal with case labelling cost variation, instead assuming a fixed cost.
 
-\section{Report outline}
+\subsection{Batch Learning}
+In practice, it is unlikely that cases would be presented to the oracle one-at-a-time. What is more likely is that batches of cases are presented to the oracle.
+
+In our investigation, we do not perform batch learning - instead presenting cases one at a time to the oracle (equivalent to a batch size of 1).
+
+\section{Report Outline}
 \begin{itemize}
 	\item Chapter \ref{cha:litreview} will outline various basic selection strategies as found in existing active learning literature, as well as looking at some more complicated strategies.
 	\item Chapter \ref{cha:platarch} will give an overview of the platform architecture developed during the course of this project for running and analysing selection strategy experiments.
@@ -246,19 +288,11 @@ In our investigation, we do not deal with case labelling cost variation, instead
 \end{itemize}
 
 \chapter{Literature Review\label{cha:litreview}}
+\section{Introduction}
+Active learning, and case-based reasoning in general, have massive quantities of research backing them. In this chapter, we will try to give an overview of some basic selection strategies in use in active-learning, along two two examples of recent research efforts to the area.
 
 \section{Common Concepts}
 Certain concepts very frequently occur in the active learning literature, so these will be outlined first.
-
-\subsection{Similarity/Distance}
-The notion of \emph{similarity} or \emph{distance} between pairs of data instances is often core in many selection strategies. As one would expect, the similarity between two data instances is a numerical figure which represents how similar the cases are to one another.
-
-\subsection{(Nearest) Neighbours / Neighbourhood}
-It is common to define a group of cases relative to an individual case that in some fashion relate more strongly to the case than other cases in the case-base - cases that \emph{neighbour} that case by means of the relation.
-
-Nearest neighbours follow fluidly from the use of k-nearest neighbour style classification approaches that often go along with case-based Reasoning Systems, and are sometimes used for additional purposes.
-
-Neighbourhoods based on other characteristics, such as shared coverage, can also be defined.
 
 \subsection{Density}
 The notion of \emph{density} is extremely common. It simply represents how dense a region is with cases within a large group of cases by means of how close cases are to one another.
@@ -290,9 +324,6 @@ When it comes to analysing an individual case, often the notion of the other cas
 
 \citet{BridgeUpcoming} highlights the interesting point that there are subtle but definitely significant differences to what different researchers mean when they use the term solves. Often, the term seems to be glossed over quickly in literature due to its apparent obviousness, but is still often core to the algorithms presented.
 
-\subsection{Clustering}
-Somewhat related to density, Clustering is sometimes performed on the dataset. Usage of clustering varies massively, but one relatively common use is to use Cluster-centres from dense regions as initial seeds for the case-base.
-
 \section{Basic Selection Strategies}
 \subsection{Random Sampling}
 \emph{Random sampling} is probably the most basic selection strategy. It simply selects cases at random from the unlabelled set. Even with its simplicity, it has the benefit of resulting in a moderately representative sampling of the domain\footnote{This is assuming that the unlabelled cases are a representative sampling of the real world domain - which we usually assume that they are.} if a sufficient number of instances are chosen.
@@ -308,7 +339,7 @@ The benefit of uncertainty sampling is that it doesn't select redundant cases, s
 
 Uncertainty sampling, like random sampling, is very commonly used as a baseline when evaluating new algorithms.
 
-\subsection{Uncertainty with density}
+\subsection{Uncertainty with Density}
 As discussed in the previous section, uncertainty sampling has the serious downfall of being prone to querying outliers, since it does not consider the region surrounding the cases it selects.
 
 A very straightforward attempt at solving this issue is by incorporating density information also, giving an additional weighting to the uncertainty measures based on how dense a region the case in question comes from. Uncertain cases from dense regions thus become more favourable than uncertain cases from very sparse regions (outliers).
@@ -603,6 +634,11 @@ It's possible that there was some advanced maths way, of which I am unaware, to 
 
 As a result of the above, we decided not to proceed with using Hu's aggregation strategy.
 
+\section{Conclusions}
+From reviewing the a sampling of current active learning literature, it appears that no one to date has used purely competence based selection strategies. It is this gap that we wish to tackle. 
+
+Even with the abundance of active learning research, there does not appear to be any single widely used research platform for selection strategy research. In the next chapter, we present the research platform we developed for the purpose of our experimentation and investigation into competence based selection strategies.
+
 \chapter{Platform Architecture\label{cha:platarch}}
 \section{Overview}
 \subsection{Purpose}
@@ -767,17 +803,19 @@ An individual \emph{Result} consists of:
 \end{itemize}
 
 \subsubsection{Result Set}
-A \emph{Result Set} is a Collection of Results, which also provides the capability to generate the AULC of the results. For convenience and completeness, a Result Set also has knowledge of the training set and the test set that was used in generating the contained Results.
+A \emph{Result Set} is a collection of Results. For convenience and completeness, a Result Set also has knowledge of the training set and the test set that was used in generating the contained Results.
 
 \subsubsection{Multi Result Set}
-A \emph{Multi Result Set} is a collection of Result Sets, which provides averaging of Results grouped by case-base size, which can subsequently act as a standard Result Set based on the averaged results\footnote{Except obviously, the Training Data, Test Data and Selections fields for this Pseudo-Result Set will be blank - since these entities can't really be averaged meaningfully.}.
+A \emph{Multi Result Set} is a collection of Result Sets, which provides averaging of Results grouped by case-base size. This is necessitated by the fact that we are performing cross validation. Instead of one Result Set being produced for an experiment, k are produced where k is the number of folds of cross validation being performed.
+
+The Multi Result Set provides an encapsulation of these k cross validation results by allowing them to subsequently act as a standard Result Set based on the averaged results, except obviously, the Training Data, Test Data and Selections fields for this will be blank - since these entities can't really be averaged meaningfully.
 
 \subsection{Summarising The Results}
 \subsubsection{Learning Curve}\label{sec:multiresultset}
 A commonly presented representation of selection strategy evaluation is the \emph{Learning Curve} - a plot of classification accuracy vs case-base Size.
 
 \subsubsection{Area Under the Learning Curve}
-A metric to summarise the progression, and allow for comparison among different selection strategies against the same dataset and same starting and finishing case-base size is \emph{AULC (Area Under the Learning Curve}). As can be expected, this is simply the area under the Learning Curve.
+A metric to summarise the progression, and allow for comparison among different selection strategies against the same dataset and same starting and finishing case-base size is \emph{AULC (Area Under the Learning Curve}). As can be expected, this is simply the area under the Learning Curve. Result Set objects have the inbuilt capability of computing the AULC value for their contained Results.
 
 \section{Outputs}
 
@@ -824,12 +862,20 @@ Due to the flattening of varying dimensionality datasets, the usefulness of thes
 \subsection{Experiments Summary}
 A summary CSV file is also output for the experiments executed during a run of the platform. It simply gives a tabular breakdown of dataset vs selection strategy AULC values.
 
+\section{Platform Usage}
+The general workflow of using the platform is relatively straightforward: provide inputs to the experimentation engine, allow the engine to run the requested experiments, and analyse the results output from the engine. This methodology provides a generic mechanism of experimenting with selection strategies.
+
+Now, we wish to actually use this platform in researching competence based selection strategies. In the next chapter, we shall outline the core concepts involved in competence models, and some of the results which lead on from them.
+
 \chapter{Competence Models\label{cha:CompetenceModels}}
 \section{Overview}
+It is often useful, when thinking about an overall active learning system, to consider the competence of a case-base: the capabilities of the case-base when presented with new unseen problems. This view however is somewhat limiting when investigating the case-base in detail, as we get very little granularity. It is more useful to be able to consider the competence of individual cases, and their contribution to the overall case-base.
 
-\citet{Delany2009} expanded on the definitions of coverage and reachability sets (as described in \citet{Smyth1995}) to include their counterparts, which she terms ``liability'' and ``dissimilarity'' respectively. She uses these concepts in defining case profiles, and experimenting with case-base maintenance strategies.
+\citet{Smyth1995} considers the notion of individual case competence based on the `positive' contribution a case has with regards the rest of the case-base.
 
-We hope to expand on her boolean RCDL profile concepts, and attempt to use them in an active learning selection strategy role.
+\citet{Delany2009} expands on this profiling methodology to also consider the `negative' contribution a case has. The resulting profiles better aid in representing the competence of individual cases by showing both their positive and negative contributions towards the overall case-base. She then goes on to use these profiles in considering and creating case-base maintenance algorithms. 
+
+We hope to expand on her work on competence profiles, and attempt to use them in an active learning selection strategy role as opposed to case-base maintenance.
 
 \section{Fundamentals}
 \subsection{Nearest Neighbours / Reverse Nearest Neighbours}
@@ -1330,6 +1376,7 @@ Figure \ref{fig:winxwintimingsincronly} shows a plot of just the incremental tim
 %\subsubsection{Complexity Analysis}
 %TODO Write the Complexity Analysis Section.
 
+\chapter{Competence Based Selection Strategies}
 \section{Types of RCDL Changes from adding a Single Case to the Case-Base}
 \subsection{NNs of the New Case}
 \begin{figure}[h!] 
@@ -1477,7 +1524,18 @@ Incorrect to Correct &
  & Remove &  &  & X & X\tabularnewline
 \hline 
 \end{tabular}
-	
+
+\vspace{12pt}
+
+The above table summarises in brief the findings of the possible types of changes that can happen from adding a new case the case-base. For example:
+\begin{itemize}
+	\item The mark corresponding to ``New Case'', ``Add'' means that, as a result of the addition of the new case, any of the new case's RCDL sets might have elements added to them.
+	\item The mark corresponding to ``Existing Cases Shunt'', ``Remove'' means that, as a result of the addition of the new case, shunt type changes can involve removing cases from the RCDL sets of the existing cases.
+	\item The absence of the mark corresponding to ``Existing Cases Shunt'', ``Add'' means that RCDL sets of existing cases will not be added to as a result of Shunt type changes as defined previously.
+\end{itemize}
+
+The table may simply be used as a reference when considering the formulae presented later when describing competence selection strategies.
+
 \section{Selection Strategy Pre-Notes}
 \subsection{The Act of Supposing\label{sec:actofsupposing}}
 When an unlabelled case is evaluated for inclusion in the case-base, the actual label for the case is unknown. It could have any of the possible labels. As a result, when considering a case for inclusion, it is desirable to evaluate its benefit for all possible labels, possibly considering the likelihood of the label given what we already know through the case-base.
@@ -1490,35 +1548,42 @@ It should first be noted that, due to the occurrence of Shunt and Flip type chan
 
 It would be useful for when developing new selection strategies to be able to determine whether a particular change were a `Direct', `Flip' or `Shunt'.
 
-\newpage
 \subsubsection{Suppose Change Set SFD Categorization Algorithm}
+%TODO:DGB didn't find clear
 \begin{code}
-Algorithm CategorizeChanges(ChangePairs, C\sbt{N}):
-  let (DirectCPs, ShuntCPs, FlipCPs) = (\{ \}, \{ \}, \{ \})
-  for (C\sbt{P}, Change\sbt{P}) in ChangePairs:
-    if C\sbt{P} == C\sbt{N}:
+Algorithm CategorizeChanges(change_pairs, new_case):
+  let (direct_cps, shunt_cps, flip_cps) = (\{ \}, \{ \}, \{ \})
+  for (existing_case, change) in change_pairs:
+    if existing_case == new_case:
       // All changes regarding the new case are regarded as Direct, 
       // no extra work needed
-      DirectCPs[C\sbt{P}] = Change\sbt{P})
+      direct_cps[existing_case] = change)
       continue
-    
-    for (cat, s) in \{reachability, dissimilarity\} X \{Added, Removed\}:
-      for C\sbt{O} in `s' of `cat' set of Change\sbt{P}:
-        if C\sbt{O} == C\sbt{N}:
-          let change_type = `Direct'
-        else if s == `Removed' 
-            and not (correct-classification-status did change
-                     and C\sbt{O} contributed to C\sbt{P}'s previous classification):
-          let change_type = `Shunt'
+
+    // Want to iterate over all changes (both added and removed) 
+    // of reachability and dissimilarity, and categorize each 
+    // case change individually
+    for (rcdl_set, op) in cross product of 
+                          \{`reachability', `dissimilarity`\} 
+                      and \{`Added', `Removed'\}:
+      for other_case in `op' of `rcdl_set' of change:
+        if other_case == new_case:
+          let change_type = `direct'
+        else if correct-classification-status did change 
+             and (other_case contributed to existing_case's
+                      previous classification):
+          let change_type = `flip'
         else:
-          let change_type = `Flip'
-      Add C\sbt{O} to (cat).(s) of change_type's CPs for case C\sbt{P}
+          let change_type = `shunt'
+          
+        Add this change to existing_case pair in change_type's CPs set 
+            (i.e. shunt_cps, flip_cps or direct_cps)
     
   // All reachability and dissimilarity sets have been dealt with,now we
   // need to use the reachability and dissimilarity sets of each to infer
   // and make the changes for coverage and liability changes.
-  for CPs in (DirectCPs, ShuntCPs, FlipCPs):
-    PlaceDuals(CPs)
+  for cps in (direct_cps, shunt_cps, flip_cps):
+    PlaceDuals(cps)
 \end{code}
 
 \subsubsection{Flips taken to `overpower' Shunts}
@@ -1576,7 +1641,7 @@ If there are more than 2 labels and we totalled across different labels, both fl
 We do not attempt to count unique instances here, as the weighting attached due to the duplicates is somewhat useful. If a flip occurs for e.g. 3 out of 4 labels for a case, it is somewhat more relevant than if it occurs for 1 of the 4 labels.
 
 \section{Selection Strategies}
-\subsection{CompStrat 1 - New Case Reachability\label{sec:compstrat1}}
+\subsection{CompStrat 1: New Case - Reachability\label{sec:compstrat1}}
 When Supposing a single case for addition to the case-base, irrespective of the label we choose to suppose, the case-base will classify it with only one label. For example, in Figure \ref{fig:NNsCorrect}, irrespective of if we Suppose Cn to be a triangle, or a circle, the case-base will still classify it a circle. Thus, the reachability set of Cn will only get populated in one instance - when we Suppose Cn to be the same label as the case-base classifies it.
 
 This holds true in Supposing any case for the case-base. A Supposed case will only have its reachability set populated for one single label for a case-base state - the label that the case-base classifies it as. Assuming a non-empty case-base, for when the reachability set is populated - the cardinality of the set will always be between 1 and k.
@@ -1585,7 +1650,7 @@ With the absence of further knowledge, we could guess that when the reachability
 
 This Strategy takes this approach exactly - assigning an overall score to each unlabelled case equal to the total of the reachability set Supposes across all the different possible labels\footnote{Totalling is sufficient because we are guaranteed that the reachability set will be empty for all but one of the Supposes. So totalling is equivalent to just taking the value of the non-empty reachability set.}. The unlabelled case with the minimum score is then selected. Ties are broken at random.
 
-\subsection{CompStrat 2 - NCADMin: New Case Coverage Added Deviation Minimisation}
+\subsection{CompStrat 2: New Case - Coverage}
 
 The intuition around this strategy is that by trying to find unlabelled cases which have a roughly equal positive effect for the different possible labels, we get cases which are close to classification boundaries.
 
@@ -1621,14 +1686,14 @@ One thing that initially falls out of this strategy is that, during the early se
 
 After all of the diverse cases have been selected, it will then move onto balancing more similar to as described in the example above.
 
-\subsection{CompStrat 3 - NCATMaxDMin: New Case Coverage Added Total Maximisation with Deviation Minimization}
+\subsection{CompStrat 3: NCATMaxDMin: New Case Coverage Added Total Maximisation with Deviation Minimization}
 This strategy was an attempt at resolving one of the `issues' of CompStrat 2, in that it will likely choose cases that have very little impact on the cases already in the case-base.  CompStrat 3 first chooses the top quarter of unlabelled cases based on their total coverage added among all the different Supposes of the possible labels. It then chooses from these the one with least Standard Deviation between the Covered totals of the Supposes.
 
 In the example presented in Figure \ref{fig:ncadmin}, C2 is slightly more desirable, in that - irrespective of its label, it would assist in covering a large portion of cases, and would be a better candidate than C1 in helping set the classification boundary in a region dense with multiple labels.
 
 A downside of this strategy though is that it is liable to get `stuck' in relatively dense areas of the case space, not choosing cases which exert no influence on the existing cases in the case-base.
 
-\subsection{CompStrat 4 - NDATMin: New Case Dissimilarity Added Total Minimisation}
+\subsection{CompStrat 4: New Case - Dissimilarity}
 \begin{figure}[h!] \centering
 \includegraphics[width=100pt]{./Drawn/NDATMin}
 \caption{Example of unlabelled case relative to its k-nearest-neighbours within the case-base.}
@@ -1686,7 +1751,7 @@ Total &= (|L| - 2)\times |C_{N}| +(|L| - 1)\times (k - |C_{N}|) \\
 
 The $ (|L| - 1) \times k $ part will be a constant for a single case-base state. $|C_{N}|$ represents the number of disagreeing neighbours. A high number of disagreeing neighbours would indicate that the case-base is relatively uncertain about the classification. Thus - a strategy to semi-emulate uncertainty sampling (though in a less fine-grained manner) is to maximize $|C_{N}|$. To do this, we should minimize $Total$.
 
-\subsection{CompStrat 5 - NLATMin: New Case Liability Added Total Minimisation}
+\subsection{CompStrat 5: New Case - Liability}
 There are two types of cases which can appear in the new case's liability set:
 \begin{enumerate}
 	\item A case which was already misclassified, and the new case simply joins in in the misclassification.
@@ -1697,7 +1762,7 @@ In each, the new case is somehow aiding in the incorrect classification of an ex
 
 Totalling here, as in other strategies, is probably not the best approach - but as a simplistic initial investigatory strategy, we try to minimize the total of the new case's liability set summed over the different possible Supposes.
 
-\subsection{CompStrat 6 - OCAPlRSubFATMin: Other Cases Coverage Added Plus Removed (Subtract Flip-related Added) Total Minimisation}
+\subsection{CompStrat 6: Other Cases - Coverage}
 
 \subsubsection{Direct}
 
@@ -1720,7 +1785,7 @@ Because the overall aim in the strategy is `minimisation', to give positive cont
 
 This value is computed for each candidate case, summed across the possible labels. The candidate case with the minimum value is selected.
 
-\subsection{CompStrat 7 - ORSubFaTMin: Other Cases Reachability Subtract Flip Added Total Minimization}
+\subsection{CompStrat 7: Other Cases - Reachability}
 \subsubsection{Direct}
 A high number of additions to Direct reachability sets of Other cases would indicate that the new case is in a relatively dense region. To attempt to increase the diversity of new cases, we would thus like to minimize this.
 
@@ -1737,7 +1802,7 @@ Causing a flip to correctly classified is a positive thing (Flip related reachab
 
 We would like to minimize this value overall.
 
-\subsection{CompStrat 8 - OLSrPlFrSubFaTMax: Other Cases Liability Shunted removed Plus Flip removed subtract Flip added Maximisation}
+\subsection{CompStrat 8: Other Cases - Liability}
 \subsubsection{Direct}
 (No real point considering this with the whole double counting that cropped up in CompStrat 4.)
 
@@ -1754,7 +1819,7 @@ Causing a case to flip to incorrectly classified would lead to flip related liab
 
 This value is computed for each candidate case, summed across the possible labels. The candidate case with the maximum value is selected.
 
-\subsection{CompStrat 9 - ODSubFrTMin: Other Cases Dissimilarity Subtract Flip Removed Total Minimization}
+\subsection{CompStrat 9: Other Cases - Dissimilarity}
 
 \subsubsection{Direct}
 A high number of additions to Direct dissimilarity sets of Other cases would indicate that the new case is in a relatively dense region. To attempt to increase the diversity of new cases, we would thus like to minimize this.
@@ -1818,37 +1883,39 @@ for (cat, fn) in cat_to_files:
             print
 \end{python}
 
-\begin{python}
-import csv
-import os
-
-exp_results_dir = "./ExperimentResults/"
-sel_graphs_dir = exp_results_dir + "selection_graphs/"
-with open(exp_results_dir + "non_textual_summary.csv") as f:
-    r = csv.reader(f)
-    r = list(r)
-    variations = [row[0] for row in r[1:]]
-    for (i, v) in enumerate(variations):
-        print r'\begin{figure}[h!]'
-        if i == 0:
-            print r'\section{Selection Graphs}'
-        print r'\subsection{' + v + '}'
-        print r'\centering'
-        print r'\includegraphics[width=0.98\textwidth]{"' + sel_graphs_dir + v + '"}'
-        print r"\caption*{Selections graph for Variation `" + v + "'}" 
-        print r'\end{figure}'
-        print r'\vspace{10pt}'
-        print
-\end{python}
+%\begin{python}
+%import csv
+%import os
+%
+%exp_results_dir = "./ExperimentResults/"
+%sel_graphs_dir = exp_results_dir + "selection_graphs/"
+%with open(exp_results_dir + "non_textual_summary.csv") as f:
+%    r = csv.reader(f)
+%    r = list(r)
+%    variations = [row[0] for row in r[1:]]
+%    for (i, v) in enumerate(variations):
+%        print r'\begin{figure}[h!]'
+%        if i == 0:
+%            print r'\section{Selection Graphs}'
+%        print r'\subsection{' + v + '}'
+%        print r'\centering'
+%        print r'\includegraphics[width=0.98\textwidth]{"' + sel_graphs_dir + v + '"}'
+%        print r"\caption*{Selections graph for Variation `" + v + "'}" 
+%        print r'\end{figure}'
+%        print r'\vspace{10pt}'
+%        print
+%\end{python}
 
 
 
 \chapter{Conclusions and Future Work\label{cha:conclusions}}
 
-\section{Closing Opinions}
-\subsection{Backing Source Code should always accompany experimental results}
+\section{Project Conclusions}
+\subsection{Contributions Made}
 
-\section{Future Work Opportunities}
+\subsection{Results}
+
+\section{Future Research Opportunities}
 \subsection{Statistical Analysis of Suppose Change Distribution}
 Perform statistical analysis on Supposes for multiple datasets to better understand distribution of types of case profile changes
 
@@ -1882,6 +1949,12 @@ and non-weighted voting is used, then it is correctly classified `y' and:
 \end{itemize}
 
 Here, no knowledge of $NN_{3}(case_{1})$ is maintained. I believe it would be more natural to have the dissimilarity set to include cases that were \emph{fighting} against the correct classification, even if the case was correctly classified.
+
+\section{Platform Development}
+
+\section{Closing Opinions}
+\subsection{Backing Source Code should always accompany experimental results}
+
 
 \chapter{Appendix}
 \section{Project Source Code}
