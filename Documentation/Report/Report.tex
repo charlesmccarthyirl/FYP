@@ -52,7 +52,7 @@
 \maketitle
 
 \begin{abstract}
-An overview of the fundamental concepts in active learning, with particular focus on the use of Competence Models. Experimental analysis of basic selection strategy approaches, along with experiments on new Competence Model based approaches.
+An overview of the fundamental concepts in active learning, with particular focus on the use of competence models. Experimental analysis of basic selection strategy approaches, along with experiments on new competence model based approaches.
 %TODO:A larger abstract will spell out what the work has shown - i.e. results, more than background.
 \end{abstract}
 
@@ -283,7 +283,7 @@ In our investigation, we do not perform batch learning - instead presenting case
 	\item Chapter \ref{cha:litreview} will outline various basic selection strategies as found in existing active learning literature, as well as looking at some more complicated strategies.
 	\item Chapter \ref{cha:platarch} will give an overview of the platform architecture developed during the course of this project for running and analysing selection strategy experiments.
 	\item Chapter \ref{cha:CompetenceModels} will introduce the notion of \emph{Competence Models}, outlining a particular model developed by a researcher from DIT. It will then proceed to present our attempts at expanding the models, and using them in an active learning context.
-	\item Chapter \ref{cha:expanalysis} will present the results of the experimental analysis carried out on the basic selection strategies, and our Competence based strategies.
+	\item Chapter \ref{cha:expanalysis} will present the results of the experimental analysis carried out on the basic selection strategies, and our competence based strategies.
 	\item Chapter \ref{cha:conclusions} finishes with the conclusions to the project, and potential areas of future work that could follow.
 \end{itemize}
 
@@ -850,7 +850,7 @@ Summary Results are also saved\footnote{Technically, these Summary Results are u
 \subsection{Learning Curve Plots}
 PyX \citep{prog:pyx} is used to generate a PDF file of plots of the Average Learning Curves for all of the selection strategies\footnote{Initially - matplotlib \citep{prog:matplotlib} was used to generate the graphs - but its interface was somewhat messy and non-pythonic.}. One PDF is generated for each dataset.
 
-\subsection{Selection Graphs}
+\subsection{Selection Graphs\label{sec:selectiongraphs}}
 We also generate a visualisation of the case base that each selection strategy produces. The distance matrix for the entire dataset is used to generate a spring-graph of all the cases, where each case (represented by a node in the graph) has an edge to a small proportion of its nearest neighbours, with a force proportional to the distance. Graphviz \citep{prog:graphviz} was used to perform this graph generation, with PyGraphviz \citep{prog:pygraphviz} as the interface from Python.
 
 Cases which a given selection strategy chooses are highlighted at each selection iteration. These are then output to a PDF file, with each page representing an iteration in the selection strategy.
@@ -1045,7 +1045,7 @@ This can simply be derived from the definitions above, but of primary note is th
 \subsection{Max Size of Reachability and Dissimilarity sets bounded to K}
 Given that the reachability and dissimilarity sets of a case are always subsets of that case's NNs, the maximum size is K - the size of the NNs set\footnote{This is assuming that a \emph{strict} KNN is used, where at max k neighbours are used even when ties exist.}.
 
-\section{An Incremental Strategy to RCDL}
+\section{An Incremental Strategy to RCDL\label{sec:incrstrategy}}
 \subsection{Justification} 
 In Delaney's work, it was sufficient to calculate the case-base RCDL profiles in a brute-force manner, since it was the most efficient way in her case-base maintenance investigation on existing case-bases. For selection strategies this would not hold, since the profiles would need to be inferred many times for a changing case-base.
 
@@ -1549,7 +1549,6 @@ It should first be noted that, due to the occurrence of Shunt and Flip type chan
 It would be useful for when developing new selection strategies to be able to determine whether a particular change were a `Direct', `Flip' or `Shunt'.
 
 \subsubsection{Suppose Change Set SFD Categorization Algorithm}
-%TODO:DGB didn't find clear
 \begin{code}
 Algorithm CategorizeChanges(change_pairs, new_case):
   let (direct_cps, shunt_cps, flip_cps) = (\{ \}, \{ \}, \{ \})
@@ -1910,51 +1909,146 @@ for (cat, fn) in cat_to_files:
 
 \chapter{Conclusions and Future Work\label{cha:conclusions}}
 
-\section{Project Conclusions}
+\section{Project Results}
 \subsection{Contributions Made}
+\subsubsection{Experimental Platform}
+The Python-based platform developed for the project has some useful features for selection-strategy experimentation in a pool-based active learning context.
 
-\subsection{Results}
+It allows pluggable definitions of selection strategies, without requiring code changes to the main platform. It also has very pluggable definitions for things like the oracle, stopping condition, classifier, etc. It could thus be used for evaluations far beyond the current scope of this project.
 
-\section{Future Research Opportunities}
+One small but useful additional capability of the platform is how it deals with data loading and distance computation. It provides two interoperable formats to store pre-computed distance information along with the data. This allows for very different platforms to be used in initially processing the data. Even in this project, it allowed textual data to be added by using the facilities of SciKit Learn, but required no modification to the platform code.
+
+The experimental result re-use mechanism is another useful feature to the platform, which allows it to read in previous results, and use them if necessary when running the new experiment.  
+
+\subsubsection{Incremental Algorithm to RCDL}
+
+The incremental algorithm to RCDL profile generation presented in Section \ref{sec:incrstrategy} is a new addition to the area. It was not necessary in \citet{Delany2009} due to how she was using it, but for active learning approaches, having an incremental approach becomes a lot more relevant. 
+
+The `suppose' operation is also somewhat novel, allowing selection strategies to determine in advance what the changes to the RCDL profiles would be if it picked a certain case, and that case turned out to have a certain label.
+
+\subsubsection{Competence Based Selection Strategies}
+
+We presented how we interpret the changes that might occur the competence profiles of cases following the addition of a new case to the case-base, and ran experimentation to test our derivations.
+
+While the presented competence based strategies were by no means ground-breaking in their results, I believe their investigation still contributed useful thought-experiments in the field, and also set some of the ground work for potential future investigation into competence based methodologies.
+
+\subsubsection{SciKit-Learn Fix Contribution}
+
+Although relatively trivial in size, I identified a bug in the SciKit-Learn 20 newsgroups textual data loading mechanism. I fixed the bug, added unit tests to verify the presence of the bug, and the fix written, and subsequently pushed the changes back to the main SciKit-Learn repository. The community members in charge of the repository verified and accepted the change.
+
+\subsection{Experimental Analysis}
+
+
+\section{Further Research Opportunities}
 \subsection{Statistical Analysis of Suppose Change Distribution}
-Perform statistical analysis on Supposes for multiple datasets to better understand distribution of types of case profile changes
+In our research, we treated the selection strategies and overall experimentation as simple black boxes. We would try implementing various strategies, run the experiments with the new strategies, and simply look at the outputted results, comparing them to those of previous strategies.
 
-\subsection{Try more sophisticated RCDL based selection strategies}
-Incorporate additional techniques to the simple RCDL based strategies
+At no stage did we actually analyse the individual choices that the strategies made for the purposes of understanding the results or improving the strategies. While much scope exists for more in depth analysis, at a very minimum, one interesting area for future work would be to perform statistical analysis on supposes for multiple datasets to better understand distribution of types of case profile changes.
+
+When we were selecting minimums, I am curious as to the level of zeroes present, whether for some of the strategies on certain datasets, they were almost equivalent in behaviour to random sampling. I also think it would be useful for when developing new strategies as to the frequency and size of the different types of RCDL changes from the selection of a case.
+
+As a result of all this, I believe there would definitely be benefit in spending the time to perform statistical analysis on suppose operation based changes.
+
+\subsection{Try more sophisticated RCDL-augmented selection strategies}
+
+The work we did on building RCDL based selection-strategies was somewhat exploratory, focussing mainly on just the RCDL concepts. It would be interesting to try more sophisticated techniques in using RCDL profiles, by augmenting some existing selection strategies, both established and novel.
+
+It might also be interesting to go in the other direction - to try to incorporate concepts from existing strategies into the simple RCDL based strategies we defined, for example taking into account case uncertainty and label probability when doing the suppose operations.
 
 \subsection{Use `Suppose' approach in developing case-base maintenance algorithms}
-Investigate case-base maintenance algorithms using the ``Incremental Case Profile Building'' and ``Suppose'' approach.
+
+\citet{Delany2009} investigated case-base maintenance algorithms using RCDL profiles in a compute-once fashion, generating the profiles at the outset of the algorithm and subsequently just using this snapshot for the remainder of the algorithm.
+
+It would be interesting to try using an incremental  ``suppose'' approach similar to what we developed in investigating case-base maintenance algorithms.
 
 \subsection{Improve Visualization Capabilities}
-Improve and expand visualization capabilities to remove the `black-box' experimentation approach.
+
+The visualization capabilities described in Section \ref{sec:selectiongraphs} were a two day effort in removing some of the `black-box' nature of our experimentation approach. This feature has scope for massive improvements:
+
+\begin{itemize}
+	\item \textbf{Provide dynamic interactive view with overlay information}:
+	
+	      Currently, only a static output is produced following the experiment. I believe it would be useful to have a more dynamic output option which includes the ability for user interaction, providing for example:
+	      \begin{itemize}
+	      	\item Overlay information about the relevant cases
+	      	\item Information regarding the state of the case-base
+	      	\item The decision process surrounding the current 
+	      \end{itemize} 
+	\item \textbf{Allow querying the engine}:
+	
+	      As opposed to just viewing information regarding the current state of the experiment, it would be useful to be able to perform queries against the engine such as ``What effects would selecting this case from the unlabelled set?''. It could also be useful to actually have input into the experiment by being able to actually force the selection of a case to see the consequences as the experiment continues running.
+\end{itemize}
+
+I believe that by researching and implementing a generic visualization feature for the platform, the task of selection-strategy research and development would be eased by allowing greater visibility into the decisions of selection strategies.
+
+The reason I would count this as a research opportunity as opposed to pure development is that  investigation around how to effectively convey information, and provide interactivity to the user would need to be carried out.
 
 \subsection{Try alteration on definition of Delany's `Contributes' notion}
-Contribution currently somewhat messed up.
+
+Delany's definition of `contribution' is as one would expect for binary classification, but I feel is somewhat counter intuitive for her `negative' sets (liability and dissimilarity) when performing multi-label classification.
+
+If a case is mislabelled by the case-base, she defines a case contributing to that misclassification as any neighbour in the k-nearest neighbours of the original case that have a different label to the label of the original case. 
+
+In the example presented in Figure \ref{fig:equaldistancemisclassifieseg}, even though $C1$ plays no role in the classification of $X$, by Delany's definition, it still contributes to the incorrect classification, and thus $Misclassifies(X,~C1)$. This has implications in the liability and dissimilarity sets of $C1$ and $X$ respectively. 
+
+I believe however that it would be more intuitive if we defined contribution towards classification as the neighbours in a case's k-nearest neighbours that have the same label as the classification of the case.
 
 \subsection{Maintain information about `helping' and `hindering' sets}
 A case either has a reachability set, or dissimilarity set - never both. This either-or nature is convenient for Delany's binary-style analysis, but throws away all information about the \emph{competing} set (be it reachability, or dissimilarity).
 
-For example, for Classes {y, n}, if:
+For example, in Figure \ref{fig:NNsCorrect}:
 \begin{itemize}
-	\item $label(case_{1})=y$ 
-	\item $k = 3$
-	\item $label(NN_{1}(case_{1})) = y$ 
-	\item $label(NN_{2}(case_{1})) = y$
-	\item $label(NN_{3}(case_{1})) = x$  
-\end{itemize}
-and non-weighted voting is used, then it is correctly classified `y' and:
-\begin{itemize}
-	\item $reachability(case_{1})=\left\{ NN_{1}(case_{1}),\hphantom{}NN_{2}(case_{1})\right\} $
-	\item $dissimilarity(case_{1})=\left\{ \right\} $
+	\item $reachability(Cn)=\left\{C1,~C2\right\} $
+	\item $dissimilarity(Cn)=\left\{ \right\} $
 \end{itemize}
 
-Here, no knowledge of $NN_{3}(case_{1})$ is maintained. I believe it would be more natural to have the dissimilarity set to include cases that were \emph{fighting} against the correct classification, even if the case was correctly classified.
+Here, no knowledge of $C3$ is maintained. I believe it might be useful to also maintain additional sets `helping' and `hindering', along with their duals.
 
-\section{Platform Development}
+\section{Platform Development Opportunities}
 
-\section{Closing Opinions}
-\subsection{Backing Source Code should always accompany experimental results}
+\subsection{Allow Operation as a Distributed System}
 
+The current platform developed does support using multiple processing cores of a single machine for experiment-running, though does not support distributed operation. Some experiments, given the size of the datasets involved and/or the complexity of the strategies, etc. used, can take days to run on a single machine.
+
+While the platform was sufficient for the purposes of this project, for more intense research projects it would be very useful to have the capability of running the platform as a distributed system. It would not take too much effort to extend the platform to support this, so it would be a worthwhile feature to develop.
+
+\subsection{Improve Test Coverage}
+
+Test coverage of the platform, and experimentation in general, was relatively low. For certain core operations, such as classification and incremental profile building, unit tests were written, but large portions of the overall code have not been methodically tested. 
+
+If the platform were to be used in a more intense fashion, increasing the test coverage should be a work item.
+
+\subsection{Document and package platform for general release}
+
+Given the one-person nature of the development of the platform, along with the focus on the research and results of selection strategies, the code of the platform is severely lacking in documentation. 
+
+To be more usable as a general purpose platform that others could easily also use, it would be good to properly document the code and restructure the code to a more disciplined package. 
+
+\subsection{Change to support other types of case-based reasoning experimentation}
+
+The current platform was developed for the sole purpose of investigating selection strategies in the context of pool based active learning. A lot of the code however would also be applicable if one were performing other types of case-based reasoning research.
+
+At a minimum, it would be nice if basic support was added for other core scenarios, such as case-base maintenance. This would allow researchers to build on top of this the elements that are unique to their investigations.
+
+\section{Closing Thoughts}
+\subsection{Backing Source Code should follow publications}
+I believe that, at a minimum for any public funded research, a link to backing source code should be a requirement for any publications produced. I find it baffling that results can be presented without any capability for reproducing the experiment. It feels contra to the general purpose of public research.
+
+It is possible that small bugs in people's code could invalidate entire experiments. Understandably, there would be fear when releasing source code as a result, but the work feels somewhat pointless otherwise. This is assuming good intention, but there is also the fact that researchers can carefully choose which results to publish, ignoring all the failed results.
+
+Not only would the requirement of source code provision aid in preventing the above, it would also better encourage re-use and collaboration among researchers of similar areas.
+
+\subsection{Usefulness of active learning and case-based reasoning}
+
+The project has opened my eyes somewhat to the benefit of active learning. In particular, the fact that the concepts apply beyond traditional domains like text analysis, and into more modern ones like recommendation engines.
+
+I don't think active learning is the `next-big-thing', but the concepts in it are undeniably useful, and it's an area that I believe active research  will continue to be beneficial. I will be especially interested in seeing in the coming years the new areas in which the concepts get successfully applied to.
+
+\subsection{Novelty of Competence Models}
+
+The notion of competence models appears to be a relatively unexplored area in case-based reasoning. The profiling of individual cases based on their competence-contributions to a case-base provides a different mindset from which to approach the domain.
+
+Somewhat pessimistically, I don't believe competence oriented research alone will suddenly solve all the woes of active learning, or general case-based reasoning. I do however think it is a useful addition to the general toolbox of techniques within the case-based reasoning community, and I'm shamelessly glad to have contributed ever-so slightly to it.
 
 \chapter{Appendix}
 \section{Project Source Code}
