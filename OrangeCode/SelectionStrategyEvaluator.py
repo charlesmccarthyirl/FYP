@@ -65,8 +65,6 @@ class ResultSet(list):
         list.__init__(self)
     
     def deserialize(self, stream):
-        logging.debug("Starting CSV reading from stream %s" % stream)
-        
         reader = csv.reader(stream)
         rows = [map(convert, row)
                 for row in islice(reader, 1, None) if len(row) > 1]
@@ -74,12 +72,8 @@ class ResultSet(list):
         
         self.training_set.extend((Instance.single_from(row[3]) for row in rows if row[3]))
         self.test_set.extend((Instance.single_from(row[4]) for row in rows if row[4]))
-        
-        logging.debug("Ending CSV reading from stream %s" % stream)
     
     def serialize(self, stream):
-        logging.debug("Starting CSV generation on stream %s" % stream)
-        
         writer = csv.writer(stream)
         writer.writerow(("Case base size", "Classification Accuracy", "Selected", "Training Set", "Test Set"))
         orderedResults = sorted(self, key=lambda x: x.case_base_size)
@@ -94,8 +88,6 @@ class ResultSet(list):
         
         writer.writerows(results_expanded)
         
-        logging.debug("Ending CSV generation on stream %s" % stream)
-    
     def AULC(self):
         '''
         Calculates the area under the learning curve, based on simple (rectangle + top triangle)
@@ -425,7 +417,8 @@ class ExperimentResult(OrderedDict):
         
     
     def write_to_selection_graphs(self, stream_from_name_cv_getter, 
-                                  data_info, write_all_selections=True):
+                                  data_info, write_all_selections=True, 
+                                  colour=False):
         if not (sys.modules.has_key('pygraphviz') and sys.modules.has_key('pyPdf')):
             raise ImportError('pygraphviz/pypdf not available on this system.')
         
@@ -435,7 +428,7 @@ class ExperimentResult(OrderedDict):
             g.add_edge(a, b, len=length)
             
         def set_node_as_test(g, n):
-            g.get_node(n).attr['fillcolor'] = 'white'
+            g.get_node(n).attr['color'] = 'green' if colour else 'white'
             g.get_node(n).attr['fontcolor'] = 'black'
             g.get_node(n).attr['penwidth'] = '1.0'
         
@@ -445,8 +438,8 @@ class ExperimentResult(OrderedDict):
             g.get_node(n).attr['penwidth'] = '1.0'
         
         def set_node_selected(g, n):
-            g.get_node(n).attr['color'] = 'black'
-            g.get_node(n).attr['fontcolor'] = 'white'
+            g.get_node(n).attr['color'] = 'red' if colour else 'black'
+            g.get_node(n).attr['fontcolor'] = 'black' if colour else 'white'
             g.get_node(n).attr['penwidth'] = '1.0'
         
         logging.debug("Beginning Add Graph Data")
@@ -524,7 +517,7 @@ class ExperimentResult(OrderedDict):
                         
         logging.info("Ending Graph Generation")
     
-    def generate_graph(self, title=None):
+    def generate_graph(self, title=None, colour=True):
         if not sys.modules.has_key('pyx'):
             raise ImportError('pyx not available on this system.')
         logging.debug("Starting graph generation")
@@ -545,7 +538,9 @@ class ExperimentResult(OrderedDict):
                                     title="%s (AULC: %.3f)" % (name, result_set.AULC())) 
                   for (name, result_set) in self.items()]
         
-        g.plot(points, [pyx.graph.style.line([pyx.color.lineargradient(pyx.color.grey(0), pyx.color.grey(0.5))])])
+        g.plot(points, [pyx.graph.style.line([pyx.color.gradient.ReverseRainbow 
+                                              if colour 
+                                              else pyx.color.lineargradient(pyx.color.grey(0), pyx.color.grey(0.5))])])
         
         if (title):
             title = title.replace("_", r"\_")

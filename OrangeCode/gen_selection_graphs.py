@@ -1,3 +1,4 @@
+#! /usr/bin/python
 '''
 Created on Feb 5, 2012
 
@@ -18,6 +19,8 @@ if __name__ == '__main__':
                       default=0, action='store', type='int')
     parser.add_option('--generateall', help='boolean option', dest='generate_all',
                       default=False, action='store_true')
+    parser.add_option('--nocolour', help='boolean option forces greyscale graphs', dest='colour',
+                      default=True, action='store_false')
     parser.add_option('--experiment', help='Use the experiment to figure out what files to get', dest='experiment',
                       default=None, action='store')
     (options, args) = parser.parse_args()
@@ -64,4 +67,5 @@ if __name__ == '__main__':
     
     exp_result.write_to_selection_graphs(my_stream_getter, 
                                          data_info, 
-                                         options.generate_all)
+                                         options.generate_all, 
+                                         colour=options.colour)

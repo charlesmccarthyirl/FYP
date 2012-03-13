@@ -41,7 +41,8 @@ if __name__ == '__main__':
         d = os.path.join(STORAGE_DIR, cat_name)
         maybe_make_dirs(d)
         logging.info("Beginning experiment execution on %s" % dsfn)
-        my_call(["python", "-O", "test.py", "experiment1", dsfn, d])
+        my_call(["python", "-O", "test.py", "--nocolour", "--latexencode", 
+                 "experiment1", dsfn, d])
         for fn in glob(os.path.join(d, "*.pdf")):
             shutil.copyfile(fn, os.path.join(REPORT_DIR, os.path.basename(fn)))
         shutil.copyfile(os.path.join(d, "summary.csv"),
@@ -68,11 +69,12 @@ if __name__ == '__main__':
         my_call(["python", "-O", "plotter.py", timings_fn, timings_pdf_fn] 
                 +list(chain(*[("-c", str(c)) for c in columns])) + ["--y_title",  "Time to build RCDL profiles (/s)", "--name", dsn])
     
-    logging.info("Generating selection graphs")
+    logging.info("Generating single fold selection graphs")
     dsn = 'zoo'
     rsdir = os.path.join(REPORT_DIR, 'selection_graphs')
     maybe_make_dirs(rsdir)
     r_dir = os.path.join(STORAGE_DIR, non_textual_dir_name, dsn, 'raw_results')
     logging.info("Generating selection graphs")
-    my_call(["python", "-O", "gen_selection_graphs.py", dsn, r_dir, rsdir, '--experiment', 'experiment1']) 
+    my_call(["python", "-O", "gen_selection_graphs.py", dsn, r_dir, rsdir, 
+             '--experiment', 'experiment1', "--nocolour"]) 
         

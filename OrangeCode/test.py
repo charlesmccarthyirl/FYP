@@ -1,3 +1,4 @@
+#! /usr/bin/python
 from SelectionStrategyEvaluator import *
 import logging
 import cProfile
@@ -12,6 +13,7 @@ from functools import partial
 import logging
 import latexcodec
 import multiprocessing as mp
+import optparse
 
 def tgz_filename_getter(variation_name, path):
     if not os.path.exists(path):
@@ -125,7 +127,7 @@ def get_stream_from_name_getter_for(raw_results_dir):
     return internal
 
 def main(experiment, named_data_sets, experiment_directory,
-        do_create_summary=True, latex_encode=True, do_multi=True):
+        do_create_summary=True, latex_encode=True, do_multi=True, do_colour_plots=True):
     if do_multi:
         logging.info("Beginning generating raw results")
         main_gen_raw_results(experiment, named_data_sets, experiment_directory, True)
@@ -160,7 +162,7 @@ def main(experiment, named_data_sets, experiment_directory,
                                                    in results.items()])
             
         try:
-            g = results.generate_graph(data_set_name)
+            g = results.generate_graph(data_set_name, colour=do_colour_plots)
             g.writePDFfile(os.path.abspath(full_result_path)) # Yes this is intentional, want it in the experiment directory, but with the same name as the folder.
         except ImportError, ex:
             logging.info("Unable to generate graph for %s data set. Graphing module unavailable in system: %s" %(data_set_name, ex)) 
@@ -198,11 +200,28 @@ def main(experiment, named_data_sets, experiment_directory,
         logging.info("Ending summary csv generation")
 
 if __name__ == "__main__":
-    logging.basicConfig(format='%(asctime)s %(message)s',level=logging.INFO)
-    experiment = sys.argv[1]
-    named_data_sets = sys.argv[2]
-    experiment_directory = os.path.expanduser(sys.argv[3])
+    parser = optparse.OptionParser("usage: %prog [options] experiment_module [datasets_module] experiment_directory")
+    parser.add_option('--debug', help='boolean option which enables debug mode logging and execution', dest='debug',
+                      default=False, action='store_true')
+    parser.add_option('--latexencode', help='boolean option which forces latex encoding of outputs', dest='latexencode',
+                      default=False, action='store_true')
+    parser.add_option('--nocolour', help='boolean option forces greyscale plotting', dest='colour',
+                      default=True, action='store_false')
+    parser.add_option('--profile', help='Profile the experiment, storing the profile results in the specified file', dest='profile',
+                      default=None, action='store')
+    (options, args) = parser.parse_args()
+    
+    logging.basicConfig(format='%(asctime)s %(message)s',
+                        level=(logging.DEBUG if options.debug else logging.INFO))
+    experiment = args[0]
+    named_data_sets = args[-2]
+    experiment_directory = os.path.expanduser(args[-1])
     if not os.path.exists(experiment_directory):
         os.makedirs(experiment_directory)
-    main(experiment, named_data_sets, experiment_directory)
-#    cProfile.run("main(experiment, named_data_sets, experiment_directory)", "mainProfile")
+    if options.profile is not None:
+        if not os.path.exists(os.path.dirname(options.profile)):
+            os.makedirs(os.path.dirname(options.profile))
+        cProfile.run("main(experiment, named_data_sets, experiment_directory, do_multi=False)", options.profile)
+    else:
+        main(experiment, named_data_sets, experiment_directory, do_multi=(not options.debug), 
+             do_colour_plots=options.colour, latex_encode=options.latexencode)

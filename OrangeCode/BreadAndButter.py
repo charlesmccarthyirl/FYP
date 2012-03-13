@@ -49,6 +49,12 @@ def create_named_experiment_variations(named_selection_strategy_generators):
              for (name, selection_strategy_generator) 
              in named_selection_strategy_generators]
     
+def get_sub_experiment(experiment, variation_names):
+    result = experiment.copy()
+    lookup = dict(experiment.named_experiment_variations)
+    result.named_experiment_variations = [(vn, lookup[vn]) for vn in variation_names]
+    return result
+
 def create_experiment(stopping_condition_generator, named_experiment_variations, random_seed_generator=random_seed_generator):
     return Experiment(oracle_generator_generator,
                       stopping_condition_generator, 
