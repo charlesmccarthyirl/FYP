@@ -100,7 +100,7 @@ Many overlooked everyday tasks involve classification of one form or another.
 	\item Spam / ham email classification - because general discussions of classification are not complete without mentioning this domain.
 \end{itemize}
 
-\emph{Classification} involves assigning some form of a label to an object (be it physical or theoretical).
+\emph{Classification} involves assigning some form of a label to an object (be it physical or conceptual).
 
 \section{Building Classifiers}
 Taking the potentially stale bread example, we might wish to somehow automate the process of classifying the bread. Doing this would likely involve us defining some characteristics related to the bread for which we might be able to base our decision, for example:
@@ -127,9 +127,9 @@ Manually creating classifiers can be a tedious process however, and while rule b
 
 \section{Case-Based Classification using KNN}
 \subsection{Overview}
-One method of building a classifier is through the use of case-based reasoning systems. In this model, we have a relatively large set of cases (data instances within the domain, each characterized by attributes and a label). When a new unlabelled case is presented to the system, the system consults, in some fashion, its collection of labelled examples (collectively termed the \emph{case-base}) to try to infer the presented case's label.
+One method of building a classifier is through the use of case-based reasoning systems. In this model, we have a relatively large set of cases (data instances within the domain, each characterized by attributes and a label). When a new unlabelled case is presented to the system, the system consults, in some fashion, its collection of labelled cases (collectively termed the \emph{case-base}) to try to infer the presented case's label.
 
-The consulting bit involves having a classifier trained from the case-base, and using the classifier to predict the new instance's label. The use of k-nearest neighbours classification fits the case-based reasoning concept quite well. There is no expense involved in the phase since the classifier simply runs directly off of the case-base.
+The consulting bit involves having a classifier trained from the case-base, and using the classifier to predict the new instance's label. The use of k-nearest neighbours classification fits the case-based reasoning concept quite well. There is no expense involved in the training phase since the classifier simply runs directly off of the case-base.
 
 In k-nearest neighbours, when a new unseen case is presented to the classifier, the classifier finds cases in the case-base that are similar to the unseen case, and uses these cases (along with knowledge of their labels) to predict a label for the unseen case.
 
@@ -139,7 +139,7 @@ The notion of \emph{similarity} or \emph{distance} between pairs of cases is nec
 
 \subsection{Nearest Neighbours}
 
-KNN operates by retrieving a fixed quantity `k' of the new case's nearest neighbours within . `Nearest' is defined based on the distance metric used.
+KNN operates by retrieving a fixed quantity `k' of the new case's nearest neighbours within the case-base. `Nearest' is defined based on the distance metric used.
 
 \begin{figure}[h!] 
 \centering
@@ -158,7 +158,7 @@ How the unlabelled case gets classified based on the retrieved nearest-neighbour
 	\item In distance weighted voting, votes are weighted based on the distance between the source of the label and new unlabelled case. Closer neighbours thus get a larger proportion of the vote than far-off neighbours.
 \end{itemize}
 
-Having k greater than one has the benefit of trying to minimize the affect of noise in the dataset. Using distance weighted voting as opposed to majority voting also shares this characteristic. 
+Having k greater than one has the benefit of trying to minimize the effect of noise in the dataset. Using distance weighted voting as opposed to majority voting also shares this characteristic. 
 
 
 \section{Getting Labelled Training Data}
@@ -167,16 +167,16 @@ To perform classification using KNN (or any other type of machine learning based
 
 In general, the entity which the system may consult if it wishes to determine the true label for a case is termed the \emph{oracle}.
 
-While often, the oracle is a human expert familiar with the domain in question, the oracle may be any type of entity for which there is some expense\footnote{Here, we use the word `expense' in its broadest possible meaning. It may be financially expensive, computationally expensive, or simply take an exceedingly long amount of time to run. In any event, `expense' refers to some undesirable operation for which we want to minimize the number of calls.} in using to determine a label. 
+While often, the oracle is a human expert familiar with the domain in question, the oracle may be any type of entity for which there is some expense\footnote{Here, we use the word `expense' in its broadest possible meaning. It may be financially expensive, computationally expensive, or simply take an exceedingly long time to run. In any event, `expense' refers to some undesirable operation for which we want to minimize the number of calls.} in using to determine a label. 
 
 There is a limit to how much data we can ask the oracle to label. If a human expert is needed, this human factor in itself limits the quantity of data which can be labelled. The financial cost might be significant, and the availability of such an expert can also be a limiting factor. As a result of all this, the question of which data is worthwhile labelling comes up.
 
 \section{Active Learning}
 The key concept of active learning is that a machine learning program has a say in its own learning process, by being capable of choosing the data from which it learns. 
 
-Not all data is of equal benefit in labelling if it's at the expense of not labelling some other data. We may already have sufficient data for one are of the domain to be relatively confident in our classifications, but might have very little for some other part of the domain. Given that we can only label so much, it would be preferable to explore the more unknown part of the domain.
+Not all data is of equal benefit in labelling if it's at the expense of not labelling some other data. We may already have sufficient data for one area of the domain, and be relatively confident in our classifications for that area, but might have very little for some other part of the domain. Given that we can only label so much, it would be preferable, for example, to explore the more unknown part of the domain.
 
-The term \emph{selection strategy} is used to denote the algorithmic approach taken to determine which unlabelled cases to query against the oracle for their true labels, and put in the case-base. The \emph{stopping condition} of the system is the point at which the system must stop consulting the oracle.
+The term \emph{selection strategy} is used to denote the algorithmic approach taken to determine which unlabelled cases to query against the oracle for their true labels, and subsequently put in the case-base with their labels. The \emph{stopping condition} of the system is the point at which the system must stop consulting the oracle.
 
 \section{Active Learning Application Domains}
 
@@ -210,15 +210,9 @@ Vast quantities of textual data are often available for the target domain, thoug
 
 Speech recognition is one area that can bring immense benefit to users, but for which manual labelling requires expert skills, and is painstakingly slow even with a trained expert's involvement. For such systems, it is highly desirable to reduce the quantity of data that must be manually labelled to bring the system to an acceptable rate.
 
-
-
 \section{Types of Active Learning}
 \subsection{Stream Based Learning}
-In \emph{Stream Based Learning}, the system does not just select at the outset from an unlabelled pool the cases to request labelling by the oracle. Instead, it is presented with a stream of cases, and for each case, it may either itself guess the classification (if it is relatively sure it is correct), or it may defer the decision to the oracle.
-
-This notion can sometimes be more useful - but it is unlikely in practice that the system would query at any arbitrary time for a label from the oracle, since the oracle may not be available at all times given the usual need of human involvement.
-
-What is more likely is that the system would keep note of cases it is very unsure of, guess the classification anyway if an immediate response is required, and at the next opportunity, query the oracle in batch regarding the true classification.
+In \emph{Stream Based Learning}, the system does not just select at the outset the cases to request labelling by the oracle. Instead, it is presented with a stream of cases, and for each case, it may either itself guess the classification (if it is relatively sure it is correct), or it may defer the decision to the oracle.
 
 \subsection{Query Synthesis}
 Although it can cause hassle for a human annotator, another variation is known as \emph{Query Synthesis}, in which the program actually constructs its own unlabelled data instances to present to the oracle (as opposed to the data being actual previously observed).
@@ -250,7 +244,7 @@ Many variations on the concept of active learning exist. The following is intend
 
 Over time, as new cases are added, the case-base size increases. This can have an adverse effect on system performance, thus it can be desirable to have the case-base be as minimal as possible, while maintaining classification accuracy.
 
-Another consideration is that some cases may be adversely affecting the system's classification accuracy. It may be that these cases were initially mislabelled by the oracle, the underlying data was noisy, or it could be that the nature of the domain has changed and that similar cases now actually have a different label. The detection of these cases is therefore an important part to long-running case-based Reasoning Systems.
+Another consideration is that some cases may be adversely affecting the system's classification accuracy. It may be that these cases were initially mislabelled by the oracle, the underlying data was noisy, or it could be that the nature of the domain has changed and that similar cases now actually have a different label. The detection of these cases is therefore an important part to long-running case-based reasoning systems.
 
 Overall, case-base maintenance can be summarised as the process of maintaining a case-base to a desirable level over time. This contrasts to what we will concern ourselves with - how to build a case-base.
 
@@ -282,14 +276,15 @@ In our investigation, we do not perform batch learning - instead presenting case
 \begin{itemize}
 	\item Chapter \ref{cha:litreview} will outline various basic selection strategies as found in existing active learning literature, as well as looking at some more complicated strategies.
 	\item Chapter \ref{cha:platarch} will give an overview of the platform architecture developed during the course of this project for running and analysing selection strategy experiments.
-	\item Chapter \ref{cha:CompetenceModels} will introduce the notion of \emph{Competence Models}, outlining a particular model developed by a researcher from DIT. It will then proceed to present our attempts at expanding the models, and using them in an active learning context.
+	\item Chapter \ref{cha:CompetenceModels} will introduce the notion of \emph{Competence Models}, outlining a particular model developed by a researcher from DIT. 
+	\item Chapter \ref{cha:compbasedselstrategies} will then proceed to present our attempts at expanding the models, and using them in an active learning selection strategy context.
 	\item Chapter \ref{cha:expanalysis} will present the results of the experimental analysis carried out on the basic selection strategies, and our competence based strategies.
 	\item Chapter \ref{cha:conclusions} finishes with the conclusions to the project, and potential areas of future work that could follow.
 \end{itemize}
 
 \chapter{Literature Review\label{cha:litreview}}
 \section{Introduction}
-Active learning, and case-based reasoning in general, have massive quantities of research backing them. In this chapter, we will try to give an overview of some basic selection strategies in use in active-learning, along two two examples of recent research efforts to the area.
+Active learning, and case-based reasoning in general, have massive quantities of research backing them. In this chapter, we will try to give an overview of some basic selection strategies in use in active-learning, along with two examples of recent research efforts to the area.
 
 \section{Common Concepts}
 Certain concepts very frequently occur in the active learning literature, so these will be outlined first.
@@ -340,7 +335,7 @@ The benefit of uncertainty sampling is that it doesn't select redundant cases, s
 Uncertainty sampling, like random sampling, is very commonly used as a baseline when evaluating new algorithms.
 
 \subsection{Uncertainty with Density}
-As discussed in the previous section, uncertainty sampling has the serious downfall of being prone to querying outliers, since it does not consider the region surrounding the cases it selects.
+As discussed in the previous section, uncertainty sampling has the serious downfall of being prone to querying outliers, since it does not consider the regions surrounding the cases it selects.
 
 A very straightforward attempt at solving this issue is by incorporating density information also, giving an additional weighting to the uncertainty measures based on how dense a region the case in question comes from. Uncertain cases from dense regions thus become more favourable than uncertain cases from very sparse regions (outliers).
 
@@ -348,7 +343,7 @@ One example of combining uncertainty with density can be found in \citet{Zhu2008
 
 \subsection{Margin Sampling}
 
-\emph{Margin sampling} tries to account for a shortcoming in pure uncertainty sampling for Multi-Label classification in that it only considers information about the most probable label, essentially throwing away the information about the other labels.
+\emph{Margin sampling} tries to account for a shortcoming in pure uncertainty sampling for multi-label classification in that it only considers information about the most probable label, essentially throwing away the information about the other labels.
 
 Margin sampling looks at the difference between the probability of the most probable label, and the second most probable label. The intuition is that if there is a large difference between the two, the classifier must be relatively certain. On the other hand, if there is very little difference, then with relatively little change, the classifier might have picked a different label, and so it really mustn't have been very certain about it.
 
@@ -357,15 +352,15 @@ Margin sampling only makes sense in classification where there are more than two
 \subsection{Diversity Only}
 In \emph{diversity only} sampling, the system selects cases that are as far away as possible from everything else in the case-base. This can result in an understandably diverse case-base, but is very prone to querying outliers like uncertainty sampling.
 
-This motivates many authors to try and incorporate density information with diversity. One such attempt is described below.
+This motivates many authors to try and incorporate density information with diversity. One such attempt is described next.
 
 \section{Rong Hu's Work on EGAL: Exploration Guided Active Learning}
 \subsection{Introduction}
-Many selection strategies have firm dependencies on a type of classifier confidence score (what Hu terms Exploitation), while also incorporating measures such as density and diversity (what Hu terms Exploration).
+Many selection strategies have firm dependencies on a type of classifier confidence score (what Hu terms \emph{exploitation}), while also incorporating measures such as density and diversity (what Hu terms \emph{exploration}).
 
-Hu, in her work on EGAL \citep{Hu2011}, experiments with developing an Exploration only strategy by combining measures of density and diversity\footnote{Rong Hu recently completed her PHD Thesis on ``Active Learning for Text Classification'' in D.I.T. with Dr. Sarah Jane Delaney as one of her supervisors \citep{Hu2011}. In her thesis, she covers a broad range of topics, but of particular interest to us is her work on ``EGAL'', and also on using aggregate confidence measures.}.
+Hu, in her work on EGAL \citep{Hu2011}, experiments with developing an exploration only strategy by combining measures of density and diversity\footnote{Rong Hu recently completed her PHD Thesis on ``Active Learning for Text Classification'' in D.I.T. with Dr. Sarah Jane Delaney as one of her supervisors \citep{Hu2011}. In her thesis, she covers a broad range of topics, but of particular interest to us is her work on ``EGAL'', and also on using aggregate confidence measures.}.
 
-While some of the formula specifics feel slightly odd, the overall attempt at using an Exploration only strategy is pretty interesting. 
+While some of the formula specifics feel slightly odd, the overall attempt at using an exploration only strategy is pretty interesting. 
 
 \subsection{Hu's Density / Diversity Measures}
 
@@ -375,7 +370,7 @@ Hu defines a case's \emph{density} as the sum of similarities within a case's ne
 density(x_{i})=\underset{x_{r}\in N_{i}}{\sum}sim(x_{i},x_{r})
 \]
 
-The neighbourhood $N$ of a case $x_{i}$ within the dataset $D$ she defines as:
+The neighbourhood $N$ of a case $x_{i}$ within the entire dataset $D$ she defines as:
 \[
 N(x_{i})=\left\{ x_{r}\in D\mid sim(x_{i},x_{r})\geq\alpha\right\} 
 \]
@@ -556,7 +551,7 @@ Firstly, in a machine learning fashion, the threshold values are determined for 
 \begin{figure}[h!] 
 \subsubsection{The ACMS Algorithm}
 \centering
-\includegraphics[scale=0.75]{./Others/Hu2011AggregrateAlgorithm}
+\includegraphics[scale=0.7]{./Others/Hu2011AggregrateAlgorithm}
 \caption*{Hu's Algorithm for the Aggregated Confidence Measures Selection Strategy}
 \end{figure}
 
@@ -635,19 +630,19 @@ It's possible that there was some advanced maths way, of which I am unaware, to 
 As a result of the above, we decided not to proceed with using Hu's aggregation strategy.
 
 \section{Conclusions}
-From reviewing the a sampling of current active learning literature, it appears that no one to date has used purely competence based selection strategies. It is this gap that we wish to tackle. 
+From reviewing a sampling of current active learning literature, it appears that no one to date has used purely competence based selection strategies. It is this gap that we wish to tackle. 
 
 Even with the abundance of active learning research, there does not appear to be any single widely used research platform for selection strategy research. In the next chapter, we present the research platform we developed for the purpose of our experimentation and investigation into competence based selection strategies.
 
 \chapter{Platform Architecture\label{cha:platarch}}
 \section{Overview}
 \subsection{Purpose}
-The purpose of the system is to allow evaluation of and comparison between different selection strategies in a Pool-Based active learning context.
+The purpose of the system is to allow evaluation of and comparison between different selection strategies in a pool-based active learning context.
 
 It achieves this by executing each of the selection strategies on several datasets from an initially empty case-base. At each selection in the selection strategy, it runs a KNN based classifier on the case-base, evaluating its capability to correctly classify the instances in a test set.
 
 \subsection{Technologies}
-Weka \citep{prog:weka}, a Java based Machine Learning framework, was initially briefly investigated, but due to my familiarity with Python, Orange \citep{prog:orange} was used as the core Machine Learning component. It provided useful facilities to quickly get a basic evaluation platform up and running. As the platform progressed, most Orange dependencies were removed in favour of custom implementations due to the need for greater control, and a memory-management related bug which existed in Orange with regards its Python bindings for its C++ backend. Orange was subsequently just used for data loading, and distance computations.
+Weka \citep{prog:weka}, a Java based machine learning framework, was initially briefly investigated, but due to my familiarity with Python, Orange \citep{prog:orange} was used as the core machine learning component. It provided useful facilities to quickly get a basic evaluation platform up and running. As the platform progressed, most Orange dependencies were removed in favour of custom implementations due to the need for greater control, and a memory-management related bug which existed in Orange with regards its Python bindings for its C++ backend. Orange was subsequently just used for data loading, and distance computations.
 
 For plotting, matplotlib \citep{prog:matplotlib} was initially used, but due to its very non-pythonic interface, we changed to using PyX \citep{prog:pyx}, which also provided much better support for \LaTeX{} style file formats.
 
@@ -659,18 +654,18 @@ For plotting, matplotlib \citep{prog:matplotlib} was initially used, but due to 
 
 \section{Inputs}
 \subsection{Data Files}
-Data Files provide a table of instances, each instance consisting of attribute values and a label. Orange provides support for loading many common formats, and also is capable of performing distance computation between cases based on their attributes.
+Data files provide a table of instances, each instance consisting of attribute values and a label. Orange provides support for loading many common formats, and also is capable of performing distance computation between cases based on their attributes.
 
-For ease, Orange was used to perform initial data loading, and distance computation between cases. The instances, and their pair-wise distances were then serialized to a new data file to allow running on platforms (and runtimes) for which Orange wasn't present.
+For ease, Orange was used to perform initial data loading, and distance computation between cases. The instances, and their pair-wise distances, were then serialized to a new data file to allow running on platforms (and runtimes) for which Orange wasn't present.
 
 \subsubsection{Orange Supported}
-Orange's primary data format is that of tabular, delimited text - such as CSV or TSV. Optionally, markup can be placed in the header rows of these files to help Orange know of the properties of each of the attributes - e.g. if the attribute represents the label for the case, if the attribute is Discrete or Continuous, etc., but Orange is surprisingly good at figuring most of it out on its own - occasionally just needing slight nudging in the right direction.
+Orange's primary data format is that of tabular, delimited text - such as CSV or TSV. Optionally, markup can be placed in the header rows of these files to help Orange know of the properties of each of the attributes - e.g. if the attribute represents the label for the case, if the attribute is discrete or continuous, etc., but Orange is surprisingly good at figuring most of it out on its own - occasionally just needing slight nudging in the right direction.
 
 Orange also supports some of the formats commonly used in other Machine Learning platforms - e.g. ARFF (as found in Weka) and correctly formatted .names, .data file pairs as sometimes found in the UCI Machine Learning Repository \citep{web:uci}\footnote{It should be noted that the majority of .data/.name pairs are not in the strict format necessary, thus some prior manipulation of the files present there may be needed to load them with Orange.}.
 
 \subsubsection{Custom Pre-computed Distance Format}
 
-The $n \times n$ distance matrix for a dataset can really be stored in a Symmetrical Matrix\footnote{This is assuming that the distance function is in fact symmetric, i.e. $d(a, b)\equiv d(b, a)$. In our distance function, this property does hold.}. Thus, when storing the distances for all pairs in the file, the space may essentially be halved by storing only one half of the $n \times n$ matrix\footnote{Technically, the distances between cases and themselves need not be stored, because by definition the distance between a case and itself will be 0. Though this minor optimization is not performed in my code}.
+The $n \times n$ distance matrix for a dataset can really be stored in a symmetrical matrix\footnote{This is assuming that the distance function is in fact symmetric, i.e. $d(a, b)\equiv d(b, a)$. In our distance function, this property does hold.}. Thus, when storing the distances for all pairs in the file, the space may essentially be halved by storing only one half of the $n \times n$ matrix\footnote{Technically, the distances between cases and themselves need not be stored, because by definition the distance between a case and itself will be 0. Though this minor optimization is not performed in my code}.
 
 \medskip
 
@@ -699,7 +694,7 @@ The initial file type used for storing the precomputed distances along with the 
 
 These files may also be gzipped - resulting in an extension .csv.gz, and this will be automatically uncompressed by the platform. The reason support for compression was added was due to the large file-sizes that resulted from the textual representation of the distances.
 
-CSV was chosen due to it being quite trivial to produce irrespective of the programming language. It also allowed for easy debugging, and would potentially allow other Machine Learning systems to be used for distance computation.
+CSV was chosen due to it being quite trivial to produce irrespective of the programming language. It also allowed for easy debugging, and would potentially allow other machine learning systems to be used for distance computation.
 
 \paragraph{Google's Protocol Buffers \citep{prog:protocolbuffers}}
 
@@ -1376,7 +1371,7 @@ Figure \ref{fig:winxwintimingsincronly} shows a plot of just the incremental tim
 %\subsubsection{Complexity Analysis}
 %TODO Write the Complexity Analysis Section.
 
-\chapter{Competence Based Selection Strategies}
+\chapter{Competence Based Selection Strategies\label{cha:compbasedselstrategies}}
 \section{Types of RCDL Changes from adding a Single Case to the Case-Base}
 \subsection{NNs of the New Case}
 \begin{figure}[h!] 
@@ -1882,28 +1877,28 @@ for (cat, fn) in cat_to_files:
             print
 \end{python}
 
-%\begin{python}
-%import csv
-%import os
-%
-%exp_results_dir = "./ExperimentResults/"
-%sel_graphs_dir = exp_results_dir + "selection_graphs/"
-%with open(exp_results_dir + "non_textual_summary.csv") as f:
-%    r = csv.reader(f)
-%    r = list(r)
-%    variations = [row[0] for row in r[1:]]
-%    for (i, v) in enumerate(variations):
-%        print r'\begin{figure}[h!]'
-%        if i == 0:
-%            print r'\section{Selection Graphs}'
-%        print r'\subsection{' + v + '}'
-%        print r'\centering'
-%        print r'\includegraphics[width=0.98\textwidth]{"' + sel_graphs_dir + v + '"}'
-%        print r"\caption*{Selections graph for Variation `" + v + "'}" 
-%        print r'\end{figure}'
-%        print r'\vspace{10pt}'
-%        print
-%\end{python}
+\begin{python}
+import csv
+import os
+
+exp_results_dir = "./ExperimentResults/"
+sel_graphs_dir = exp_results_dir + "selection_graphs/"
+with open(exp_results_dir + "non_textual_summary.csv") as f:
+    r = csv.reader(f)
+    r = list(r)
+    variations = [row[0] for row in r[1:]]
+    for (i, v) in enumerate(variations):
+        print r'\begin{figure}[h!]'
+        if i == 0:
+            print r'\section{Selection Graphs}'
+        print r'\subsection{' + v + '}'
+        print r'\centering'
+        print r'\includegraphics[width=0.98\textwidth]{"' + sel_graphs_dir + v + '"}'
+        print r"\caption*{Selections graph for Variation `" + v + "'}" 
+        print r'\end{figure}'
+        print r'\vspace{10pt}'
+        print
+\end{python}
 
 
 
@@ -1937,6 +1932,7 @@ While the presented competence based strategies were by no means ground-breaking
 Although relatively trivial in size, I identified a bug in the SciKit-Learn 20 newsgroups textual data loading mechanism. I fixed the bug, added unit tests to verify the presence of the bug, and the fix written, and subsequently pushed the changes back to the main SciKit-Learn repository. The community members in charge of the repository verified and accepted the change.
 
 \subsection{Experimental Analysis}
+%TODO Write Conclusions based on experiments
 
 
 \section{Further Research Opportunities}
@@ -2081,13 +2077,14 @@ By having all backing materials available, it also allows other researchers to c
 \subsubsection*{Graphviz}
 \emph{Graphviz} \citep{prog:graphviz} is a tool which provides many utilities for graph layout and visualization. It is highly developed and allows massive scope in specifying customizations. It was used in generating the selection graphs for the different selection strategies. 
 
+\subsubsection*{git}
+\emph{Git} \citep{prog:git} was the source-control system used, with GitHub as the host. It was primarily chosen due to its powerful support for maintaining local repositories in addition to remote ones. This came in very useful during the times I was without network access.
+
+
 \subsection{Development Technologies}
 
 \subsubsection*{Python}
 \emph{Python} \citep{prog:python} is a high-level programming language that allows for rapid development. It was chosen due to the author's familiarity with the language, its prettiness, the large availability of Open Source libraries for it, and the need for rapid development due to the relatively short timespan of the Final Year Project.
-
-\subsubsection*{git}
-\emph{Git} \citep{prog:git} was the source-control system used, with GitHub as the host. It was primarily chosen due to its powerful support for maintaining local repositories in addition to remote ones. This came in very useful during the times I was without network access.
 
 \subsubsection*{PyPy}
 \emph{PyPy} \citep{prog:pypy} is an alternative implementation from the standard cPython interpreter, and can often give significant performance gains to Python programs. The downside is that it doesn't support SWIG (the layer which allows interface to C++ and other code), and thus rules out the use of many libraries, and thus is not appropriate for all Python programs.
@@ -2143,9 +2140,6 @@ During the progression of the project, a bug was identified in this package, and
 
 \subsubsection*{TexStudio}
 \emph{TexStudio} \citep{prog:texstudio} is an Open Source, Cross-Platform \LaTeX{} IDE, providing rich support and integration with \LaTeX{}. It was used as the primary editor for writing the report.
-
-\subsubsection*{Datatool}
-\emph{Datatool} \citep{prog:datatool} is a \LaTeX{} package for the loading and manipulation of data. It was used to load the platform's output CSV files into \LaTeX{}, and display them as tables of data.
 
 \subsubsection*{extraplaceins}
 \emph{extraplaceins} \citep{prog:extraplaceins} is a \LaTeX{} package which extends the standard `placeins' package. It includes capabilities to prevent figures in \LaTeX{} from floating outside sections. It was used in the report to force diagrams to stay in their desired places.
