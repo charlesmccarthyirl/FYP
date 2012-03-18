@@ -72,6 +72,8 @@ def average(iterable):
         total += i
         length += 1
         
+    if length == 0:
+        return 0
     return total / length
 
 # Taken from http://www.peterbe.com/plog/uniqifiers-benchmark

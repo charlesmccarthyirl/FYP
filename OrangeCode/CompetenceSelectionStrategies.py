@@ -9,7 +9,7 @@ from utils import average, meanstdv, lazyproperty, first
 from itertools import permutations, imap
 from CaseProfiling import RcdlCaseProfile, AddRemovalStore, SuppositionResults
 from functools import partial
-from operator import add, sub
+from operator import add, sub, itemgetter
 from math import ceil
 from SelectionStrategy import CompetenceMeasure, SelectionStrategy
 import itertools
@@ -124,7 +124,7 @@ class Splitter:
     def __call__(self, char):
         return getattr(self, char)
 
-def comp_sum(supposition_results, ar, rcdl, set_totaller=len):
+def comp_sum(supposition_results, ar, rcdl, set_totaller, **kwargs):
     if isinstance(ar, str):
         add_remove_names = ('added', 'removed')
         first_drill_down = first(lambda el: el[0] == ar[0], add_remove_names)
@@ -135,8 +135,8 @@ def comp_sum(supposition_results, ar, rcdl, set_totaller=len):
         rcdl = lambda profile: [getattr(profile, sn) for sn in set_names]
     
     assert isinstance(supposition_results, SuppositionResults)
-    return sum(sum(imap(set_totaller, rcdl(ar(change)))) 
-        for change in supposition_results.itervalues())
+    return sum(sum((set_totaller(_set, source, **kwargs) for _set in rcdl(ar(change)))) 
+               for (source, change) in supposition_results.iteritems())
 
 class SplitterHider:
     def __init__(self, score_getter):
@@ -151,18 +151,23 @@ class SplitterHider:
         splitter = Splitter(supposition_results)
         return self.score_getter(splitter, *args, **kwargs)
 
+def combiner_preprocessor(class_to_supposition_results):
+    return [('Dummy', SuppositionResults.combine(imap(itemgetter(1), class_to_supposition_results)))]
+
 class TotalOp:
-    def __init__(self, reducer, score_getter):
+    def __init__(self, reducer, score_getter, class_to_suppositions_preprocessor=None):
         '''
         
         @param score_getter: Given supposition results, returns a double of the score
         '''
         self.reducer = reducer
         self.score_getter = score_getter
+        self.class_to_suppositions_preprocessor = class_to_suppositions_preprocessor or (lambda arg: arg)
         
     def __call__(self, class_to_supposition_results, *args, **kwargs):
+        class_to_supposition_results = self.class_to_suppositions_preprocessor(class_to_supposition_results)
         scores = (self.score_getter(supposition_results, *args, **kwargs) 
-                    for (label, supposition_results) in class_to_supposition_results)
+                    for (_, supposition_results) in class_to_supposition_results)
         return self.reducer(scores)
 
 class Total(TotalOp):

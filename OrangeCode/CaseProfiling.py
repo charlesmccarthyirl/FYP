@@ -6,6 +6,10 @@ from utils import max_multiple
 from itertools import product
 
 class RcdlCaseProfile:
+    metainfo = ("reachability_set", "coverage_set", "dissimilarity_set",
+                 "liability_set", "nearest_neighbours", "reverse_nearest_neighbours", 
+                 "classification")
+    
     def __init__(self, 
                  reachability_set=(), 
                  coverage_set=(), 
@@ -22,9 +26,7 @@ class RcdlCaseProfile:
         self.reverse_nearest_neighbours = set(reverse_nearest_neighbours)
         self.classification = classification
         
-        self.metainfo = ["reachability_set", "coverage_set", "dissimilarity_set",
-                         "liability_set", "nearest_neighbours", "reverse_nearest_neighbours", 
-                         "classification"]
+        
     
     def __eq__(self, other):
         return all(hasattr(self, a) == hasattr(other, a) 
@@ -122,6 +124,22 @@ class AddRemovalStore:
         
 
 class SuppositionResults(dict):
+    @staticmethod
+    def combine(supposition_results):
+        result = SuppositionResults(None)
+        set_names = [mi for mi in RcdlCaseProfile.metainfo if mi != "classification"]
+        for r in supposition_results:
+            result.supposed_case = r.supposed_case
+            for (case, add_removal_store) in r.iteritems():
+                result_case_add_removal_store = result.get_or_create(case)
+                for ar in ('added', 'removed'):
+                    for sn in set_names:
+                        case_set = getattr(getattr(add_removal_store, ar), sn) 
+                        result_set = getattr(getattr(result_case_add_removal_store, ar), sn)
+                        result_set.update(case_set)
+                    
+        
+    
     def __init__(self, supposed_case, *args, **kwargs):
         self.supposed_case = supposed_case
         dict.__init__(self, *args, **kwargs)
