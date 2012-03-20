@@ -3,138 +3,25 @@ from SelectionStrategyEvaluator import *
 import logging
 import cProfile
 import itertools
-import os, sys, glob
-from os.path import basename, splitext
-from functools import partial
-from utils import stream_getter, uniqueify
-import csv
-import functools
-from functools import partial
+from utils import uniqueify
 import logging
 import latexcodec
-import multiprocessing as mp
 import optparse
-
-def tgz_filename_getter(variation_name, path):
-    if not os.path.exists(path):
-        os.makedirs(path)
-    
-    return os.path.join(path, variation_name + '.tar.gz')
-
-def get_experiment_obj(experiment):
-    if isinstance(experiment, str):
-        experiment_obj = __import__(experiment).experiment
-    else:
-        experiment_obj = experiment
-    
-    return experiment_obj
-
-def get_named_data_sets_obj(named_data_sets):
-    if isinstance(named_data_sets, str):
-        named_data_sets_obj = __import__(named_data_sets).named_data_sets
-    else:
-        named_data_sets_obj = named_data_sets
-    return named_data_sets_obj
-
-def get_frp_rrp(experiment_directory, data_set_name):
-    full_result_path = os.path.join(experiment_directory, data_set_name)
-    raw_results_dir = os.path.join(full_result_path, "raw_results")
-    return (full_result_path, raw_results_dir)
-    
-def get_existing_variation_results_nfs_pairs(raw_results_dir):
-    files = glob.glob(os.path.join(raw_results_dir, "*.tar.gz"))
-    return  [(splitext(splitext(basename(f))[0])[0], partial(open, f, "rb")) for f in files]
-
-def get_exp_ds_pair(experiment, data_set_generator):
-    l_experiment = experiment.copy()
-    
-    if hasattr(data_set_generator, 'sc'):
-        sc = getattr(data_set_generator, 'sc')
-        if isinstance(sc, int):
-            i = sc # Can't go using sc in the lambda, and assigning to it. Will be passing a function then.
-            sc = lambda *args, **kwargs: BudgetBasedStoppingCriteria(i)
-            
-        l_experiment.stopping_condition_generator = sc
-    
-    return (l_experiment, data_set_generator)
-
-def main_gen_raw_results_only(experiment, named_data_sets, 
-                              experiment_directory, data_set_name, 
-                              variation_name):
-    experiment_obj = get_experiment_obj(experiment)
-    named_data_sets_obj = get_named_data_sets_obj(named_data_sets)
-    full_result_path, raw_results_dir = get_frp_rrp(experiment_directory, data_set_name)
-    
-    named_data_sets_dict = dict(named_data_sets_obj)
-    data_set_generator = named_data_sets_dict[data_set_name]
-    
-    l_experiment, data_info_generator = get_exp_ds_pair(experiment_obj, data_set_generator)
-    named_experiment_variations = l_experiment.named_experiment_variations
-    
-    named_experiment_variations_dict = dict(named_experiment_variations)
-    variation = named_experiment_variations_dict[variation_name]
-    
-    variation_result = l_experiment.execute_on_only(data_info_generator(), variation)
-    stream_from_name_getter = get_stream_from_name_getter_for(raw_results_dir)
-    
-    with stream_from_name_getter(variation_name) as stream:
-        variation_result.serialize(stream)
-
-def log_throwaway(to_log):
-    def inner(*args):
-        mp.get_logger().info(to_log)
-
-def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_multi):
-    if do_multi:
-        mp.log_to_stderr()
-        logger = mp.get_logger()
-        logger.setLevel(logging.INFO)
-        pool = mp.Pool()
-        my_apply = pool.apply_async
-    else:
-        logger = logging.info
-        my_apply = lambda ex, args: ex(*args)
-    
-    experiment_obj = get_experiment_obj(experiment)
-    named_data_sets_obj = get_named_data_sets_obj(named_data_sets)
-    
-    for (data_set_name, data_set_generator) in named_data_sets_obj:
-        logging.info("Beginning processing on %s" % data_set_name)
-        l_experiment, data_info_generator = get_exp_ds_pair(experiment_obj, data_set_generator)
-        named_experiment_variations = l_experiment.named_experiment_variations
+from main_runner_utils import *
+from WorkerUnit import main_gen_raw_results as wu_mgrr
+from traditional_runner import main_gen_raw_results as tr_mgrr
         
-        full_result_path, raw_results_dir = get_frp_rrp(experiment_directory, data_set_name)
-        name_to_file_stream_getter_pairs = get_existing_variation_results_nfs_pairs(raw_results_dir)
-        existing_variations_computed = set((name for (name, fsg) in name_to_file_stream_getter_pairs))
-        
-        for (variation_name, variation) in named_experiment_variations:
-            if variation_name in existing_variations_computed:
-                logging.info("Already have results for %s. Skipping evaluation." % variation_name)
-                continue
-            
-            logging.info("Starting evaluation on variation %s" % variation_name)
-            
-            my_apply(main_gen_raw_results_only, 
-                         (experiment, named_data_sets, experiment_directory, 
-                          data_set_name, variation_name))
-    if do_multi:
-        pool.close()
-        pool.join()
-        
-def get_stream_from_name_getter_for(raw_results_dir):
-    def internal(variation_name):
-        return stream_getter(tgz_filename_getter(variation_name, raw_results_dir))
-    return internal
-
 def main(experiment, named_data_sets, experiment_directory,
-        do_create_summary=True, latex_encode=True, do_multi=True, do_colour_plots=True):
-    if do_multi:
+        do_create_summary=True, latex_encode=True, gen_only=True, 
+        do_colour_plots=True, do_multi=True,
+        main_gen_raw_results_func=wu_mgrr):
+    if gen_only:
         logging.info("Beginning generating raw results")
-        main_gen_raw_results(experiment, named_data_sets, experiment_directory, True)
+        main_gen_raw_results_func(experiment, named_data_sets, experiment_directory, do_multi)
         logging.info("Ending generating raw results.")
+        return
     
-    if do_multi:
-        logging.info("Beginning Nicity Processing.")
+    logging.info("Beginning Nicity Processing.")
     experiment = get_experiment_obj(experiment)
     named_data_sets = get_named_data_sets_obj(named_data_sets)
     
@@ -157,8 +44,8 @@ def main(experiment, named_data_sets, experiment_directory,
                                           stream_from_name_getter=stream_from_name_getter)
 
         if do_create_summary:
-            summary_results[data_set_name] = OrderedDict([(var_name, var_result.AULC()) 
-                                                   for (var_name, var_result) 
+            summary_results[data_set_name] = OrderedDict([(variation_name, var_result.AULC()) 
+                                                   for (variation_name, var_result) 
                                                    in results.items()])
             
         try:
@@ -196,7 +83,6 @@ def main(experiment, named_data_sets, experiment_directory,
                 variation_results_highlighted = [highlight(format_num(v)) if v == t else format_num(v) for (v, t) in zip(variation_results, top_results)]
                 row = [str_encoder(variation)] + variation_results_highlighted
                 writerow(row)
-            
         logging.info("Ending summary csv generation")
 
 if __name__ == "__main__":
@@ -204,6 +90,15 @@ if __name__ == "__main__":
     parser.add_option('--debug', help='boolean option which enables debug mode logging and execution', dest='debug',
                       default=False, action='store_true')
     parser.add_option('--latexencode', help='boolean option which forces latex encoding of outputs', dest='latexencode',
+                      default=False, action='store_true')
+    parser.add_option('--genonly', help='Generates the raw results only, no graphs, summaries, etc.', 
+                      dest='gen_only',
+                      default=False, action='store_true')
+    parser.add_option('--old', help='boolean option which forces old multiprocessing style computation', 
+                      dest='old',
+                      default=False, action='store_true')
+    parser.add_option('--multi', help='boolean option to enable multi-processing (local/distributed)', 
+                      dest='multi',
                       default=False, action='store_true')
     parser.add_option('--nocolour', help='boolean option forces greyscale plotting', dest='colour',
                       default=True, action='store_false')
@@ -221,7 +116,10 @@ if __name__ == "__main__":
     if options.profile is not None:
         if not os.path.exists(os.path.dirname(options.profile)):
             os.makedirs(os.path.dirname(options.profile))
-        cProfile.run("main(experiment, named_data_sets, experiment_directory, do_multi=False)", options.profile)
+        cProfile.run("main(experiment, named_data_sets, experiment_directory, do_multi=False, gen_only=True)", options.profile)
     else:
-        main(experiment, named_data_sets, experiment_directory, do_multi=(not options.debug), 
-             do_colour_plots=options.colour, latex_encode=options.latexencode)
+        main_gen_raw_results_func = tr_mgrr if options.old else wu_mgrr
+        main(experiment, named_data_sets, experiment_directory, gen_only=options.gen_only, 
+             do_multi=options.multi, 
+             do_colour_plots=options.colour, latex_encode=options.latexencode, 
+             main_gen_raw_results_func=main_gen_raw_results_func)

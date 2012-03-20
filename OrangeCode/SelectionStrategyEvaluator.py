@@ -88,6 +88,17 @@ class ResultSet(list):
         
         writer.writerows(results_expanded)
         
+    def __getstate__(self):
+        mem_stream = StringIO.StringIO()
+        self.serialize(mem_stream)
+        mem_stream.seek(0)
+        return mem_stream.buf
+    
+    def __setstate__(self, state):
+        type(self).__init__(self)
+        mem_stream = StringIO.StringIO(state)
+        self.deserialize(mem_stream)
+        
     def AULC(self):
         '''
         Calculates the area under the learning curve, based on simple (rectangle + top triangle)
@@ -330,19 +341,20 @@ class Experiment:
         self.training_test_sets_extractor = training_test_sets_extractor
         self.named_experiment_variations = named_experiment_variations
     
+    def get_selection_strategy_evaluator(self, data_info, variation):
+        return SelectionStrategyEvaluator(self.oracle_generator_generator(data_info.oracle), 
+                                           data_info.oracle,
+                                           self.stopping_condition_generator,
+                                           variation.selection_strategy,
+                                           variation.classifier_generator,
+                                           probability_generator=variation.probability_generator,
+                                           nns_getter_generator=variation.nns_getter_generator,
+                                           distance_constructor=data_info.distance_constructor,
+                                           possible_classes=data_info.possible_classes)
+    
     def execute_on_only(self, data_info, variation):
-        evaluator = SelectionStrategyEvaluator(self.oracle_generator_generator(data_info.oracle), 
-                                               data_info.oracle,
-                                               self.stopping_condition_generator,
-                                               variation.selection_strategy,
-                                               variation.classifier_generator,
-                                               probability_generator=variation.probability_generator,
-                                               nns_getter_generator=variation.nns_getter_generator,
-                                               distance_constructor=data_info.distance_constructor,
-                                               possible_classes=data_info.possible_classes)
-        
+        evaluator = self.get_selection_strategy_evaluator(data_info, variation)
         variation_result = evaluator.generate_results_from_many(self.training_test_sets_extractor(data_info.data, data_info.oracle))
-        
         return variation_result
     
     def execute_on(self, data_info_generator, existing_named_variation_results=None, stream_from_name_getter=None): 

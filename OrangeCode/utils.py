@@ -3,6 +3,12 @@ from operator import gt, lt
 from StringIO import StringIO
 from itertools import ifilter
 
+def getitem(seq, index):
+    for s in seq:
+        if index == 0:
+            return s
+        index -= 1
+
 def lazyproperty(method):
     attr_name = '_' + method.__name__
     @property
