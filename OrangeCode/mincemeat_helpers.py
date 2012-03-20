@@ -5,18 +5,15 @@ Created on Mar 20, 2012
 '''
 import logging
 from WorkerUnit import *
+from utils import stream_getter
 
 def work_reducer(variation_info, work_unit_results):
     from WorkerUnit import *
     work_unit_results = sorted(work_unit_results, key=lambda wur: wur.work_unit.fold_num)
     all_results = [wur.result for wur in work_unit_results]
     variation_result = MultiResultSet(all_results)
-    
-    full_result_path, raw_results_dir = get_frp_rrp('%s', 
-                                                    variation_info.data_set_name)
-    stream_from_name_getter = get_stream_from_name_getter_for(raw_results_dir)
 
-    with stream_from_name_getter(variation_info.raw_results_file) as stream:
+    with stream_getter(variation_info.raw_results_file) as stream:
         variation_result.serialize(stream)
 
 def mapfn(k, work_unit):
@@ -25,7 +22,7 @@ def mapfn(k, work_unit):
     res = (work_unit.variation_info, main_gen_work_unit_result(work_unit))
     yield res
 
-def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_multi):      
+def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_multi, password="changeme"):      
     logging.info("Generating work units")
     work_units = list(gen_work_units_iterable(experiment, named_data_sets, experiment_directory))
     
@@ -33,11 +30,11 @@ def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_m
     if do_multi:
         import mincemeat
         logging.info("Beginning mince meat server")
-        s = mincemeat.Server()
+        s = mincemeat.Server(lambda variation_info, wurs: len(wurs) >= variation_info.total_folds)
         s.datasource = dict(enumerate(work_units))
         s.mapfn = mapfn
         s.reducefn = work_reducer
-        s.run_server(password="changeme")
+        s.run_server(password=password)
         logging.info("Ending mince meat server")
     else:
         work_unit_results = (main_gen_work_unit_result(work_unit) for work_unit in work_units)
