@@ -39,14 +39,15 @@ def main_gen_work_unit_result(work_unit):
     return WorkUnitResult(work_unit, result)
 
 class VariationInfo:
-    meta_info = ['data_set_name', 'variation_name', 'exp_name', 'data_file_name', 'raw_results_file' ]
+    meta_info = ['data_set_name', 'variation_name', 'exp_name', 'data_file_name', 'raw_results_file', 'total_folds' ]
     
-    def __init__(self, data_set_name, variation_name, exp_name, data_file_name, raw_results_file):
+    def __init__(self, data_set_name, variation_name, exp_name, data_file_name, raw_results_file, total_folds):
         self.data_set_name = data_set_name
         self.variation_name = variation_name
         self.exp_name = exp_name
         self.data_file_name = data_file_name
         self.raw_results_file = raw_results_file
+        self.total_folds = total_folds
     
     def __eq__(self, other):
         return (isinstance(other, VariationInfo) 
@@ -56,7 +57,7 @@ class VariationInfo:
         return reduce(xor, map(hash, (getattr(self, f) for f in self.meta_info)))
     
     def __str__(self):
-        return ", ".join((getattr(self, mi) for mi in self.meta_info))
+        return ", ".join((str(getattr(self, mi)) for mi in self.meta_info))
 
 class WorkUnit:
     def __init__(self, variation_info, fold_num):
@@ -77,10 +78,10 @@ def gen_work_units_iterable(experiment, named_data_sets, experiment_directory):
     
     for (data_set_name, data_set_generator) in named_data_sets_obj:
         logging.info("Beginning loading ds info *only* on %s" % data_set_name)
-        l_experiment, data_info_generator = get_exp_ds_pair(experiment_obj, data_set_generator)
+        l_experiment, _ = get_exp_ds_pair(experiment_obj, data_set_generator)
         named_experiment_variations = l_experiment.named_experiment_variations
         
-        full_result_path, raw_results_dir = get_frp_rrp(experiment_directory, data_set_name)
+        _, raw_results_dir = get_frp_rrp(experiment_directory, data_set_name)
         name_to_file_stream_getter_pairs = get_existing_variation_results_nfs_pairs(raw_results_dir)
         existing_variations_computed = set((name for (name, fsg) in name_to_file_stream_getter_pairs))
         
@@ -88,13 +89,14 @@ def gen_work_units_iterable(experiment, named_data_sets, experiment_directory):
         training_test_tuples = list(l_experiment.training_test_sets_extractor(data_info.data, data_info.oracle))
         num_folds = len(training_test_tuples)
         
-        for (variation_name, variation) in named_experiment_variations:
+        for (variation_name, _) in named_experiment_variations:
             if variation_name in existing_variations_computed:
                 logging.info("Already have results for %s" %variation_name)
                 continue
             
             fn = tgz_filename_getter(variation_name, raw_results_dir)
-            variation_info = VariationInfo(data_set_name, variation_name, experiment, named_data_sets, fn)
+            variation_info = VariationInfo(data_set_name, variation_name, experiment, 
+                                           named_data_sets, fn, num_folds)
             for fold_num in xrange(num_folds):
                 yield WorkUnit(variation_info, fold_num)
     

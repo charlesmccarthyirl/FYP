@@ -201,13 +201,14 @@ class Client(Protocol):
 
 
 class Server(asyncore.dispatcher, object):
-    def __init__(self):
+    def __init__(self, map_key_is_complete_func=None):
         asyncore.dispatcher.__init__(self)
         self.mapfn = None
         self.reducefn = None
         self.collectfn = None
         self.datasource = None
         self.password = None
+        self.map_key_is_complete_func = map_key_is_complete_func
 
     def run_server(self, password="", port=DEFAULT_PORT):
         self.password = password
@@ -218,12 +219,13 @@ class Server(asyncore.dispatcher, object):
             asyncore.loop()
         except:
             self.close_all()
+            #FIXME: Not defined
             raise
         
         return self.taskmanager.results
 
     def handle_accept(self):
-        conn, addr = self.accept()
+        conn, _ = self.accept()
         sc = ServerChannel(conn, self)
         sc.password = self.password
 
@@ -304,8 +306,26 @@ class TaskManager:
             self.map_iter = iter(self.datasource)
             self.working_maps = {}
             self.map_results = {}
+            self.queued_reduces = []
             #self.waiting_for_maps = []
             self.state = TaskManager.MAPPING
+            self.working_reduces = {}
+            self.results = {}
+        
+        # Set up group by test here.
+        
+        if (self.state == TaskManager.REDUCING
+            or len(self.queued_reduces) > 0):
+            if len(self.queued_reduces) > 0:
+                reduce_item = self.queued_reduces.pop()
+                self.working_reduces[reduce_item[0]] = reduce_item[1]
+                return ('reduce', reduce_item)
+            else:
+                if len(self.working_reduces) > 0:
+                    key = random.choice(self.working_reduces.keys())
+                    return ('reduce', (key, self.working_reduces[key]))
+                self.state = TaskManager.FINISHED
+        
         if self.state == TaskManager.MAPPING:
             try:
                 map_key = self.map_iter.next()
@@ -317,19 +337,9 @@ class TaskManager:
                     key = random.choice(self.working_maps.keys())
                     return ('map', (key, self.working_maps[key]))
                 self.state = TaskManager.REDUCING
-                self.reduce_iter = self.map_results.iteritems()
-                self.working_reduces = {}
-                self.results = {}
-        if self.state == TaskManager.REDUCING:
-            try:
-                reduce_item = self.reduce_iter.next()
-                self.working_reduces[reduce_item[0]] = reduce_item[1]
-                return ('reduce', reduce_item)
-            except StopIteration:
-                if len(self.working_reduces) > 0:
-                    key = random.choice(self.working_reduces.keys())
-                    return ('reduce', (key, self.working_reduces[key]))
-                self.state = TaskManager.FINISHED
+                #self.reduce_iter = self.map_results.iteritems()
+                self.queued_reduces.extend(self.map_results.iteritems())
+        
         if self.state == TaskManager.FINISHED:
             self.server.handle_close()
             return ('disconnect', None)
@@ -342,7 +352,12 @@ class TaskManager:
         for (key, values) in data[1].iteritems():
             if key not in self.map_results:
                 self.map_results[key] = []
-            self.map_results[key].extend(values)
+            m_vals = self.map_results[key]
+            m_vals.extend(values)
+            if (self.server.map_key_is_complete_func
+                and self.server.map_key_is_complete_func(key, m_vals)):
+                self.queued_reduces.append((key, m_vals))
+                del self.map_results[key]
         del self.working_maps[data[0]]
                                 
     def reduce_done(self, data):
