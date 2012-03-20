@@ -20,7 +20,7 @@ def main_gen_results_set_on_fold(experiment, named_data_sets, data_set_name, var
     l_experiment, data_info_generator = get_exp_ds_pair(experiment_obj, data_set_generator)
     named_experiment_variations = l_experiment.named_experiment_variations
     named_experiment_variations_dict = dict(named_experiment_variations)
-
+    
     data_info = data_info_generator()
     variation = named_experiment_variations_dict[variation_name]
     evaluator = l_experiment.get_selection_strategy_evaluator(data_info, variation)
@@ -51,7 +51,7 @@ class VariationInfo:
         return (isinstance(other, VariationInfo) 
                 and all((getattr(self, f) == getattr(other, f) for f in self.meta_info)))
     
-    def data_set_name(self):
+    def __hash__(self):
         return reduce(xor, map(hash, (getattr(self, f) for f in self.meta_info)))
 
 class WorkUnit:
@@ -89,29 +89,30 @@ def gen_work_units_iterable(experiment, named_data_sets, experiment_directory):
             variation_info = VariationInfo(data_set_name, variation_name, experiment, named_data_sets)
             for fold_num in xrange(num_folds):
                 yield WorkUnit(variation_info, fold_num)
+    
+my_code = """
+def work_reducer(variation_info, work_unit_results):
+    work_unit_results = sorted(work_unit_results, key=lambda wur: wur.work_unit.fold_num)
+    all_results = [wur.result for wur in work_unit_results]
+    variation_result = MultiResultSet(all_results)
+    
+    full_result_path, raw_results_dir = get_frp_rrp('%s', 
+                                                    variation_info.data_set_name)
+    stream_from_name_getter = get_stream_from_name_getter_for(raw_results_dir)
 
-class Worker:
-    def __init__(self, experiment_directory):
-        self.experiment_directory = experiment_directory
-    
-    def work_reducer(self, variation_info, work_unit_results):
-        work_unit_results = sorted(work_unit_results, key=lambda wur: wur.work_unit.fold_num)
-        all_results = [wur.result for wur in work_unit_results]
-        variation_result = MultiResultSet(all_results)
-        
-        full_result_path, raw_results_dir = get_frp_rrp(self.experiment_directory, 
-                                                        variation_info.data_set_name)
-        stream_from_name_getter = get_stream_from_name_getter_for(raw_results_dir)
-    
-        with stream_from_name_getter(variation_info.variation_name) as stream:
-            variation_result.serialize(stream)
+    with stream_from_name_getter(variation_info.variation_name) as stream:
+        variation_result.serialize(stream)"""
 
 def mapfn(k, work_unit):
-    return (work_unit.variation_info, main_gen_work_unit_result(work_unit))
+    res = (work_unit.variation_info, main_gen_work_unit_result(work_unit))
+    yield res
 
-def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_multi):        
+def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_multi):      
     logging.info("Beginning gen raw results")
-    worker = Worker(experiment_directory)
+    byteCode = compile(my_code % experiment_directory, "<string>", 'exec')
+    locs = dict()
+    eval(byteCode, globals(), locs)
+    work_reducer = locs['work_reducer']
     
     logging.info("Generating work units")
     work_units = list(gen_work_units_iterable(experiment, named_data_sets, experiment_directory))
@@ -123,7 +124,7 @@ def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_m
         s = mincemeat.Server()
         s.datasource = dict(enumerate(work_units))
         s.mapfn = mapfn
-        s.reducefn = worker.work_reducer
+        s.reducefn = work_reducer
         s.run_server(password="changeme")
         logging.info("Ending mince meat server")
     else:
@@ -131,4 +132,4 @@ def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_m
     
         for key, group in groupby(work_unit_results, lambda wur: wur.work_unit.variation_info):
             group = list(group)
-            worker.work_reducer(key, group)
+            work_reducer(key, group)
