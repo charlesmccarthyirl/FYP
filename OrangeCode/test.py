@@ -8,7 +8,7 @@ import logging
 import latexcodec
 import optparse
 from main_runner_utils import *
-from WorkerUnit import main_gen_raw_results as wu_mgrr
+from mincemeat_helpers import main_gen_raw_results as wu_mgrr
 from traditional_runner import main_gen_raw_results as tr_mgrr
         
 def main(experiment, named_data_sets, experiment_directory,

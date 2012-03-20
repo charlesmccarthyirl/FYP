@@ -39,13 +39,14 @@ def main_gen_work_unit_result(work_unit):
     return WorkUnitResult(work_unit, result)
 
 class VariationInfo:
-    meta_info = ['data_set_name', 'variation_name', 'exp_name', 'data_file_name' ]
+    meta_info = ['data_set_name', 'variation_name', 'exp_name', 'data_file_name', 'raw_results_file' ]
     
-    def __init__(self, data_set_name, variation_name, exp_name, data_file_name):
+    def __init__(self, data_set_name, variation_name, exp_name, data_file_name, raw_results_file):
         self.data_set_name = data_set_name
         self.variation_name = variation_name
         self.exp_name = exp_name
         self.data_file_name = data_file_name
+        self.raw_results_file = raw_results_file
     
     def __eq__(self, other):
         return (isinstance(other, VariationInfo) 
@@ -53,11 +54,17 @@ class VariationInfo:
     
     def __hash__(self):
         return reduce(xor, map(hash, (getattr(self, f) for f in self.meta_info)))
+    
+    def __str__(self):
+        return ", ".join((getattr(self, mi) for mi in self.meta_info))
 
 class WorkUnit:
     def __init__(self, variation_info, fold_num):
         self.variation_info = variation_info
         self.fold_num = fold_num
+        
+    def __str__(self):
+        return "%s, %d" % (self.variation_info, self.fold_num)
     
 class WorkUnitResult:
     def __init__(self, work_unit, result):
@@ -86,50 +93,8 @@ def gen_work_units_iterable(experiment, named_data_sets, experiment_directory):
                 logging.info("Already have results for %s" %variation_name)
                 continue
             
-            variation_info = VariationInfo(data_set_name, variation_name, experiment, named_data_sets)
+            fn = tgz_filename_getter(variation_name, raw_results_dir)
+            variation_info = VariationInfo(data_set_name, variation_name, experiment, named_data_sets, fn)
             for fold_num in xrange(num_folds):
                 yield WorkUnit(variation_info, fold_num)
     
-my_code = """
-def work_reducer(variation_info, work_unit_results):
-    work_unit_results = sorted(work_unit_results, key=lambda wur: wur.work_unit.fold_num)
-    all_results = [wur.result for wur in work_unit_results]
-    variation_result = MultiResultSet(all_results)
-    
-    full_result_path, raw_results_dir = get_frp_rrp('%s', 
-                                                    variation_info.data_set_name)
-    stream_from_name_getter = get_stream_from_name_getter_for(raw_results_dir)
-
-    with stream_from_name_getter(variation_info.variation_name) as stream:
-        variation_result.serialize(stream)"""
-
-def mapfn(k, work_unit):
-    res = (work_unit.variation_info, main_gen_work_unit_result(work_unit))
-    yield res
-
-def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_multi):      
-    logging.info("Beginning gen raw results")
-    byteCode = compile(my_code % experiment_directory, "<string>", 'exec')
-    locs = dict()
-    eval(byteCode, globals(), locs)
-    work_reducer = locs['work_reducer']
-    
-    logging.info("Generating work units")
-    work_units = list(gen_work_units_iterable(experiment, named_data_sets, experiment_directory))
-    
-    work_units.sort(key=lambda wu: wu.variation_info)
-    if do_multi:
-        import mincemeat
-        logging.info("Beginning mince meat server")
-        s = mincemeat.Server()
-        s.datasource = dict(enumerate(work_units))
-        s.mapfn = mapfn
-        s.reducefn = work_reducer
-        s.run_server(password="changeme")
-        logging.info("Ending mince meat server")
-    else:
-        work_unit_results = (main_gen_work_unit_result(work_unit) for work_unit in work_units)
-    
-        for key, group in groupby(work_unit_results, lambda wur: wur.work_unit.variation_info):
-            group = list(group)
-            work_reducer(key, group)
