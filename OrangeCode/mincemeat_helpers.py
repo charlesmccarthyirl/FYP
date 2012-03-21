@@ -26,6 +26,9 @@ def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_m
     logging.info("Generating work units")
     work_units = list(gen_work_units_iterable(experiment, named_data_sets, experiment_directory))
     
+    if len(work_units) == 0:
+        return
+    
     work_units.sort(key=lambda wu: wu.variation_info)
     if do_multi:
         import mincemeat
