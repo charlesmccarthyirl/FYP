@@ -81,7 +81,7 @@ if __name__ == '__main__':
     
     runs = [
             (non_textual_dir_name, "DataSets"),
-            (textual_dir_name, "TextualDataSets")
+            #(textual_dir_name, "TextualDataSets")
             ]
 
     #Host will be head if nothing else provided . . .
@@ -104,7 +104,7 @@ if __name__ == '__main__':
         for cn in xrange(cpu_count()):
             logfn = "%s.%d.log" % (host, cn)
             #TODO: make password configurable. Will need to put arg in test.py aswell.
-            my_call(["python", "-O", "mincemeat.py", "-p" "changeme", head, "--verbose"], logfn=logfn, block=False)
+            my_call(["python", "-O", "mincemeat.py", "-p", "changeme", head, "--verbose"], logfn=logfn, block=False)
         
         
         
