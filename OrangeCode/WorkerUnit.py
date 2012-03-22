@@ -86,13 +86,18 @@ def gen_work_units_iterable(experiment, named_data_sets, experiment_directory):
         existing_variations_computed = set((name for (name, fsg) in name_to_file_stream_getter_pairs))
         
         data_info = data_set_generator()
-        training_test_tuples = list(l_experiment.training_test_sets_extractor(data_info.data, data_info.oracle))
-        num_folds = len(training_test_tuples)
+        
+        training_test_tuples = None
         
         for (variation_name, _) in named_experiment_variations:
             if variation_name in existing_variations_computed:
                 logging.info("Already have results for %s" %variation_name)
                 continue
+            
+            if training_test_tuples is None:
+                # Only want to execute this if there are variations to run. No point loading the data otherwise.
+                training_test_tuples = list(l_experiment.training_test_sets_extractor(data_info.data, data_info.oracle))
+                num_folds = len(training_test_tuples)
             
             fn = tgz_filename_getter(variation_name, raw_results_dir)
             variation_info = VariationInfo(data_set_name, variation_name, experiment, 

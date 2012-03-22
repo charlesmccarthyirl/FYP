@@ -5,10 +5,10 @@ Created on Mar 20, 2012
 '''
 import logging
 from WorkerUnit import *
-from utils import stream_getter
 
 def work_reducer(variation_info, work_unit_results):
-    from WorkerUnit import *
+    from SelectionStrategyEvaluator import MultiResultSet
+    from utils import stream_getter
     work_unit_results = sorted(work_unit_results, key=lambda wur: wur.work_unit.fold_num)
     all_results = [wur.result for wur in work_unit_results]
     variation_result = MultiResultSet(all_results)
@@ -17,7 +17,7 @@ def work_reducer(variation_info, work_unit_results):
         variation_result.serialize(stream)
 
 def mapfn(k, work_unit):
-    from WorkerUnit import *
+    from WorkerUnit import main_gen_work_unit_result
     print "Mapping %s" % str(work_unit)
     res = (work_unit.variation_info, main_gen_work_unit_result(work_unit))
     yield res

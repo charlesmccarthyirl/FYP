@@ -3,6 +3,14 @@ from operator import gt, lt
 from StringIO import StringIO
 from itertools import ifilter
 
+#http://stackoverflow.com/questions/211100/pythons-import-doesnt-work-as-expected
+def my_import(name):
+    mod = __import__(name)
+    components = name.split('.')
+    for comp in components[1:]:
+        mod = getattr(mod, comp)
+    return mod
+
 def getitem(seq, index):
     for s in seq:
         if index == 0:
