@@ -22,7 +22,7 @@ def mapfn(k, work_unit):
     res = (work_unit.variation_info, main_gen_work_unit_result(work_unit))
     yield res
 
-def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_multi, password="changeme"):      
+def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_multi, password="changeme", *margs, **mkwargs):      
     logging.info("Generating work units")
     work_units = list(gen_work_units_iterable(experiment, named_data_sets, experiment_directory))
     

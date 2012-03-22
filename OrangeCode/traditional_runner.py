@@ -29,7 +29,7 @@ def main_gen_raw_results_only(experiment, named_data_sets,
     with stream_from_name_getter(variation_name) as stream:
         variation_result.serialize(stream)
 
-def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_multi):
+def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_multi, *margs, **mkwargs):
     if do_multi:
         mp.log_to_stderr()
         logger = mp.get_logger()

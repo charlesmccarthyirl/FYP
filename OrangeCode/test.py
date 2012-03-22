@@ -104,6 +104,8 @@ if __name__ == "__main__":
                       default=True, action='store_false')
     parser.add_option('--profile', help='Profile the experiment, storing the profile results in the specified file', dest='profile',
                       default=None, action='store')
+    parser.add_option('--password', help='Password to use when performing distributed computation', dest='password',
+                      default="changeme", action='store')
     (options, args) = parser.parse_args()
     
     logging.basicConfig(format='%(asctime)s %(message)s',
@@ -122,4 +124,5 @@ if __name__ == "__main__":
         main(experiment, named_data_sets, experiment_directory, gen_only=options.gen_only, 
              do_multi=options.multi, 
              do_colour_plots=options.colour, latex_encode=options.latexencode, 
-             main_gen_raw_results_func=main_gen_raw_results_func)
+             main_gen_raw_results_func=main_gen_raw_results_func,
+             password=options.password)

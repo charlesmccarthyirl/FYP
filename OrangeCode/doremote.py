@@ -38,9 +38,6 @@ def my_call(args, block=True, logfn=None, shell=False):
         p.wait()
     return p
 
-non_textual_dir_name = "non_textual"
-textual_dir_name = "textual"
-
 def ssh_call(host, head, block=True, extra=""):
     return my_call("ssh -o ConnectTimeout=1 '" +  host + 
                             "' 'nohup python -O " + '"'
@@ -70,6 +67,8 @@ if __name__ == '__main__':
     parser.add_option('--remote', dest='remote', default=False, action='store_true')
     parser.add_option('--hosts', dest='hosts', default="", action='store')
     parser.add_option('--upto', dest='upto', type="int", default=10, action='store')
+    parser.add_option('--password', help='Password to use when performing distributed computation', dest='password',
+                      default="changeme", action='store')
     (options, args) = parser.parse_args()
     
     if options.hosts:
@@ -79,11 +78,6 @@ if __name__ == '__main__':
 
     CODE_DIR = os.path.expanduser(CODE_DIR)
     
-    runs = [
-            (non_textual_dir_name, "DataSets"),
-            #(textual_dir_name, "TextualDataSets")
-            ]
-
     #Host will be head if nothing else provided . . .
     host = args[0] if len(args) > 0 else None
     head = args[-1] if len(args) > 0 else None
@@ -91,19 +85,18 @@ if __name__ == '__main__':
     os.chdir(CODE_DIR)
     
     if not options.remote:
-        for (cat_name, dsfn) in runs:
-            d = os.path.join(STORAGE_DIR, cat_name)
-            logging.info("Beginning experiment execution on %s" % dsfn)
-            logfn = "%s.master.log" % host
-            p = my_call(["nohup", "python", "-O", "test.py", "--nocolour", "--latexencode", 
-                    "experiment1", dsfn, d, "--genonly", "--multi"], block=False, logfn=logfn)
-            time.sleep(5)
-            call_on_upto(options.upto, head, extra="--remote", early_halt=lambda: p.poll() is not None)
-            p.wait()
+        cat_name, dsfn = 'all', "AllDataSets"
+        d = os.path.join(STORAGE_DIR, cat_name)
+        logging.info("Beginning experiment execution on %s" % dsfn)
+        logfn = "%s.master.log" % host
+        p = my_call(["nohup", "python", "-O", "test.py", "--nocolour", "--latexencode", 
+                "experiment1", dsfn, d, "--genonly", "--multi", "--password", options.password], block=False, logfn=logfn)
+        time.sleep(5)
+        call_on_upto(options.upto, head, extra="--remote", early_halt=lambda: p.poll() is not None)
+        p.wait()
     elif options.remote:
         for cn in xrange(cpu_count()):
             logfn = "%s.%d.log" % (host, cn)
-            #TODO: make password configurable. Will need to put arg in test.py aswell.
             my_call(["python", "-O", "mincemeat.py", "-p", "changeme", head, "--verbose"], logfn=logfn, block=False)
         
         
