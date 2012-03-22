@@ -129,6 +129,23 @@ named_selection_strategy_generators = [
                                                                 direct_similarity, 
                                                                 **kwargs))), 
         op=take_minimum)),
+                                       
+    ("CompStrat: Local Liability (Similarity)", 
+      g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'l', direct_similarity, **kwargs)),
+              class_to_suppositions_preprocessor=combiner_preprocessor), 
+        op=take_minimum)),
+                                       
+    ("CompStrat: Global Coverage (Similarity)", 
+     create_other_case_generic('c', pos, neg, neg, pos, take_minimum, all_set_totaller=direct_similarity)),
+                                       
+    ("CompStrat: Global Reachability (Similarity)", 
+     create_other_case_generic('r', pos, neg, neg, pos, take_minimum, all_set_totaller=direct_similarity)),
+                                       
+    ("CompStrat: Global Liability (Similarity)", 
+     create_other_case_generic('l', lambda e: 0, pos, neg, pos, take_maximum, all_set_totaller=direct_similarity)),
+                                       
+    ("CompStrat: Global Dissimilarity (Similarity)", 
+     create_other_case_generic('d', pos, pos, pos, neg, take_minimum, all_set_totaller=direct_similarity)),
 
 ]
 
