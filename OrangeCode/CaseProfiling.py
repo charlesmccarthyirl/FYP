@@ -137,6 +137,7 @@ class SuppositionResults(dict):
                         case_set = getattr(getattr(add_removal_store, ar), sn) 
                         result_set = getattr(getattr(result_case_add_removal_store, ar), sn)
                         result_set.update(case_set)
+        return result
                     
         
     
