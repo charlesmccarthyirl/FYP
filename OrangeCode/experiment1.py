@@ -84,67 +84,68 @@ def create_other_case_generic(rcdl, direct_other,  shunt, flip_added, flip_remov
 named_selection_strategy_generators = [
     ("Random Selection", random_selection_strategy_generator),
     ("Uncertainty Sampling", classifier_output_selection_strategy_generator),
-    #("Margin Sampling", margin_sampling_selection_strategy_generator),
-    #("Maximum Diversity Sampling", maximum_diversity_selection_strategy_generator),
-    #("Maximum Density Times Diversity", maximum_dtd_selection_strategy_generator),
-    #("CompStrat 1 - New Case - Reachability", 
-      #g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'r', wrapped_len, **kwargs))), 
-        #op=take_minimum)),
+    ("Margin Sampling", margin_sampling_selection_strategy_generator),
+    ("Maximum Diversity Sampling", maximum_diversity_selection_strategy_generator),
+    ("Maximum Density Times Diversity", maximum_dtd_selection_strategy_generator),
     
-    #("CompStrat 2 - New Case - Coverage", 
-     #gen_case_profile_ss_generator(ExampleCoverageOnlyCompetenceMeasure, 
-                                  #op=take_minimum)),
+    ("CompStrat - Local Reachability (Counting)", 
+      g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'r', wrapped_len, **kwargs))), 
+        op=take_minimum)),
     
-    #("CompStrat 3 - NCATMaxDMin", 
-     #gen_case_profile_ss_generator2(SizeDeviationCombo)),
+    ("CompStrat - Local Coverage (Counting)", 
+     gen_case_profile_ss_generator(ExampleCoverageOnlyCompetenceMeasure, 
+                                  op=take_minimum)),
+    
+    ("CompStrat - NCATMaxDMin", 
+     gen_case_profile_ss_generator2(SizeDeviationCombo)),
 
-    #("CompStrat 4 - New Case - Dissimilarity", 
-      #g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'd', wrapped_len, **kwargs))), 
-        #op=take_minimum)),
+    ("CompStrat - Local Dissimilarity (Counting)", 
+      g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'd', wrapped_len, **kwargs))), 
+        op=take_minimum)),
     
-    #("CompStrat 5 - New Case - Liability", 
-      #g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'l', wrapped_len, **kwargs))), 
-        #op=take_minimum)),
+    ("CompStrat - Local Liability (Counting)", 
+      g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'l', wrapped_len, **kwargs))), 
+        op=take_minimum)),
                          
-    #("CompStrat 6 - Other Cases - Coverage", 
-     #create_other_case_generic('c', pos, pos, neg, pos, take_minimum)),
+    ("CompStrat - Global Coverage (Counting)", 
+     create_other_case_generic('c', pos, pos, neg, pos, take_minimum)),
                                        
-    #("CompStrat 7 - Other Cases - Reachability", 
-     #create_other_case_generic('r', pos, pos, neg, pos, take_minimum)),
+    ("CompStrat - Global Reachability (Counting)", 
+     create_other_case_generic('r', pos, pos, neg, pos, take_minimum)),
                                        
-    #("CompStrat 8 - Other Cases - Liability", 
-     #create_other_case_generic('l', lambda e: 0, pos, neg, pos, take_maximum)),
+    ("CompStrat - Global Liability (Counting)", 
+     create_other_case_generic('l', lambda e: 0, pos, neg, pos, take_maximum)),
                                        
-    #("CompStrat 9 - Other Cases - Dissimilarity", 
-     #create_other_case_generic('d', pos, pos, pos, neg, take_minimum)),
+    ("CompStrat - Global Dissimilarity (Counting)", 
+     create_other_case_generic('d', pos, pos, pos, neg, take_minimum)),
                                        
-    ("CompStrat: Local Reachability (Similarity)", 
+    ("CompStrat - Local Reachability (Similarity)", 
       g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'r', 
                                                                 all_pairs_similarity, 
                                                                 **kwargs))), 
         op=take_minimum)),
                                        
-    ("CompStrat: Local Coverage (Similarity)", 
+    ("CompStrat - Local Coverage (Similarity)", 
       g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'c', 
                                                                 direct_similarity, 
                                                                 **kwargs))), 
         op=take_minimum)),
                                        
-    ("CompStrat: Local Liability (Similarity)", 
+    ("CompStrat - Local Liability (Similarity)", 
       g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'l', direct_similarity, **kwargs)),
               class_to_suppositions_preprocessor=combiner_preprocessor), 
         op=take_minimum)),
                                        
-    ("CompStrat: Global Coverage (Similarity)", 
+    ("CompStrat - Global Coverage (Similarity)", 
      create_other_case_generic('c', pos, neg, neg, pos, take_minimum, all_set_totaller=direct_similarity)),
                                        
-    ("CompStrat: Global Reachability (Similarity)", 
+    ("CompStrat - Global Reachability (Similarity)", 
      create_other_case_generic('r', pos, neg, neg, pos, take_minimum, all_set_totaller=direct_similarity)),
                                        
-    ("CompStrat: Global Liability (Similarity)", 
+    ("CompStrat - Global Liability (Similarity)", 
      create_other_case_generic('l', lambda e: 0, pos, neg, pos, take_maximum, all_set_totaller=direct_similarity)),
                                        
-    ("CompStrat: Global Dissimilarity (Similarity)", 
+    ("CompStrat - Global Dissimilarity (Similarity)", 
      create_other_case_generic('d', pos, pos, pos, neg, take_minimum, all_set_totaller=direct_similarity)),
 
 ]
