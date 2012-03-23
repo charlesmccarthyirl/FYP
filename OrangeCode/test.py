@@ -14,7 +14,7 @@ from traditional_runner import main_gen_raw_results as tr_mgrr
 def main(experiment, named_data_sets, experiment_directory,
         do_create_summary=True, latex_encode=True, gen_only=True, 
         do_colour_plots=True, do_multi=True,
-        main_gen_raw_results_func=wu_mgrr):
+        main_gen_raw_results_func=wu_mgrr, password=None):
     if gen_only:
         logging.info("Beginning generating raw results")
         main_gen_raw_results_func(experiment, named_data_sets, experiment_directory, do_multi)
