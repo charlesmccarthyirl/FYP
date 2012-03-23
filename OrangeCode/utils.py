@@ -3,6 +3,14 @@ from operator import gt, lt
 from StringIO import StringIO
 from itertools import ifilter
 
+def checkLogFor(logfn, string):
+    if not os.path.exists(logfn):
+        print "%s doesn't exist" % logfn
+        return 0
+    with open(logfn, 'r') as lf:
+        f_str = lf.read() # leaving go of the handle again as quickly as possible.
+    return f_str.count(string)
+
 #http://stackoverflow.com/questions/211100/pythons-import-doesnt-work-as-expected
 def my_import(name):
     mod = __import__(name)

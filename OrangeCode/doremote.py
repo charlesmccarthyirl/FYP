@@ -8,15 +8,17 @@ import os
 from subprocess import call, Popen, STDOUT
 import logging
 from pprint import pprint
-from utils import maybe_make_dirs, my_import
+from utils import maybe_make_dirs, my_import, checkLogFor
 from multiprocessing import cpu_count
 import optparse
 import time
 
-
 STORAGE_DIR = "~/FYP/data_dir/"
 CODE_DIR = "~/FYP/FYP/OrangeCode/"
 LOGS_DIR = os.path.expanduser(os.path.join(STORAGE_DIR, 'logs'))
+
+def get_full_logfn(logfn):
+    return os.path.join(LOGS_DIR, logfn)
 
 def my_call(args, block=True, logfn=None, shell=False):
     func = Popen
@@ -24,9 +26,8 @@ def my_call(args, block=True, logfn=None, shell=False):
     pprint(pretty_args)
     extra_kwargs = {}
     if logfn:
-        logs_dir = os.path.expanduser(LOGS_DIR)
+        logs_dir = os.path.dirname(logfn)
         maybe_make_dirs(logs_dir)
-        logfn = os.path.join(logs_dir, logfn)
         my_file = open(logfn, 'ab')
         extra_kwargs = dict(stderr=STDOUT, stdout=my_file)
     
@@ -88,15 +89,20 @@ if __name__ == '__main__':
         cat_name, dsfn = 'all', "AllDataSets"
         d = os.path.join(STORAGE_DIR, cat_name)
         logging.info("Beginning experiment execution on %s" % dsfn)
-        logfn = "%s.master.log" % host
+        logfn = get_full_logfn("%s.master.log" % host)
         p = my_call(["nohup", "python", "-O", "test.py", "--nocolour", "--latexencode", 
                 "experiment1", dsfn, d, "--genonly", "--multi", "--password", options.password], block=False, logfn=logfn)
-        time.sleep(5)
+           
+        while not checkLogFor(logfn, "Beginning mincemeat server"):  
+            if p.poll() is not None:
+                break # In case there was some error in the test.py, no point waiting forever if it's dead.
+            time.sleep(5)
+            
         call_on_upto(options.upto, head, extra="--remote", early_halt=lambda: p.poll() is not None)
         p.wait()
     elif options.remote:
         for cn in xrange(cpu_count()):
-            logfn = "%s.%d.log" % (host, cn)
+            logfn = get_full_logfn("%s.%d.log" % (host, cn))
             my_call(["python", "-O", "mincemeat.py", "-p", "changeme", head, "--verbose"], logfn=logfn, block=False)
         
         

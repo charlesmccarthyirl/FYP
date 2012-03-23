@@ -32,13 +32,13 @@ def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_m
     work_units.sort(key=lambda wu: wu.variation_info)
     if do_multi:
         import mincemeat
-        logging.info("Beginning mince meat server")
+        logging.info("Beginning mincemeat server")
         s = mincemeat.Server(lambda variation_info, wurs: len(wurs) >= variation_info.total_folds)
         s.datasource = dict(enumerate(work_units))
         s.mapfn = mapfn
         s.reducefn = work_reducer
         s.run_server(password=password)
-        logging.info("Ending mince meat server")
+        logging.info("Ending mincemeat server")
     else:
         work_unit_results = (main_gen_work_unit_result(work_unit) for work_unit in work_units)
     
