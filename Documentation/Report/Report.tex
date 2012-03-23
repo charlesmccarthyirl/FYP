@@ -2,6 +2,7 @@
 \documentclass[a4paper,11pt]{report}
 
 \usepackage{times}
+\usepackage{morefloats}
 \usepackage{multirow}
 \usepackage{array}
 \usepackage[numbers]{natbib}
@@ -19,7 +20,7 @@
 \usepackage{fancyvrb}
 \usepackage{float}
 \usepackage[parfill]{parskip} %http://stackoverflow.com/questions/3159606/latex-have-new-line-between-paragraphs-no-indentation
-
+%TODO Fix minimis . . .
 \newcolumntype{x}[1] {>{\raggedright}p{#1}} %http://nepsweb.co.uk/docs/tableTricks.pdf
 
 \newcommand{\sst}[1]{\ensuremath{^{\textrm{#1}}}}
@@ -1635,7 +1636,8 @@ If there are more than 2 labels and we totalled across different labels, both fl
 We do not attempt to count unique instances here, as the weighting attached due to the duplicates is somewhat useful. If a flip occurs for e.g. 3 out of 4 labels for a case, it is somewhat more relevant than if it occurs for 1 of the 4 labels.
 
 \section{Selection Strategies}
-\subsection{CompStrat 1: New Case - Reachability\label{sec:compstrat1}}
+\subsection{Counting-Based Strategies}
+\subsubsection{Local Reachability (Counting)\label{sec:compstrat1}}
 When Supposing a single case for addition to the case-base, irrespective of the label we choose to suppose, the case-base will classify it with only one label. For example, in Figure \ref{fig:NNsCorrect}, irrespective of if we Suppose Cn to be a triangle, or a circle, the case-base will still classify it a circle. Thus, the reachability set of Cn will only get populated in one instance - when we Suppose Cn to be the same label as the case-base classifies it.
 
 This holds true in Supposing any case for the case-base. A Supposed case will only have its reachability set populated for one single label for a case-base state - the label that the case-base classifies it as. Assuming a non-empty case-base, for when the reachability set is populated - the cardinality of the set will always be between 1 and k.
@@ -1644,7 +1646,7 @@ With the absence of further knowledge, we could guess that when the reachability
 
 This Strategy takes this approach exactly - assigning an overall score to each unlabelled case equal to the total of the reachability set Supposes across all the different possible labels\footnote{Totalling is sufficient because we are guaranteed that the reachability set will be empty for all but one of the Supposes. So totalling is equivalent to just taking the value of the non-empty reachability set.}. The unlabelled case with the minimum score is then selected. Ties are broken at random.
 
-\subsection{CompStrat 2: New Case - Coverage}
+\subsubsection{Local Coverage (Counting)}
 
 The intuition around this strategy is that by trying to find unlabelled cases which have a roughly equal positive effect for the different possible labels, we get cases which are close to classification boundaries.
 
@@ -1680,14 +1682,8 @@ One thing that initially falls out of this strategy is that, during the early se
 
 After all of the diverse cases have been selected, it will then move onto balancing more similar to as described in the example above.
 
-\subsection{CompStrat 3: NCATMaxDMin: New Case Coverage Added Total Maximisation with Deviation Minimization}
-This strategy was an attempt at resolving one of the `issues' of CompStrat 2, in that it will likely choose cases that have very little impact on the cases already in the case-base.  CompStrat 3 first chooses the top quarter of unlabelled cases based on their total coverage added among all the different Supposes of the possible labels. It then chooses from these the one with least Standard Deviation between the Covered totals of the Supposes.
 
-In the example presented in Figure \ref{fig:ncadmin}, C2 is slightly more desirable, in that - irrespective of its label, it would assist in covering a large portion of cases, and would be a better candidate than C1 in helping set the classification boundary in a region dense with multiple labels.
-
-A downside of this strategy though is that it is liable to get `stuck' in relatively dense areas of the case space, not choosing cases which exert no influence on the existing cases in the case-base.
-
-\subsection{CompStrat 4: New Case - Dissimilarity}
+\subsubsection{Local Dissimilarity (Counting)}
 \begin{figure}[h!] \centering
 \includegraphics[width=100pt]{./Drawn/NDATMin}
 \caption{Example of unlabelled case relative to its k-nearest-neighbours within the case-base.}
@@ -1745,7 +1741,7 @@ Total &= (|L| - 2)\times |C_{N}| +(|L| - 1)\times (k - |C_{N}|) \\
 
 The $ (|L| - 1) \times k $ part will be a constant for a single case-base state. $|C_{N}|$ represents the number of disagreeing neighbours. A high number of disagreeing neighbours would indicate that the case-base is relatively uncertain about the classification. Thus - a strategy to semi-emulate uncertainty sampling (though in a less fine-grained manner) is to maximize $|C_{N}|$. To do this, we should minimize $Total$.
 
-\subsection{CompStrat 5: New Case - Liability}
+\subsubsection{Local Liability (Counting)}
 There are two types of cases which can appear in the new case's liability set:
 \begin{enumerate}
 	\item A case which was already misclassified, and the new case simply joins in in the misclassification.
@@ -1756,75 +1752,75 @@ In each, the new case is somehow aiding in the incorrect classification of an ex
 
 Totalling here, as in other strategies, is probably not the best approach - but as a simplistic initial investigatory strategy, we try to minimize the total of the new case's liability set summed over the different possible Supposes.
 
-\subsection{CompStrat 6: Other Cases - Coverage}
+\subsubsection{Global Coverage (Counting)}
 
-\subsubsection{Direct}
+\paragraph{Direct}
 
 The direct rNN's coverage added is equivalent to the new case's reachability added. See Section \ref{sec:compstrat1} for justification on minimisation.
 
-\subsubsection{Shunted}
+\paragraph{Shunted}
 
 When a case is shunted from an NNs set by the new case, its coverage set size might be reduced by one (i.e. a coverage set removal). Many such removals (at least in the situation of a relatively populated case-base) would indicate that the new case is making an area more dense.
 
-\subsubsection{Flip}
+\paragraph{Flip}
 
 If the new case causes a `flip' in the correct-classification-status of an rNN, that rNN's other NNs may have gained or lost (or neither) items in their coverage sets. The desire would be to minimize flips to incorrect classifications (Flip related coverage removals), but increase flips to correct classification (Flip related coverage additions).
 
 Because the overall aim in the strategy is `minimisation', to give positive contribution to Flip related coverage additions, and negative contribution to Flip related coverage removals, we subtract Flip related coverage additions, and add Flip related coverage removals.
 
-\subsubsection{Overall Formula}
+\paragraph{Overall Formula}
 \[  
   T~=~Direct_{C+}~+~Shunted_{C-}~-~Flip_{C+}~+~Flip_{C-}
 \]
 
 This value is computed for each candidate case, summed across the possible labels. The candidate case with the minimum value is selected.
 
-\subsection{CompStrat 7: Other Cases - Reachability}
-\subsubsection{Direct}
+\subsubsection{Global Reachability (Counting)}
+\paragraph{Direct}
 A high number of additions to Direct reachability sets of Other cases would indicate that the new case is in a relatively dense region. To attempt to increase the diversity of new cases, we would thus like to minimize this.
 
-\subsubsection{Shunted}
+\paragraph{Shunted}
 Shunting a `helping' neighbour for an existing case could be considered a bad thing, since we are moving in a neighbour for which an existing neighbour was already covering that space. We would like to minimize these.
 
-\subsubsection{Flip}
+\paragraph{Flip}
 Causing a flip to correctly classified is a positive thing (Flip related reachability additions), whereas causing a flip to incorrectly classified a bad (Flip related reachability removals).
 
-\subsubsection{Overall Formula}
+\paragraph{Overall Formula}
 \[  
   T~=~Direct_{R+}~+~Shunted_{R-}~+~Flip_{R-}~-~Flip_{R+}
 \]
 
 We would like to minimize this value overall.
 
-\subsection{CompStrat 8: Other Cases - Liability}
-\subsubsection{Direct}
+\subsubsection{Global Liability (Counting)}
+\paragraph{Direct}
 (No real point considering this with the whole double counting that cropped up in CompStrat 4.)
 
-\subsubsection{Shunted}
+\paragraph{Shunted}
 Causing a `shunt' of a hurtful case could be considered a positive action. The added case that caused the shunt will hopefully add more information regarding that area of the case space. 
 
-\subsubsection{Flip}
+\paragraph{Flip}
 Causing a case to flip to incorrectly classified would lead to flip related liability additions, whereas causing a flip to correctly classified would lead to flip related liability removals. We would like to minimize flips to incorrectly classified, while maximizing flips to correctly classified.
 
-\subsubsection{Overall Formula}
+\paragraph{Overall Formula}
 \[  
   T~=~Shunted_{L-}~+~Flip_{L-}~-~Flip_{L+}
 \]
 
 This value is computed for each candidate case, summed across the possible labels. The candidate case with the maximum value is selected.
 
-\subsection{CompStrat 9: Other Cases - Dissimilarity}
+\subsubsection{Global Dissimilarity (Counting)}
 
-\subsubsection{Direct}
+\paragraph{Direct}
 A high number of additions to Direct dissimilarity sets of Other cases would indicate that the new case is in a relatively dense region. To attempt to increase the diversity of new cases, we would thus like to minimize this.
 
-\subsubsection{Shunted}
+\paragraph{Shunted}
 To also aid in identifying diverse cases, we minimize the shunted neighbours here.
 
-\subsubsection{Flip}
+\paragraph{Flip}
 Causing a flip to correct classification (Flip related dissimilarity removals) could be construed as positive, whereas flips to incorrect classification (Flip related dissimilarity additions) as negative.
 
-\subsubsection{Overall Formula}
+\paragraph{Overall Formula}
 \[  
   T~=~Direct_{D+}~+~Shunted_{D-}~+~Flip_{D+}~-~Flip_{D-}
 \]

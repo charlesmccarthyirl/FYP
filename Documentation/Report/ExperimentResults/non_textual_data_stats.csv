@@ -1,8 +1,8 @@
 Dataset,Num Instances,Num Labels,Label Distribution
 iris \citep{data:iris},150,3,0.33 / 0.33 / 0.33
-dermatology \citep{data:dermatology},366,6,0.31 / 0.20 / 0.17 / 0.14 / 0.13 / 0.05
 wine \citep{data:wine},178,3,0.40 / 0.33 / 0.27
 zoo \citep{data:zoo},101,7,0.41 / 0.20 / 0.13 / 0.10 / 0.08 / 0.05 / 0.04
+dermatology \citep{data:dermatology},366,6,0.31 / 0.20 / 0.17 / 0.14 / 0.13 / 0.05
 hepatitis \citep{data:hepatitis},155,2,0.79 / 0.21
 breathalyzer \citep{data:breathalyzer},127,2,0.61 / 0.39
 haberman \citep{data:haberman},306,2,0.74 / 0.26

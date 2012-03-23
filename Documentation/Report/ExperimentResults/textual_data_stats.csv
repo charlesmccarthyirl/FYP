@@ -1,5 +1,3 @@
 Dataset,Num Instances,Num Labels,Label Distribution
-WinXwin \citep{data:WinXwin},1973,2,0.50 / 0.50
 Comp \citep{data:Comp},1945,2,0.50 / 0.50
 Talk \citep{data:Talk},1427,2,0.56 / 0.44
-Vehicle \citep{data:Vehicle},1986,2,0.50 / 0.50
