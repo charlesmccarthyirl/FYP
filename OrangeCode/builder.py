@@ -11,14 +11,15 @@ import shutil
 import logging
 from pprint import pprint
 from itertools import chain
-from utils import maybe_make_dirs
+from utils import maybe_make_dirs, my_import
 
 def my_call(args):
     pprint(" ".join(args))
     call(args)
 
-STORAGE_DIR = "~/FYP/data_dir/"
-REPORT_DIR = "~/FYP/experiment_outputs/"
+STORAGE_DIR = os.path.expanduser("~/FYP/data_dir/")
+REPORT_DIR = os.path.expanduser("~/FYP/experiment_outputs/")
+ALL_DIR = os.path.join(STORAGE_DIR, 'all')
 
 non_textual_dir_name = "non_textual"
 textual_dir_name = "textual"
@@ -26,8 +27,6 @@ textual_dir_name = "textual"
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s %(message)s',level=logging.DEBUG)
     
-    STORAGE_DIR = os.path.expanduser(STORAGE_DIR)
-    REPORT_DIR = os.path.expanduser(REPORT_DIR)
     
     maybe_make_dirs(STORAGE_DIR)
     maybe_make_dirs(REPORT_DIR)
@@ -37,8 +36,16 @@ if __name__ == '__main__':
             (textual_dir_name, "TextualDataSets")
             ]
     
-    for (cat_name, dsfn) in runs:
-        d = os.path.join(STORAGE_DIR, cat_name)
+    runs = [(cat_name, os.path.join(STORAGE_DIR, cat_name), dsfn) for (cat_name, dsfn) in runs]
+    
+    for (_, d, dsfn) in runs:
+        named_data_sets = my_import(dsfn).named_data_sets
+        ds_names = [nds[0] for nds in named_data_sets]
+        shutil.rmtree(d, True)
+        for dsn in ds_names:
+            shutil.copytree(os.path.join(ALL_DIR, dsn), os.path.join(d, dsn))
+    
+    for (cat_name, d, dsfn) in runs:
         maybe_make_dirs(d)
         logging.info("Beginning experiment execution on %s" % dsfn)
         my_call(["python", "-O", "test.py", "--nocolour", "--latexencode", 
