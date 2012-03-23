@@ -86,7 +86,6 @@ named_selection_strategy_generators = [
     ("Uncertainty Sampling", classifier_output_selection_strategy_generator),
     ("Margin Sampling", margin_sampling_selection_strategy_generator),
     ("Maximum Diversity Sampling", maximum_diversity_selection_strategy_generator),
-    ("Maximum Density Times Diversity", maximum_dtd_selection_strategy_generator),
     
     ("CompStrat - Local Reachability (Counting)", 
       g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'r', wrapped_len, **kwargs))), 
@@ -95,9 +94,6 @@ named_selection_strategy_generators = [
     ("CompStrat - Local Coverage (Counting)", 
      gen_case_profile_ss_generator(ExampleCoverageOnlyCompetenceMeasure, 
                                   op=take_minimum)),
-    
-    ("CompStrat - NCATMaxDMin", 
-     gen_case_profile_ss_generator2(SizeDeviationCombo)),
 
     ("CompStrat - Local Dissimilarity (Counting)", 
       g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'd', wrapped_len, **kwargs))), 
