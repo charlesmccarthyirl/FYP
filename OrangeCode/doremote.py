@@ -70,6 +70,7 @@ if __name__ == '__main__':
     parser.add_option('--upto', dest='upto', type="int", default=10, action='store')
     parser.add_option('--password', help='Password to use when performing distributed computation', dest='password',
                       default="changeme", action='store')
+    parser.add_option('--nohead', dest='no_head', default=False, action='store_true')
     (options, args) = parser.parse_args()
     
     if options.hosts:
@@ -90,15 +91,19 @@ if __name__ == '__main__':
         d = os.path.join(STORAGE_DIR, cat_name)
         logging.info("Beginning experiment execution on %s" % dsfn)
         logfn = get_full_logfn("%s.master.log" % host)
-        p = my_call(["nohup", "python", "-O", "test.py", "--nocolour", "--latexencode", 
-                "experiment1", dsfn, d, "--genonly", "--multi", "--password", options.password], block=False, logfn=logfn)
-           
-        while not checkLogFor(logfn, "Beginning mincemeat server"):  
-            if p.poll() is not None:
-                break # In case there was some error in the test.py, no point waiting forever if it's dead.
-            time.sleep(5)
+        
+        if options.no_head:
+            early_halt = lambda: False
+        else:
+            p = my_call(["nohup", "python", "-O", "test.py", "--nocolour", "--latexencode", 
+                    "experiment1", dsfn, d, "--genonly", "--multi", "--password", options.password], block=False, logfn=logfn)
+            early_halt = lambda: p.poll() is not None
+            while not (checkLogFor(logfn, "Beginning mincemeat server")
+                       or early_halt()): # In case there was some error in the test.py, no point waiting forever if it's dead.  
+                time.sleep(5)
             
-        call_on_upto(options.upto, head, extra="--remote", early_halt=lambda: p.poll() is not None)
+        call_on_upto(options.upto, head, extra="--remote", early_halt=early_halt)
+        
         p.wait()
     elif options.remote:
         for cn in xrange(cpu_count()):
