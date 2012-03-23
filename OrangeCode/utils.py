@@ -1,3 +1,4 @@
+from __future__ import division
 import os
 from operator import gt, lt
 from StringIO import StringIO
