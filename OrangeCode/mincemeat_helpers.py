@@ -5,6 +5,7 @@ Created on Mar 20, 2012
 '''
 import logging
 from WorkerUnit import *
+from collections import OrderedDict
 
 def work_reducer(variation_info, work_unit_results):
     from SelectionStrategyEvaluator import MultiResultSet
@@ -29,12 +30,11 @@ def main_gen_raw_results(experiment, named_data_sets, experiment_directory, do_m
     if len(work_units) == 0:
         return
     
-    work_units.sort(key=lambda wu: wu.variation_info)
     if do_multi:
         import mincemeat
         logging.info("Beginning mincemeat server")
         s = mincemeat.Server(lambda variation_info, wurs: len(wurs) >= variation_info.total_folds)
-        s.datasource = dict(enumerate(work_units))
+        s.datasource = OrderedDict(((wu, wu) for wu in work_units))
         s.mapfn = mapfn
         s.reducefn = work_reducer
         s.run_server(password=password)
