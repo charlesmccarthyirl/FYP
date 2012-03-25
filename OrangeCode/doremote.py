@@ -1,13 +1,13 @@
+#!/usr/bin/env python
 '''
 Created on Feb 5, 2012
 
 @author: charles
 '''
 
-import os
+import os, sys
 from subprocess import call, Popen, STDOUT
 import logging
-from pprint import pprint
 from utils import maybe_make_dirs, my_import, checkLogFor
 from multiprocessing import cpu_count
 import optparse
@@ -17,13 +17,17 @@ STORAGE_DIR = "~/FYP/data_dir/"
 CODE_DIR = "~/FYP/FYP/OrangeCode/"
 LOGS_DIR = os.path.expanduser(os.path.join(STORAGE_DIR, 'logs'))
 
+ERROR_SCRIPT_RUNNING = 11
+MINCEMEAT_SCRIPT = "mincemeat.py"
+
+def process_is_running(proc_substring):
+    return not call("ps -Aef | grep -v grep | grep -w %s" % proc_substring, shell=True)
+
 def get_full_logfn(logfn):
     return os.path.join(LOGS_DIR, logfn)
 
 def my_call(args, block=True, logfn=None, shell=False):
     func = Popen
-    pretty_args = " ".join(args) if not isinstance(args, str) else args
-    pprint(pretty_args)
     extra_kwargs = {}
     if logfn:
         logs_dir = os.path.dirname(logfn)
@@ -41,7 +45,7 @@ def my_call(args, block=True, logfn=None, shell=False):
 
 def ssh_call(host, head, block=True, extra=""):
     return my_call("ssh -o ConnectTimeout=1 '" +  host + 
-                            "' 'nohup python -O " + '"'
+                            "' 'python -O " + '"'
                             + os.path.join(CODE_DIR, os.path.basename(__file__)) 
                             + '" "' +host+ '" "' + head + '" '  + extra 
                             + " > " + '"' + os.path.join(LOGS_DIR, "%s.ssh.log" % host) + '"' + " 2>&1'", 
@@ -59,6 +63,8 @@ def call_on_upto(n, head, extra=None, early_halt=None):
         if p.returncode == 0:
             called_on += 1
             logging.info("Success for %s. Now have %d" % (h, called_on))
+        elif p.returncode == ERROR_SCRIPT_RUNNING:
+            logging.info("Already running on %s" % h)
         else:
             logging.info("Failed for %s" % h)
     return called_on
@@ -104,11 +110,15 @@ if __name__ == '__main__':
             
         call_on_upto(options.upto, head, extra="--remote", early_halt=early_halt)
         
-        p.wait()
+        if not options.no_head:
+            try:
+                p.wait()
+            except:
+                p.kill()
     elif options.remote:
+        if process_is_running(MINCEMEAT_SCRIPT):
+            sys.exit(ERROR_SCRIPT_RUNNING)
+        
         for cn in xrange(cpu_count()):
             logfn = get_full_logfn("%s.%d.log" % (host, cn))
-            my_call(["python", "-O", "mincemeat.py", "-p", "changeme", head, "--verbose"], logfn=logfn, block=False)
-        
-        
-        
+            my_call(["python", "-O", MINCEMEAT_SCRIPT, "-p", options.password, head, "--verbose"], logfn=logfn, block=False)
