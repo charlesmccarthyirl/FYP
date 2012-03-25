@@ -43,7 +43,6 @@ VERSION = "0.1.2"
 DEFAULT_PORT = 11235
 
 
-
 class Protocol(asynchat.async_chat):
     def __init__(self, conn=None):
         if conn:
@@ -112,7 +111,10 @@ class Protocol(asynchat.async_chat):
             logging.info("Authenticated other end")
         else:
             self.handle_close()
-
+            
+    def is_authed(self):
+        return self.auth == "Done"
+    
     def process_command(self, command, data=None):
         commands = {
             'challenge': self.respond_to_challenge,
@@ -209,6 +211,7 @@ class Server(asyncore.dispatcher, object):
         self.datasource = None
         self.password = None
         self.map_key_is_complete_func = map_key_is_complete_func
+        self.connection_count = 0
 
     def run_server(self, password="", port=DEFAULT_PORT):
         self.password = password
@@ -246,11 +249,17 @@ class ServerChannel(Protocol):
     def __init__(self, conn, server):
         Protocol.__init__(self, conn)
         self.server = server
-
         self.start_auth()
 
+    def verify_auth(self, *args, **kwargs):
+        Protocol.verify_auth(self, *args, **kwargs)
+        if self.connected:
+            self.server.connection_count += 1
+            logging.info("Client connected. Now have %d" % self.server.connection_count)
+
     def handle_close(self):
-        logging.info("Client disconnected")
+        self.server.connection_count -= 1
+        logging.info("Client disconnected. Now have %d" % self.server.connection_count)
         self.close()
 
     def start_auth(self):
@@ -258,6 +267,7 @@ class ServerChannel(Protocol):
 
     def start_new_task(self):
         command, data = self.server.taskmanager.next_task(self)
+        logging.info("Sending %s: %s" % (command, str(data[0])))
         if command == None:
             return
         self.send_command(command, data)
