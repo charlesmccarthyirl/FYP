@@ -49,7 +49,7 @@ class MyStringIO(StringIO):
             StringIO.close(self)
 
 def stream_getter(filename, none_on_exists=False):
-    path = os.path.dirname(filename)
+    path = os.path.expanduser(os.path.dirname(filename))
     if not os.path.exists(path):
         os.makedirs(path)
         
@@ -146,5 +146,6 @@ class Timer:
         self.interval = self.end - self.start
 
 def maybe_make_dirs(path):
+    path = os.path.expanduser(path)
     if not os.path.exists(path):
         os.makedirs(path)
