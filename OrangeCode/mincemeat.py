@@ -267,7 +267,8 @@ class ServerChannel(Protocol):
 
     def start_new_task(self):
         command, data = self.server.taskmanager.next_task(self)
-        logging.info("Sending %s: %s" % (command, str(data[0])))
+        if data is not None:
+            logging.info("Sending %s: %s" % (command, str(data[0])))
         if command == None:
             return
         self.send_command(command, data)
@@ -324,19 +325,7 @@ class TaskManager:
         
         # Set up group by test here.
         
-        if (self.state == TaskManager.REDUCING
-            or len(self.queued_reduces) > 0):
-            if len(self.queued_reduces) > 0:
-                reduce_item = self.queued_reduces.pop()
-                self.working_reduces[reduce_item[0]] = reduce_item[1]
-                return ('reduce', reduce_item)
-            else:
-                if len(self.working_reduces) > 0:
-                    key = random.choice(self.working_reduces.keys())
-                    return ('reduce', (key, self.working_reduces[key]))
-                self.state = TaskManager.FINISHED
-        
-        if self.state == TaskManager.MAPPING:
+        if self.state == TaskManager.MAPPING and len(self.queued_reduces) == 0:
             try:
                 map_key = self.map_iter.next()
                 map_item = map_key, self.datasource[map_key]
@@ -349,6 +338,18 @@ class TaskManager:
                 self.state = TaskManager.REDUCING
                 #self.reduce_iter = self.map_results.iteritems()
                 self.queued_reduces.extend(self.map_results.iteritems())
+        
+        if (self.state == TaskManager.REDUCING
+            or len(self.queued_reduces) > 0):
+            if len(self.queued_reduces) > 0:
+                reduce_item = self.queued_reduces.pop()
+                self.working_reduces[reduce_item[0]] = reduce_item[1]
+                return ('reduce', reduce_item)
+            else:
+                if len(self.working_reduces) > 0:
+                    key = random.choice(self.working_reduces.keys())
+                    return ('reduce', (key, self.working_reduces[key]))
+                self.state = TaskManager.FINISHED
         
         if self.state == TaskManager.FINISHED:
             self.server.handle_close()
