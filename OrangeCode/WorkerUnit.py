@@ -67,6 +67,12 @@ class WorkUnit:
     def __str__(self):
         return "%s, %d" % (self.variation_info, self.fold_num)
     
+    def __eq__(self, other):
+        return self.variation_info == other.variation_info and self.fold_num == other.fold_num
+    
+    def __hash__(self):
+        return xor(hash(self.variation_info), hash(self.fold_num))
+    
 class WorkUnitResult:
     def __init__(self, work_unit, result):
         self.work_unit = work_unit
