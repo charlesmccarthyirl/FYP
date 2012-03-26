@@ -48,7 +48,7 @@ if __name__ == '__main__':
     for (cat_name, d, dsfn) in runs:
         maybe_make_dirs(d)
         logging.info("Beginning experiment execution on %s" % dsfn)
-        my_call(["python", "-O", "test.py", "--nocolour", "--latexencode", 
+        my_call(["python", "-O", "test.py", "--nocolour", 
                  "experiment1", dsfn, d])
         for fn in glob(os.path.join(d, "*.pdf")):
             shutil.copyfile(fn, os.path.join(REPORT_DIR, os.path.basename(fn)))
