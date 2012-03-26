@@ -130,9 +130,15 @@ class DataInfo:
     def get_distance_normalized(self):
         dm = self.distance_constructor(self.data)
         
-        max_dist = max(dm(*p) for p in permutations(self.data, 2)) #dist should be the same both ways, but just in case
+        measures = lambda: (dm(*p) for p in permutations(self.data, 2))#dist should be the same both ways, but just in case
+        max_dist = max(measures())
+        min_dist = min(measures())
         
-        if max_dist == 1.0:
+        max_dist_after = max_dist - min_dist
+        
+        scale_prod = 1.0/max_dist_after
+    
+        if max_dist == 1.0 and min_dist == 0:
             return self
         
         di = self.copy()
@@ -140,7 +146,7 @@ class DataInfo:
         
         def new_distance_constructor(data):
             old_dm = old_dc(data)
-            return lambda ex1, ex2: old_dm(ex1, ex2)/max_dist
+            return lambda ex1, ex2: (old_dm(ex1, ex2) - min_dist) * scale_prod
             
         di.distance_constructor = new_distance_constructor
         di._is_precached = False # It might almost be precached, but technically at the mo, it's not.
