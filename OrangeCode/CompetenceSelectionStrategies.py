@@ -11,11 +11,11 @@ from CaseProfiling import RcdlCaseProfile, AddRemovalStore, SuppositionResults
 from functools import partial
 from operator import add, sub, itemgetter
 from math import ceil
-from SelectionStrategy import CompetenceMeasure, SelectionStrategy
+from SelectionStrategy import Measure, SelectionStrategy
 import itertools
 from copy import copy
 
-class CaseProfileBasedCompetenceMeasure(CompetenceMeasure):
+class CaseProfileBasedCompetenceMeasure(Measure):
     def __init__(self, probability_generator, case_base, case_profile_builder=None, possible_classes=None, oracle=None, *args, **kwargs):
         self.case_profile_builder = case_profile_builder
         self._probability_getter = probability_generator(case_base, *args, possible_classes=possible_classes, oracle=oracle, **kwargs)
@@ -166,33 +166,41 @@ class TotalOp:
         
     def __call__(self, class_to_supposition_results, *args, **kwargs):
         class_to_supposition_results = self.class_to_suppositions_preprocessor(class_to_supposition_results)
-        scores = (self.score_getter(supposition_results, *args, **kwargs) 
-                    for (_, supposition_results) in class_to_supposition_results)
+        scores = [self.score_getter(supposition_results, *args, **kwargs) 
+                    for (_, supposition_results) in class_to_supposition_results]
         return self.reducer(scores)
 
 class Total(TotalOp):
     def __init__(self, *args, **kwargs):
         TotalOp.__init__(self, sum, *args, **kwargs)
 
+class Deviation(TotalOp):
+    def __init__(self, *args, **kwargs):
+        TotalOp.__init__(self, lambda seq: meanstdv(seq)[1], *args, **kwargs)
+
 class Any(TotalOp):
     def __init__(self, *args, **kwargs):
         TotalOp.__init__(self, lambda seq: iter(seq).next(), *args, **kwargs)
 
 class Oper:
-    def __init__(self, bi_operator, *operands):
-        self.bi_operator = bi_operator
+    def __init__(self, reducer, *operands):
+        self.reducer = reducer
         self.operands = operands
         
     def __call__(self, *args, **kwargs):
-        return reduce(self.bi_operator, (f(*args, **kwargs) for f in self.operands))
+        return self.reducer([f(*args, **kwargs) for f in self.operands])
 
-class Plus(Oper):
-    def __init__(self, *operands):
-        Oper.__init__(self, add, *operands)
+class BiOper(Oper):
+    def __init__(self, bi_operator, *operands):
+        Oper.__init__(self, lambda vals: reduce(bi_operator, vals) if len(vals) > 0 else 0, *operands)
 
-class Minus(Oper):
+class Plus(BiOper):
     def __init__(self, *operands):
-        Oper.__init__(self, sub, *operands)
+        BiOper.__init__(self, add, *operands)
+
+class Minus(BiOper):
+    def __init__(self, *operands):
+        BiOper.__init__(self, sub, *operands)
 
 class GenericCompetenceMeasure(CaseProfileBasedCompetenceMeasure):
     def __init__(self, measurer, *args, **kwargs):

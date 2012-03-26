@@ -55,8 +55,7 @@ def all_pairs_similarity(_set, source, distance_constructor, case_base, include_
     score = op((similarity_measurer(*p) for p in combinations(my_set, 2)))
     return score
 
-def direct_similarity(_set, source, distance_constructor, case_base, include_source=True, 
-                         op=sum, **kwargs):
+def direct_similarity(_set, source, distance_constructor, case_base, op=sum, **kwargs):
     distance_measurer = distance_constructor(case_base)
     similarity_measurer = lambda *args, **kwargs: 1 - distance_measurer(*args, **kwargs)
     score = op((similarity_measurer(source, o) for o in _set))
@@ -145,6 +144,74 @@ named_selection_strategy_generators = [
      create_other_case_generic('d', pos, pos, pos, neg, take_minimum, all_set_totaller=direct_similarity)),
 
 ]
+
+cross_label_aggregators = {"Total": Total, "Deviation": Deviation}
+set_item_score_seq_generators = {"All-Pairs Similarity (incl source)": partial(all_pairs_similarity, include_self=True),
+                                "All-Pairs Similarity (excl source)": partial(all_pairs_similarity, include_self=False),
+                                "Direct Similarity": direct_similarity,
+                                "Counting": wrapped_len}
+set_item_score_combiners = {"Average": average, "Total": sum}
+rcdl_sets = {"Reachability": "r", "Coverage": "c", "Dissimilarity": "d", "Liability": "l"}
+density_inclusions = {"(With Density)": DensityMeasure, "(With Sparsity)": SparsityMeasure, "": None}
+localities = {"Local": None, "Global": None }
+quantity_goals = {"Minimization": take_minimum, "Maximization": take_maximum}
+
+class SelectionStrategySpecification:
+    def __init__(self, locality_kv, rcdl_set_kv, set_item_score_combiner_kv, 
+                           set_item_score_seq_generator_kv, density_inclusion_kv, 
+                           cross_label_aggregator_kv, quantity_goal_kv):
+        self.locality_kv = locality_kv # done xxx
+        self.rcdl_set_kv = rcdl_set_kv # done
+        self.set_item_score_combiner_kv = set_item_score_combiner_kv # done
+        self.set_item_score_seq_generator_kv = set_item_score_seq_generator_kv # done
+        self.density_inclusion_kv = density_inclusion_kv # done
+        self.cross_label_aggregator_kv = cross_label_aggregator_kv # done
+        self.quantity_goal_kv = quantity_goal_kv # done
+    
+    def get_name(self):
+        name_list = [self.locality_kv[0], self.rcdl_set_kv[0], self.set_item_score_combiner_kv[0], 
+                 self.set_item_score_seq_generator_kv[0], self.density_inclusion_kv[0], 
+                 "Cross-Label", self.cross_label_aggregator_kv[0], self.quantity_goal_kv[0]]
+        name_list = filter(None, name_list)
+        experiment_name = " ".join(name_list)
+        return experiment_name
+    
+    def create_experiment(self):
+        if self.locality_kv[0] == 'Global':
+            raise NotImplementedError()
+        comp_measurer = self.cross_label_aggregator_kv[1](SplitterHider(
+                            lambda s, *args, **kwargs: comp_sum(s.dn, 'added', self.rcdl_set_kv[1], 
+                                                                partial(self.set_item_score_seq_generator_kv[1], 
+                                                                        op=self.set_item_score_combiner_kv[1]), 
+                                                                **kwargs)))
+        measure_constructor = partial(GenericCompetenceMeasure, comp_measurer) 
+        
+        if self.density_inclusion_kv[1]:
+            measure_constructor = Measure.create_measure_constructor(average, [measure_constructor, self.density_inclusion_kv[1]])
+        
+        return gen_case_profile_ss_generator(measure_constructor, op=self.quantity_goal_kv[1])
+        
+    
+    def create_experiment_pair(self):
+        return (self.get_name(), self.create_experiment())
+
+def sel_strat_filter(sel_strat_spec):
+    assert(isinstance(sel_strat_spec, SelectionStrategySpecification))
+    return not (   (sel_strat_spec.locality_kv[0] == "Global")
+                or (sel_strat_spec.quantity_goal_kv[0] == "Maximization")
+                or (sel_strat_spec.set_item_score_seq_generator_kv[0] == "Counting" and sel_strat_spec.set_item_score_combiner_kv[0] == "Average")
+                or (sel_strat_spec.density_inclusion_kv[1] == DensityMeasure)
+                )
+    
+all_possible_exp_specs = [SelectionStrategySpecification(*p) for p in itertools.product(localities.iteritems(), rcdl_sets.iteritems(), set_item_score_combiners.iteritems(), 
+                                                                                 set_item_score_seq_generators.iteritems(), density_inclusions.iteritems(), 
+                                                                                 cross_label_aggregators.iteritems(), quantity_goals.iteritems())]
+
+wanted_sel_strat_specs = filter(sel_strat_filter, all_possible_exp_specs)
+
+wanted_sel_strategy_generators = [e.create_experiment_pair() for e in wanted_sel_strat_specs]
+
+named_selection_strategy_generators += wanted_sel_strategy_generators
 
 named_experiment_variations = create_named_experiment_variations(named_selection_strategy_generators)
 

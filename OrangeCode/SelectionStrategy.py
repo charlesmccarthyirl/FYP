@@ -56,11 +56,20 @@ class RandomSelectionStrategy(SelectionStrategy):
         r = self._random.randint(0, upTo)
         return [Selection(collection[r], r)]
 
-class CompetenceMeasure:
+class Measure:
     def measure(self, example):
         pass
+    
+    @staticmethod
+    def create_measure_constructor(reducer, measure_contructors):
+        def init(*args, **kwargs):
+            m = Measure()
+            measures = [f(*args, **kwargs) for f in measure_contructors]
+            m.measure = lambda example: reducer([f.measure(example) for f in measures])
+            return m
+        return init
 
-class ClassifierBasedCompetenceMeasure(CompetenceMeasure):
+class ClassifierBasedCompetenceMeasure(Measure):
     def __init__(self, probability_generator, case_base, *args, **kwargs): 
         self._probability_getter = probability_generator(case_base, *args, **kwargs)
 
@@ -68,7 +77,7 @@ class ClassifierBasedCompetenceMeasure(CompetenceMeasure):
         probabilities = (c_p[1] for c_p in self._probability_getter(example))
         return max(probabilities)
 
-class ClassifierBasedMarginSamplingMeasure(CompetenceMeasure):
+class ClassifierBasedMarginSamplingMeasure(Measure):
     def __init__(self, probability_generator, case_base, *args, **kwargs):
         self._probability_getter = probability_generator(case_base, *args, **kwargs) 
 
@@ -77,7 +86,7 @@ class ClassifierBasedMarginSamplingMeasure(CompetenceMeasure):
         top_2 = sorted(probabilities, reverse=True)[:2]
         return abs(top_2[0] - top_2[1])
 
-class DiversityMeasure(CompetenceMeasure):
+class DiversityMeasure(Measure):
     def __init__(self, case_base, distance_constructor, *args, **kwargs):
         self._case_base = case_base
         self._distance_constructor = distance_constructor
@@ -91,16 +100,39 @@ class DiversityMeasure(CompetenceMeasure):
         diversity =  min((dm(example, e) for e in self._case_base if e is not example))
         return diversity
     
-class DensityMeasure(CompetenceMeasure):
-    def __init__(self, data, distance_constructor, *args, **kwargs):
+class DensityMeasure(Measure):
+    def __init__(self, data, distance_constructor, stretch=True, *args, **kwargs):
         dm = distance_constructor(data)
-        get_density = lambda ex: average((dm(ex, o) for o in data))
+        sm = lambda *args, **kwargs: 1 - dm(*args, **kwargs)
+        get_density = lambda ex: average((sm(ex, o) for o in data))
         self.density_lookup = dict(((ex, get_density(ex)) for ex in data))
+        if stretch:
+            min_density = min(self.density_lookup.itervalues())
+            max_density = max(self.density_lookup.itervalues())
+            assert(0 <= min_density <= 1)
+            assert(0 <= max_density <= 1)
+            
+            max_density_after = max_density - min_density
+            
+            scale_prod = 1.0/max_density_after
+            
+            for k in self.density_lookup.iterkeys():
+                stretched_d = (self.density_lookup[k] - min_density) * scale_prod
+                assert(0 <= stretched_d <= 1)
+                self.density_lookup[k] = stretched_d
 
     def measure(self, example):
         return self.density_lookup[example]
     
-class DensityTimesDiversityMeasure(CompetenceMeasure):
+    
+class SparsityMeasure(DensityMeasure):
+    def __init__(self, *args, **kwargs):
+        DensityMeasure.__init__(self, *args, stretch=True, **kwargs)
+        
+    def measure(self, example):
+        return 1 - DensityMeasure.measure(self, example)
+
+class DensityTimesDiversityMeasure(Measure):
     def __init__(self, *args, **kwargs):
         self.density_measure = DensityMeasure(*args, **kwargs)
         self.diversity_measure = DiversityMeasure(*args, **kwargs)
@@ -142,7 +174,7 @@ class SingleCompetenceSelectionStrategy(SelectionStrategy):
         selected_i_measure = None
         
         m = self._competence_measure_generator()
-        assert isinstance(m, CompetenceMeasure)
+        assert isinstance(m, Measure)
         
         for example in collection:
             example_measure = m.measure(example)
