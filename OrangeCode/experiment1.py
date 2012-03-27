@@ -52,7 +52,9 @@ def all_pairs_similarity(_set, source, distance_constructor, case_base, include_
     my_set = set(_set)
     if include_source:
         my_set.add(source)
-    score = op((similarity_measurer(*p) for p in combinations(my_set, 2)))
+    
+    measures = (similarity_measurer(*p) for p in combinations(my_set, 2))
+    score = op(measures)
     return score
 
 def direct_similarity(_set, source, distance_constructor, case_base, op=sum, **kwargs):
