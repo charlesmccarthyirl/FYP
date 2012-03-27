@@ -3,7 +3,9 @@ Created on Mar 21, 2012
 
 @author: charles
 '''
-bad_hosts = ["cs1-17-06","cs1-17-11","cs1-17-19", "csg24-32", "cs1-31-16", "csg22-06", "csg22-20", "csg26-02"]
+bad_hosts = ["cs1-17-06","cs1-17-11","cs1-17-19", "csg24-32", "cs1-31-16", "csg22-06", 
+             "csg22-20", "csg26-02", "cs1-09-09", "csg22-19", "cs1-09-31", "cs1-09-32",
+             "cs1-09-09"]
 bad_hosts += ["mmlab%02d" % i for i in range(3, 26)] 
 bad_hosts += ["cs1-31-%02d" % i for i in range(2, 16)]
 
@@ -20,7 +22,7 @@ hosts += (["cs1-31-%02d" % i for i in range(2, 14)]
 
 hosts += ["csg26-%02d" % i for i in range(2, 38)] #G26 (#G25 unpingable)
 hosts += ["csg19-%02d" % i for i in range(2, 22)] #G19
-hosts += ["csg1-19-%02d" % i for i in range(2, 17)] #1-19
+hosts += ["cs1-19-%02d" % i for i in range(2, 17)] #1-19
 hosts += (["cs1-32-%02d" % i for i in range(2, 11)] 
           + ["mmlab%02d" % i for i in range(2, 26)] 
           + ["cs1-09-%02d" % i for i in range(31, 33)]   ) #1-09
