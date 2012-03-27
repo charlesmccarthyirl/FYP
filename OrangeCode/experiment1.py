@@ -5,7 +5,7 @@ from SelectionStrategy import *
 from CompetenceSelectionStrategies import *
 from functools import partial
 from collections import OrderedDict
-from operator import pos, neg
+from operator import pos, neg, itemgetter
 from itertools import combinations
 
 stopping_condition_generator = lambda data, *args, **kwargs: PercentageBasedStoppingCriteria(0.1, data, 0)
@@ -154,48 +154,83 @@ set_item_score_seq_generators = {"All-Pairs Similarity (incl source)": partial(a
                                 "Counting": wrapped_len}
 set_item_score_combiners = {"Average": average, "Total": sum}
 rcdl_sets = {"Reachability": "r", "Coverage": "c", "Dissimilarity": "d", "Liability": "l"}
+all_rcdl_set_combinations = (  list(itertools.combinations(rcdl_sets.items(), 1)) 
+                             + list(itertools.combinations(rcdl_sets.items(), 2)) 
+                             + list(itertools.combinations(rcdl_sets.items(), 3)) 
+                             + [rcdl_sets.items()])
 density_inclusions = {"(With Density)": DensityMeasure, "(With Sparsity)": SparsityMeasure, "": None}
 localities = {"Local": None, "Global": None }
 quantity_goals = {"Minimization": take_minimum, "Maximization": take_maximum}
+measure_reducers = {"+": sum}
 
 class SelectionStrategySpecification:
-    def __init__(self, locality_kv, rcdl_set_kv, set_item_score_combiner_kv, 
+    def __init__(self, locality_kv, rcdl_sets_kvs, set_item_score_combiner_kv, 
                            set_item_score_seq_generator_kv, density_inclusion_kv, 
-                           cross_label_aggregator_kv, quantity_goal_kv):
+                           cross_label_aggregator_kv, quantity_goal_kv,
+                           measure_reducer_kv):
         self.locality_kv = locality_kv # done xxx
-        self.rcdl_set_kv = rcdl_set_kv # done
+        self.rcdl_sets_kvs = rcdl_sets_kvs # done
         self.set_item_score_combiner_kv = set_item_score_combiner_kv # done
         self.set_item_score_seq_generator_kv = set_item_score_seq_generator_kv # done
         self.density_inclusion_kv = density_inclusion_kv # done
         self.cross_label_aggregator_kv = cross_label_aggregator_kv # done
         self.quantity_goal_kv = quantity_goal_kv # done
+        self.measure_reducer_kv = measure_reducer_kv
     
     def get_name(self):
-        name_list = [self.locality_kv[0], self.rcdl_set_kv[0], self.set_item_score_combiner_kv[0], 
-                 self.set_item_score_seq_generator_kv[0], self.density_inclusion_kv[0], 
-                 "Cross-Label", self.cross_label_aggregator_kv[0], self.quantity_goal_kv[0]]
+        name_list = [self.locality_kv[0], 
+                     (" " + self.measure_reducer_kv[0] + " ").join(map(itemgetter(0), self.rcdl_sets_kvs)), 
+                     self.set_item_score_combiner_kv[0], 
+                     self.set_item_score_seq_generator_kv[0], self.density_inclusion_kv[0], 
+                     "Cross-Label", self.cross_label_aggregator_kv[0], self.quantity_goal_kv[0]]
         name_list = filter(None, name_list)
         experiment_name = " ".join(name_list)
         return experiment_name
     
-    def create_experiment(self):
+    def generate_measure_constructor(self):
+        # Note, won't contain self.quantity_goal, since this isn't really in the measure
         if self.locality_kv[0] == 'Global':
             raise NotImplementedError()
-        comp_measurer = self.cross_label_aggregator_kv[1](SplitterHider(
-                            lambda s, *args, **kwargs: comp_sum(s.dn, 'added', self.rcdl_set_kv[1], 
-                                                                partial(self.set_item_score_seq_generator_kv[1], 
-                                                                        op=self.set_item_score_combiner_kv[1]), 
-                                                                **kwargs)))
-        measure_constructor = partial(GenericCompetenceMeasure, comp_measurer) 
         
-        if self.density_inclusion_kv[1]:
-            measure_constructor = Measure.create_measure_constructor(average, [measure_constructor, self.density_inclusion_kv[1]])
+        all_comp_measure_constructors = []
         
+        for rcdl_set_kv in self.rcdl_sets_kvs:
+            comp_measurer = self.cross_label_aggregator_kv[1](SplitterHider(
+                                lambda s, *args, **kwargs: comp_sum(s.dn, 'added', rcdl_set_kv[1], 
+                                                                    partial(self.set_item_score_seq_generator_kv[1], 
+                                                                            op=self.set_item_score_combiner_kv[1]), 
+                                                                    **kwargs)))
+            measure_constructor = partial(GenericCompetenceMeasure, comp_measurer) 
+            
+            if self.density_inclusion_kv[1]:
+                measure_constructor = Measure.create_measure_constructor(average, [measure_constructor, self.density_inclusion_kv[1]])
+            
+            all_comp_measure_constructors.append(measure_constructor)
+        
+        if len(all_comp_measure_constructors) > 1:
+            measure_constructor = Measure.create_measure_constructor(self.measure_reducer_kv[1], all_comp_measure_constructors)
+
+        return measure_constructor
+    
+    def create_experiment(self):
+        measure_constructor = self.generate_measure_constructor()
         return gen_case_profile_ss_generator(measure_constructor, op=self.quantity_goal_kv[1])
-        
     
     def create_experiment_pair(self):
         return (self.get_name(), self.create_experiment())
+
+def accept_multi_rcdl_strat_spec(sel_strat_spec):
+    assert(isinstance(sel_strat_spec, SelectionStrategySpecification))
+    strat_name = sel_strat_spec.get_name()
+    if "Reachability" in strat_name and "Dissimilarity" in strat_name:
+        return False
+    interesting_exps = [
+                        "Total Direct Similarity (With Sparsity) Cross-Label Total Minimization",
+                        "Total All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Deviation Minimization",
+                        "Total Counting (With Sparsity) Cross-Label Total Minimization",
+                        "Total Counting Cross-Label Total Minimization"
+                        ]
+    return any((e in strat_name for e in interesting_exps))
 
 def sel_strat_filter(sel_strat_spec):
     assert(isinstance(sel_strat_spec, SelectionStrategySpecification))
@@ -203,11 +238,17 @@ def sel_strat_filter(sel_strat_spec):
                 or (sel_strat_spec.quantity_goal_kv[0] == "Maximization")
                 or (sel_strat_spec.set_item_score_seq_generator_kv[0] == "Counting" and sel_strat_spec.set_item_score_combiner_kv[0] == "Average")
                 or (sel_strat_spec.density_inclusion_kv[1] == DensityMeasure)
-                )
+                ) and (len(sel_strat_spec.rcdl_sets_kvs) == 1 or accept_multi_rcdl_strat_spec(sel_strat_spec))
     
-all_possible_exp_specs = [SelectionStrategySpecification(*p) for p in itertools.product(localities.iteritems(), rcdl_sets.iteritems(), set_item_score_combiners.iteritems(), 
-                                                                                 set_item_score_seq_generators.iteritems(), density_inclusions.iteritems(), 
-                                                                                 cross_label_aggregators.iteritems(), quantity_goals.iteritems())]
+all_possible_exp_specs = [SelectionStrategySpecification(*p) 
+                          for p in itertools.product(localities.iteritems(), 
+                                                     all_rcdl_set_combinations, 
+                                                     set_item_score_combiners.iteritems(), 
+                                                     set_item_score_seq_generators.iteritems(), 
+                                                     density_inclusions.iteritems(), 
+                                                     cross_label_aggregators.iteritems(), 
+                                                     quantity_goals.iteritems(),
+                                                     measure_reducers.iteritems())]
 
 wanted_sel_strat_specs = filter(sel_strat_filter, all_possible_exp_specs)
 
