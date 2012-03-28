@@ -7,7 +7,6 @@ from functools import partial
 from collections import OrderedDict
 from operator import pos, neg, itemgetter
 from itertools import combinations
-from OrangeCode.SelectionStrategy import ClassifierCertaintyMeasure
 
 stopping_condition_generator = lambda data, *args, **kwargs: PercentageBasedStoppingCriteria(0.1, data, 0)
 random_selection_strategy_generator = lambda *args, **kwargs: RandomSelectionStrategy(random_seed=RANDOM_SEED)
