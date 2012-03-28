@@ -4,8 +4,7 @@ Created on Mar 21, 2012
 @author: charles
 '''
 bad_hosts = ["cs1-17-06","cs1-17-11","cs1-17-19", "csg24-32", "cs1-31-16", "csg22-06", 
-             "csg22-20", "csg26-02", "cs1-09-09", "csg22-19", "cs1-09-31", "cs1-09-32",
-             "cs1-09-09"]
+             "csg22-20", "csg26-02", "cs1-09-09", "csg22-19", "cs1-09-31", "cs1-09-32"]
 bad_hosts += ["mmlab%02d" % i for i in range(3, 26)] 
 bad_hosts += ["cs1-31-%02d" % i for i in range(2, 16)]
 
