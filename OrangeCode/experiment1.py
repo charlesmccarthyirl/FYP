@@ -7,11 +7,12 @@ from functools import partial
 from collections import OrderedDict
 from operator import pos, neg, itemgetter
 from itertools import combinations
+from OrangeCode.SelectionStrategy import ClassifierCertaintyMeasure
 
 stopping_condition_generator = lambda data, *args, **kwargs: PercentageBasedStoppingCriteria(0.1, data, 0)
 random_selection_strategy_generator = lambda *args, **kwargs: RandomSelectionStrategy(random_seed=RANDOM_SEED)
 
-competence_measure_generator = ClassifierBasedCompetenceMeasure
+competence_measure_generator = ClassifierCertaintyMeasure
 margin_sampling_measure_generator = ClassifierBasedMarginSamplingMeasure
 
 classifier_output_selection_strategy_generator = partial(SingleCompetenceSelectionStrategy,  
@@ -87,22 +88,15 @@ named_selection_strategy_generators = [
     ("Uncertainty Sampling", classifier_output_selection_strategy_generator),
     ("Margin Sampling", margin_sampling_selection_strategy_generator),
     ("Maximum Diversity Sampling", maximum_diversity_selection_strategy_generator),
-    
-    ("CompStrat - Local Reachability (Counting)", 
-      g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'r', wrapped_len, **kwargs))), 
-        op=take_minimum)),
-    
-    ("CompStrat - Local Coverage (Counting)", 
-     gen_case_profile_ss_generator(ExampleCoverageOnlyCompetenceMeasure, 
-                                  op=take_minimum)),
-
-    ("CompStrat - Local Dissimilarity (Counting)", 
-      g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'd', wrapped_len, **kwargs))), 
-        op=take_minimum)),
-    
-    ("CompStrat - Local Liability (Counting)", 
-      g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'l', wrapped_len, **kwargs))), 
-        op=take_minimum)),
+    ("Sparsity Minimization",  partial(SingleCompetenceSelectionStrategy,  
+                                       SparsityMeasure, 
+                                       SingleCompetenceSelectionStrategy.take_minimum)),
+    ("Diversity + Density Maximization",  partial(SingleCompetenceSelectionStrategy,  
+                                                   Measure.create_measure_constructor(average, [DiversityMeasure, DensityMeasure]), 
+                                                   SingleCompetenceSelectionStrategy.take_maximum)),
+    ("Certainty + Sparsity Minimization",  partial(SingleCompetenceSelectionStrategy,  
+                                                   Measure.create_measure_constructor(average, [ClassifierCertaintyMeasure, SparsityMeasure]), 
+                                                   SingleCompetenceSelectionStrategy.take_minimum)),
                          
     ("CompStrat - Global Coverage (Counting)", 
      create_other_case_generic('c', pos, pos, neg, pos, take_minimum)),
@@ -115,23 +109,6 @@ named_selection_strategy_generators = [
                                        
     ("CompStrat - Global Dissimilarity (Counting)", 
      create_other_case_generic('d', pos, pos, pos, neg, take_minimum)),
-                                       
-    ("CompStrat - Local Reachability (Similarity)", 
-      g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'r', 
-                                                                all_pairs_similarity, 
-                                                                **kwargs))), 
-        op=take_minimum)),
-                                       
-    ("CompStrat - Local Coverage (Similarity)", 
-      g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'c', 
-                                                                direct_similarity, 
-                                                                **kwargs))), 
-        op=take_minimum)),
-                                       
-    ("CompStrat - Local Liability (Similarity)", 
-      g(Total(SplitterHider(lambda s, *args, **kwargs: comp_sum(s.dn, 'added', 'l', direct_similarity, **kwargs)),
-              class_to_suppositions_preprocessor=combiner_preprocessor), 
-        op=take_minimum)),
                                        
     ("CompStrat - Global Coverage (Similarity)", 
      create_other_case_generic('c', pos, neg, neg, pos, take_minimum, all_set_totaller=direct_similarity)),
@@ -238,6 +215,7 @@ def sel_strat_filter(sel_strat_spec):
                 or (sel_strat_spec.quantity_goal_kv[0] == "Maximization")
                 or (sel_strat_spec.set_item_score_seq_generator_kv[0] == "Counting" and sel_strat_spec.set_item_score_combiner_kv[0] == "Average")
                 or (sel_strat_spec.density_inclusion_kv[1] == DensityMeasure)
+                or ('Dissimilarity' in sel_strat_spec.rcdl_sets_kvs)
                 ) and (len(sel_strat_spec.rcdl_sets_kvs) == 1 or accept_multi_rcdl_strat_spec(sel_strat_spec))
     
 all_possible_exp_specs = [SelectionStrategySpecification(*p) 

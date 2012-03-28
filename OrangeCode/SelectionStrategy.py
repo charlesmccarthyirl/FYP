@@ -69,7 +69,7 @@ class Measure:
             return m
         return init
 
-class ClassifierBasedCompetenceMeasure(Measure):
+class ClassifierCertaintyMeasure(Measure):
     def __init__(self, probability_generator, case_base, *args, **kwargs): 
         self._probability_getter = probability_generator(case_base, *args, **kwargs)
 
