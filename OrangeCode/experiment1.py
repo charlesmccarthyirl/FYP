@@ -214,7 +214,7 @@ def sel_strat_filter(sel_strat_spec):
                 or (sel_strat_spec.quantity_goal_kv[0] == "Maximization")
                 or (sel_strat_spec.set_item_score_seq_generator_kv[0] == "Counting" and sel_strat_spec.set_item_score_combiner_kv[0] == "Average")
                 or (sel_strat_spec.density_inclusion_kv[1] == DensityMeasure)
-                or ('Dissimilarity' in sel_strat_spec.rcdl_sets_kvs)
+                or ('Dissimilarity' in map(functools.getitem(0), sel_strat_spec.rcdl_sets_kvs))
                 ) and (len(sel_strat_spec.rcdl_sets_kvs) == 1 or accept_multi_rcdl_strat_spec(sel_strat_spec))
     
 all_possible_exp_specs = [SelectionStrategySpecification(*p) 
