@@ -30,7 +30,7 @@ from itertools import compress, imap, izip, islice, izip_longest, chain, combina
 import random
 import tarfile, StringIO
 from os.path import splitext
-from utils import average, try_convert_to_num as convert, MyStringIO
+from utils import average, try_convert_to_num as convert, MyStringIO, sub_pairs
 
 def to_numerically_indexed(sequence):
     index_dict = {}
@@ -340,6 +340,11 @@ class Experiment:
         self.stopping_condition_generator = stopping_condition_generator
         self.training_test_sets_extractor = training_test_sets_extractor
         self.named_experiment_variations = named_experiment_variations
+    
+    def create_sub_experiment(self, keys):
+        new_exp = self.copy()
+        new_exp.named_experiment_variations = sub_pairs(self.named_experiment_variations, keys)
+        return new_exp
     
     def get_selection_strategy_evaluator(self, data_info, variation):
         return SelectionStrategyEvaluator(self.oracle_generator_generator(data_info.oracle), 

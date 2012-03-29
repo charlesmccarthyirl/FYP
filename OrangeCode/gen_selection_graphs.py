@@ -8,8 +8,8 @@ import optparse
 import os
 from SelectionStrategyEvaluator import ExperimentResult
 from functools import partial
-from DataSets import named_data_sets as non_textual_data_sets
-from TextualDataSets import named_data_sets as textual_data_sets
+from Datasets.non_textual import named_data_sets as non_textual_data_sets
+from Datasets.textual import named_data_sets as textual_data_sets
 from itertools import chain
 from glob import glob
 from utils import my_import

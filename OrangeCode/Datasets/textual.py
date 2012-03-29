@@ -1,4 +1,4 @@
-from BreadAndButter import create_named_data_set_generators
+from ..BreadAndButter import create_named_data_set_generators
 
 named_data_sets = create_named_data_set_generators((
     ('WinXwin.pcdb.gz', {'sc': 150}),

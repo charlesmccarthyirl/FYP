@@ -19,7 +19,8 @@ def main(experiment, named_data_sets, experiment_directory,
         logging.info("Beginning generating raw results")
         main_gen_raw_results_func(experiment, named_data_sets, experiment_directory, do_multi)
         logging.info("Ending generating raw results.")
-        return
+        if not do_create_summary:
+            return
     
     logging.info("Beginning Nicity Processing.")
     experiment = get_experiment_obj(experiment)
@@ -47,12 +48,12 @@ def main(experiment, named_data_sets, experiment_directory,
             summary_results[data_set_name] = OrderedDict([(variation_name, var_result.AULC()) 
                                                    for (variation_name, var_result) 
                                                    in results.items()])
-            
-        try:
-            g = results.generate_graph(data_set_name, colour=do_colour_plots)
-            g.writePDFfile(os.path.abspath(full_result_path)) # Yes this is intentional, want it in the experiment directory, but with the same name as the folder.
-        except ImportError, ex:
-            logging.info("Unable to generate graph for %s data set. Graphing module unavailable in system: %s" %(data_set_name, ex)) 
+        if not gen_only: 
+            try:
+                g = results.generate_graph(data_set_name, colour=do_colour_plots)
+                g.writePDFfile(os.path.abspath(full_result_path)) # Yes this is intentional, want it in the experiment directory, but with the same name as the folder.
+            except ImportError, ex:
+                logging.info("Unable to generate graph for %s data set. Graphing module unavailable in system: %s" %(data_set_name, ex)) 
 
     if do_create_summary:
         logging.info("Beginning summary csv generation")
@@ -64,10 +65,10 @@ def main(experiment, named_data_sets, experiment_directory,
             
             if latex_encode:
                 str_encoder = lambda s: s.encode('latex')
-                highlight = lambda x: "\\textbf{%s}" % x
             else:
                 str_encoder = lambda s: s
-                highlight = lambda x: x
+            
+            highlight = lambda x: x
             
             # Get all the union of all the variations names. 
             variations = uniqueify(itertools.chain(*[r.keys() for r in summary_results.values()]))
@@ -100,6 +101,9 @@ if __name__ == "__main__":
     parser.add_option('--multi', help='boolean option to enable multi-processing (local/distributed)', 
                       dest='multi',
                       default=False, action='store_true')
+    parser.add_option('--docreatesummary', 
+                      dest='do_create_summary',
+                      default=False, action='store_true')
     parser.add_option('--nocolour', help='boolean option forces greyscale plotting', dest='colour',
                       default=True, action='store_false')
     parser.add_option('--profile', help='Profile the experiment, storing the profile results in the specified file', dest='profile',
@@ -125,4 +129,4 @@ if __name__ == "__main__":
              do_multi=options.multi, 
              do_colour_plots=options.colour, latex_encode=options.latexencode, 
              main_gen_raw_results_func=main_gen_raw_results_func,
-             password=options.password)
+             password=options.password, do_create_summary=options.do_create_summary)
