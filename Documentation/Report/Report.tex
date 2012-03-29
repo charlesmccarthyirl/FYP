@@ -205,7 +205,7 @@ Computer Vision is another area in which large quantities of data are available,
 \subsection{Text Classification}
 With the proliferation of the internet, and in particular social media, text classification has an increasing number practical applications. The traditional example is that of email spam analysis, but more and more, sentiment analysis is becoming an active area of interest.
 
-Vast quantities of textual data are often available for the target domain, though initial labelling requires human involvement. Active learning can play a potentially very useful role in the process, helping in maximising the system gain with the minimum amount of data.
+Vast quantities of textual data are often available for the target domain, though initial labelling requires human involvement. Active learning can play a potentially very useful role in the process, helping in maximizing the system gain with the minimum amount of data.
 
 \subsection{Voice Analysis}
 
@@ -484,18 +484,18 @@ The approach of picking a similarity value to achieve that partitioning also fee
 
 \section{Rong Hu's Work on Aggregating Confidence Measures}
 \subsection{Introduction}
-Before continuing, confidence probably needs to be initially distinguished from competence. Confidence relates to how confident the system is regarding the classification of an unseen instance (e.g. the probability of the most likely label as determined by the classifier), whereas competence relates to the overall capability of the system. It is confidence measures that are dealt with here.
+Before continuing, confidence probably needs to be initially distinguished from competence. \emph{Confidence} relates to how confident the system is regarding the classification of an unseen instance (e.g. the probability of the most likely label as determined by the classifier), whereas \emph{competence} relates to the overall capability of the system. It is confidence measures that are dealt with here.
 
 In her thesis \citep{Hu2011}, Hu outlines a selection strategy based on using a single confidence measure (essentially, the same as standard uncertainty sampling, but using the confidence measure to determine what the case-base is most uncertain of), but expands on this to present an algorithm which attempts to aggregate multiple confidence measures, to produce an algorithm that performs better than using any one of the confidence measures alone.
 
 \subsection{Model \& Measures}
 
-In \citet{Delany2005} five confidence measures are proposed. Hu chooses the three of these which she determines experimentally to have the least correlation\footnote{The validity / appropriateness of this approach will not be considered further though - since this particular paper - and the piece of interest to us - is that of aggregating confidence measures. Further descriptions, explanations and justifications of the measures can be found in \citet{Delany2005}}.
+In \citet{Delany2005}, five confidence measures are proposed. Hu chooses the three of these which she determines experimentally to have the least correlation\footnote{The validity / appropriateness of this approach will not be considered further though - since this particular paper - and the piece of interest to us - is that of aggregating confidence measures. Further descriptions, explanations and justifications of the measures can be found in \citet{Delany2005}}.
 
-For the three, the following metrics are needed\footnote{Like and Unlike are compared to the case's predicted label by the KNN classifier, since obviously, the actual label of the case is unknown.}:
+For the three, the following metrics are needed:
 \begin{itemize} 
 	\item $N_{i}(t)$ denotes the ith nearest neighbour of example t.
-	\item $NLN_{i}(t)$ denotes the ith nearest like neighbour to example t.
+	\item $NLN_{i}(t)$ denotes the ith nearest like\footnote{\emph{Like} and \emph{unlike} are compared to the case's predicted label by the KNN classifier, since obviously, the actual label of the case is unknown.} neighbour to example t.
 	\item $NUN_{i}(t)$ denotes the ith nearest unlike neighbour to example t.
 \end{itemize}
 
@@ -505,7 +505,7 @@ For the three, the following metrics are needed\footnote{Like and Unlike are com
 AvgNUNIndex(t,k)=\frac{\sum_{i=1}^{k}IndexOfNUN_{i}(t)}{k}
 \]
 
-where \footnote{The measure is based just on indexes. It seems slightly strange to just use indexes, not considering the density, etc. of the neighbours.}:
+where:
 \begin{itemize}
 	\item $IndexOfNUN_{i}(t)$ is the index of the ith nearest unlike neighbour of target example t, the index being the ordinal ranking of the example in the list of NNs
 \end{itemize}
@@ -547,7 +547,7 @@ This measure is similar to the $SimRatio$ measure, except that instead of consid
 \subsection{Combining the Confidence Measures}
 
 \subsubsection{Overview}
-Firstly, in a machine learning fashion, the threshold values are determined for each measure for each label that indicate confidence for that label. These predicted values are then used in assembling a non-confident set, from which elements are Selected in a least-confident-first style. This selection happens in `batches', after which the algorithm is re-initialized for the next batch. This is repeated until the stopping condition is met.
+Firstly, in a machine learning fashion, the threshold values are determined for each measure for each label that indicate confidence for that label. These predicted values are then used in assembling a non-confident set, from which elements are selected in a least-confident-first style. This selection happens in `batches', after which the algorithm is re-initialized for the next batch. This is repeated until the stopping condition is met.
 
 \begin{figure}[h!] 
 \subsubsection{The ACMS Algorithm}
@@ -557,7 +557,7 @@ Firstly, in a machine learning fashion, the threshold values are determined for 
 \end{figure}
 
 \subsubsection{Initializing the Case-base}
-Before the main algorithm which combines the confidence measures is initiated, the case-base is initially seeded with a Deterministic variation on Furthest-First Initialization, as presented in \citet{Greene2007}.
+Before the main algorithm which combines the confidence measures is initiated, the case-base is initially seeded with a deterministic variation on Furthest-First Initialization, as presented in \citet{Greene2007}.
 
 \subsubsection{Confidence Measure Threshold Initialization}
 For \textbf{each} measure, the confidence threshold needs to be identified for \textbf{each} label.
@@ -567,15 +567,15 @@ For each measure, predictions with confidence values higher than the predicted l
 Details surrounding how exactly these thresholds are set can be found in \citet{Delany2005}, but roughly, values are chosen on a per-dataset basis through experimentation, with a threshold calculated for each measure for each label (i.e. cross product style) that maximizes confidence-accuracy while keeping False Positives to zero. This is done because of the boolean nature on which the measures apply, but in the context of classification where there might be more than two labels. 
 
 \subsubsection{Operation}
-The algorithm essentially operates on (repeatedly) building two sets from the unlabelled Data - the confident set, and the non-confident set.
+The algorithm essentially operates on repeatedly building two sets from the unlabelled data - the confident set, and the non-confident set.
 
 The confident set is composed of cases for which any of their confidence measures exceeded the measure's confidence threshold. The \emph{score} associated with each case is the maximum of all the confidence measures for that case.
 
 The non-confident set is composed of cases which do not appear in the confident set, but the \emph{score} associated with each case is the minimum of all the confidence measures for that case. 
 
-This min-max combination was chosen as it performed the best in Hu's preliminary experiments when she considered multiple variations\footnote{I question the validity of this approach. For discussion, see Section \ref{sec:hu2comments}.}. Measures for each case ``are normalised using statistical normalisation after performing a log transformation to correct those with skewed distributions'' \citep{Hu2011}.
+This min-max combination was chosen as it performed the best in Hu's preliminary experiments when she considered multiple variations\footnote{I question the validity of this approach. For discussion, see Section \ref{sec:hu2comments}.}. Measures for each case ``are normalized using statistical normalization after performing a log transformation to correct those with skewed distributions'' \citep{Hu2011}.
 
-After the confident and non-confident sets are built, selection begins. First elements in the non-confident set are selected, and once it is expended, elements from the confident set are selected. Selection occurs from each of the sets in a lowest-score-first order. A batch size which is an input to the algorithm indicates how many should be selected in this \emph{batch}, before restarting the entire process, and beginning the selection of a new batch from the start again.
+After the confident and non-confident sets are built, selection begins. First elements in the non-confident set are selected, and once it is expended, elements from the confident set are selected. Selection occurs from each of the sets in a lowest-score-first order. A batch size, which is an input to the algorithm, indicates how many should be selected in this \emph{batch}, before restarting the entire process, and beginning the selection of a new batch from the start again.
 
 \subsection{Experiment Results}
 Hu finds that using the ACMS strategy performs marginally better than using any one of the confidence measures alone. She also finds that the strategy, with Delany's measures, performs better than an uncertainty sampling based selection strategy.
@@ -584,18 +584,18 @@ Hu finds that using the ACMS strategy performs marginally better than using any 
 \subsection{Comments\label{sec:hu2comments}}
 I am unconvinced about the validity of the min-max style of aggregating the confidence measures.
 
-The paper and thesis section seem rather unspecific about how the measures are normalised. I'm guessing there are broadly two possibilities :
+The paper and thesis section seem rather unspecific about how the measures are normalized. I'm guessing there are broadly two possibilities :
 
 \begin{enumerate}
-	\item \textbf{Measure Threshold Normalisation}
+	\item \textbf{Measure Threshold Normalization}
 	
-	In this possibility, measures would be normalised so that their thresholds would be the same.
+	In this possibility, measures would be normalized so that their thresholds would be the same.
 	
-	I don't think this was the method used. If the thresholds alone were normalised, the measure ranges' maximum possible values would be different. As a result the maximum measure scores would definitely not be directly comparable.
+	I don't think this was the method used. If the thresholds alone were normalized, the measure ranges' maximum possible values would be different. As a result the maximum measure scores would definitely not be directly comparable.
 	
-	\item \textbf{Measure Range Normalisation}
+	\item \textbf{Measure Range Normalization}
 	
-	In this possibility, the range of values over which the measure falls is normalised - giving the same minimum and maximum value possible for each measure. I don't think the measure threshold could then also be normalised, leading to different measures very likely having different thresholds. 
+	In this possibility, the range of values over which the measure falls is normalized - giving the same minimum and maximum value possible for each measure. I don't think the measure threshold could then also be normalized, leading to different measures very likely having different thresholds. 
 	
 	If any measure passes its respective threshold though, the maximum measure's value is chosen as the case's score, but this score may have nothing to do with the measure that actually caused the case to fail to be classed as confident. Scores are subsequently compared with other scores.
 	
@@ -624,16 +624,16 @@ The paper and thesis section seem rather unspecific about how the measures are n
 	
 \end{enumerate}
 
-Whichever was the actual methodology, both seem flawed. The underlying fact remains that the different confidence measures aren't directly comparable, and the relatively simplistic manner in which the presented Aggregation Strategy deals with them - simply taking the maximum of all of them when any one is confident - does not appear to take this into account. Similarly with taking the minimum for the non-confident set.
+Whichever was the actual methodology, both seem flawed. The underlying fact remains that the different confidence measures aren't directly comparable, and the relatively simplistic manner in which the presented aggregation strategy deals with them - simply taking the maximum of all of them when any one is confident - does not appear to take this into account. Similarly with taking the minimum for the non-confident set.
 
-It's possible that there was some advanced maths way, of which I am unaware, to do the normalisation which might hope to account for both range and threshold normalisation, but I can't see how it could change the fact that a score is being assigned based on possibly a different confidence measure than the one which actually achieved confidence.
+It's possible that there was some advanced maths way, of which I am unaware, to do the normalization which might hope to account for both range and threshold normalization, but I can't see how it could change the fact that a score is being assigned based on possibly a different confidence measure than the one which actually achieved confidence.
 
 As a result of the above, we decided not to proceed with using Hu's aggregation strategy.
 
 \section{Conclusions}
 From reviewing a sampling of current active learning literature, it appears that no one to date has used purely competence based selection strategies. It is this gap that we wish to tackle. 
 
-Even with the abundance of active learning research, there does not appear to be any single widely used research platform for selection strategy research. In the next chapter, we present the research platform we developed for the purpose of our experimentation and investigation into competence based selection strategies.
+Even with the abundance of active learning research, there does not appear to be any single widely used platform for selection strategy research. In the next chapter, we present the research platform we developed for the purpose of our experimentation and investigation into competence based selection strategies.
 
 \chapter{Platform Architecture\label{cha:platarch}}
 \section{Overview}
@@ -646,6 +646,8 @@ It achieves this by executing each of the selection strategies on several datase
 Weka \citep{prog:weka}, a Java based machine learning framework, was initially briefly investigated, but due to my familiarity with Python, Orange \citep{prog:orange} was used as the core machine learning component. It provided useful facilities to quickly get a basic evaluation platform up and running. As the platform progressed, most Orange dependencies were removed in favour of custom implementations due to the need for greater control, and a memory-management related bug which existed in Orange with regards its Python bindings for its C++ backend. Orange was subsequently just used for data loading, and distance computations.
 
 For plotting, matplotlib \citep{prog:matplotlib} was initially used, but due to its very non-pythonic interface, we changed to using PyX \citep{prog:pyx}, which also provided much better support for \LaTeX{} style file formats.
+
+Towards the end of the project, a basic python map-reduce framework `mincemeat' \citep{prog:mincemeat} was integrated into the platform to allow cluster-style operation.
 
 \begin{figure}[h!]
 \subsection{High Level Data Flow Diagram}
@@ -751,24 +753,24 @@ A selection strategy in the platform is responsible for selecting cases to consu
 \subsubsection{KNN Classifier}
 A k-nearest neighbours based classifier is used in the evaluation, with 
 \begin{itemize}
-	\item $k=5$\footnote{This was indeed arbitrary - it simply being an apparently relatively common k to use in the literature. Due to distance weighted voting being used - it isn't really of much importance.} 
-	\item Distance as defined in the dataset loaded\footnote {For tabular data, Euclidean distance was used - this functionality provided entirely by Orange. For textual data, TF-IDF vectors were generated on the raw non-stemmed documents, and the cosine similarity between documents' TF-IDF vectors computed. This functionality was provided through a combination of SciKit-Learn, and NumPy. The similarities were subtracted from 1 to give the distances. }.
+	\item $k=5$
+	\item Distance as defined in the dataset loaded\footnote {For tabular data, Euclidean distance was used - this functionality provided entirely by Orange. For textual data, TF-IDF vectors were generated on the raw non-stemmed documents, and the cosine similarity between documents' TF-IDF vectors computed. This functionality was provided through a combination of SciKit-Learn, and NumPy. The similarities were subtracted from 1 to give the distances.}.
 	\item Distance Weighted Voting. The distance function used is:
 	
 	\[
 	\frac{1}{distance^{2}+1}
 	\]
 	
-	where $distance$ is normalised between $0$ and $1$.
+	where $distance$ is normalized between $0$ and $1$.
 	
 	
 \end{itemize}
 
 \subsubsection{Cross Validation}
 
-10-Fold Cross Validation is used for training/testing against the data. Initially Orange was used to provide Stratified Folds. Later, when we modified our decision and lessened our reliance on Orange, a simplistic non-stratified implementation was adapted from the SciKit Learn library \citep{prog:sklearn}.
+10-Fold Cross Validation is used for training/testing against the data. Initially Orange was used to provide stratified folds. Later, when we modified our decision and lessened our reliance on Orange, a simplistic non-stratified implementation was adapted from the SciKit Learn library \citep{prog:sklearn}.
 
-Many walkthroughs of K-Fold Cross Validation exist online \citep{web:kfolddemo}, but the basic approach is to split the data into k sets\footnote{This is an entirely different k that the one in the KNN classifier}, followed by iteratively choosing one of the sets as the test set, and the union of the remaining sets as the training set. The results of the k tests are averaged to produce a single result.
+Many walkthroughs of K-Fold Cross Validation exist online \citep{web:kfolddemo}, but the basic approach is to split the data into k sets\footnote{This is an entirely different k than the one in the KNN classifier}, followed by iteratively choosing one of the sets as the test set, and the union of the remaining sets as the training set. The results of the k tests are averaged to produce a single result.
 
 \subsubsection{Basic Evaluation Algorithm}
 \nopagebreak[4]
@@ -808,10 +810,51 @@ The Multi Result Set provides an encapsulation of these k cross validation resul
 
 \subsection{Summarising The Results}
 \subsubsection{Learning Curve}\label{sec:multiresultset}
-A commonly presented representation of selection strategy evaluation is the \emph{Learning Curve} - a plot of classification accuracy vs case-base Size.
+A commonly presented representation of selection strategy evaluation is the \emph{learning curve} - a plot of classification accuracy vs case-base size.
 
 \subsubsection{Area Under the Learning Curve}
-A metric to summarise the progression, and allow for comparison among different selection strategies against the same dataset and same starting and finishing case-base size is \emph{AULC (Area Under the Learning Curve}). As can be expected, this is simply the area under the Learning Curve. Result Set objects have the inbuilt capability of computing the AULC value for their contained Results.
+A metric to summarise the progression, and allow for comparison among different selection strategies against the same dataset and same starting and finishing case-base size is \emph{AULC (Area Under the Learning Curve}). As can be expected, this is simply the area under the learning curve. Result Set objects have the inbuilt capability of computing the AULC value for their contained Results.
+
+\subsection{Cluster-Based Execution}
+Due to the enormity of data processing involved, as a slight deviation towards the end, cluster based platform execution was implemented. Unused lab machines in the WGB were used to perform approximately three thousand compute hours worth of experiments. At peak, the platform was executing slave processes on just over 200 machines - 400 processor cores. 
+
+\subsubsection{Map Reduce Framework: Mincemeat}
+Mincemeat \citep{prog:mincemeat} is a relatively simple implementation of a Map Reduce framework, written in pure Python. While not as fully featured as other more developed frameworks, it was chosen for its simplicity, which allowed easy understanding and modification, and portability, having no dependencies other than Python.
+
+\subsubsection{Work Unit Definition}
+Independent work units are first computed by the platform before providing to the map reduce framework. They represent the smallest unit of work that the platform can meaningfully execute.
+
+\begin{code}[numbers=none,frame=none] 
+Work Unit:
+  Dataset Name
+  Variation Name
+  Experiment Name
+  Data Definitions Name
+  Raw Results File
+  Total Num Folds
+  Fold Number
+\end{code}
+
+\subsubsection{Map / Reduce Operations}
+
+The map operation takes a work unit, runs the sub-experiment specified, and returns the raw results for the specified fold.
+
+The reduce operation takes the results for all of the folds of a single experiment variation on a dataset, and merges them to a Multi Result Set, which is then written out to disk.
+
+\subsubsection{Handling Failures}
+
+In the given environment, failures of nodes and job was an inevitability. Computers are continuously being turned off / rebooted, and sometimes other tasks can be running on a machine meaning that a mapping operation being run on that machine would be essentially non-terminating.
+
+Thankfully, mincemeat provided sufficient handling for these circumstances. Any time spare capacity is available, it re-sends unfinished maps to use the capacity.
+
+Failure of the `master' was less well handled by the framework. Maps were carried out first until all were successfully completed, followed by the reduces. If the master died, or a bug occurred, all the completed maps would be lost. The framework was modified to allow early reduction of a reduce group, if the user could give a guarantee that no more values for the reduce group would be produced in any of the remaining map operations.
+
+\subsubsection{Execution Environment}
+One problem with using the college machines was the very dated Ubuntu installation present on the machines. To get around this, virtualenv \citep{prog:virtualenv} was used to set up an isolated Python environment in a network-hosted home directory. The `.bashrc' file was then updated to correctly activate this environment upon login.
+
+To allow for promptless operation, public/private key pairs were generated and installed to the executing user's SSH environment. On the master node, given that root access was available, the SSH configuration was changed to automatically accept without prompt previously unseen public keys.
+
+SSH access was then used to initiate a slave process on each available machine, after the master server on a dedicated machine was started. A script was written to first check if a slave process was currently active on the machine, and to only initiate a new one if no other was executing. This allowed ``topping up'' of machines as more became available. The status of the script was then provided back to the master for the accounting purpose of tracking the quantity of active machines.
 
 \section{Outputs}
 
@@ -820,10 +863,10 @@ The primary and non-optional outputs of the platform are the raw selection strat
 
 For space efficiency, and ease of manipulation, each set of selection strategy results for a dataset are stored in a compressed archive.
 
-These Raw Results represent the serialized form of a Multi Result Set. When the Raw Results are provided to the program, they are deseiarialized to Multi Result Sets.
+These Raw Results represent the serialized form of a Multi Result Set. When the Raw Results are provided to the program, they are deserialized to Multi Result Sets.
 
 \subsubsection{Individual Cross Validation Results}
-For each dataset and subsequently for each selection strategy - the evaluation on each selection strategy is carried out multiple times due to the k-Fold Cross Validation Methodology used. As such, there will be k different sets of results. 
+For each dataset and subsequently for each selection strategy - the evaluation on each selection strategy is carried out multiple times due to the k-fold cross validation methodology used. As such, there will be k different sets of results. 
 
 Within the compressed selection strategy results archive, these are labelled 0.csv, 1.csv, etc. with each corresponding to the fold number in the cross validation splits of the dataset.
 
@@ -841,13 +884,13 @@ Each csv contains essentially 3 items:
 \end{enumerate}
 
 \subsubsection{Summary Results}
-Summary Results are also saved\footnote{Technically, these Summary Results are unnecessary, as they can simply be recomputed using the raw individual Cross Validation Results. They are simply there for user ease.}, and are similar to the CSV style of Raw Cross Validation Results except that they do not contain lists of selections, or the test set or training set. They are to a file named ``summary.csv''.
+Summary Results are also saved\footnote{Technically, these Summary Results are unnecessary, as they can simply be recomputed using the raw individual Cross Validation Results. They are simply there for user ease.}, and are similar to the CSV style of Raw Cross Validation Results except that they do not contain lists of selections, or the test set or training set. They are saved to a file named ``summary.csv''.
 
 \subsection{Learning Curve Plots}
-PyX \citep{prog:pyx} is used to generate a PDF file of plots of the Average Learning Curves for all of the selection strategies\footnote{Initially - matplotlib \citep{prog:matplotlib} was used to generate the graphs - but its interface was somewhat messy and non-pythonic.}. One PDF is generated for each dataset.
+PyX \citep{prog:pyx} is used to generate a PDF file of plots of the learning curves for all of the selection strategies\footnote{Initially - matplotlib \citep{prog:matplotlib} was used to generate the graphs - but its interface was somewhat messy and non-pythonic.}. One PDF is generated for each dataset.
 
 \subsection{Selection Graphs\label{sec:selectiongraphs}}
-We also generate a visualisation of the case base that each selection strategy produces. The distance matrix for the entire dataset is used to generate a spring-graph of all the cases, where each case (represented by a node in the graph) has an edge to a small proportion of its nearest neighbours, with a force proportional to the distance. Graphviz \citep{prog:graphviz} was used to perform this graph generation, with PyGraphviz \citep{prog:pygraphviz} as the interface from Python.
+We also generate a visualisation of the case-base that each selection strategy produces. The distance matrix for the entire dataset is used to generate a spring-graph of all the cases, where each case (represented by a node in the graph) has an edge to a small proportion of its nearest neighbours, with a force proportional to the distance. Graphviz \citep{prog:graphviz} was used to perform this graph generation, with PyGraphviz \citep{prog:pygraphviz} as the interface from Python.
 
 Cases which a given selection strategy chooses are highlighted at each selection iteration. These are then output to a PDF file, with each page representing an iteration in the selection strategy.
 
@@ -984,11 +1027,11 @@ Through enumeration of the possible RCDL Combinations, 8 possible profiles exist
 
 
 \subsection{Experimental Conclusions}
-In her experiments, Delaney investigates the effect of removing cases with different RCDL profiles on case-base competence. She also compares her strategies with other Noise-removal strategies, and frames them in RCDL terms.
+In her experiments, Delaney investigates the effect of removing cases with different RCDL profiles on case-base competence. She also compares her strategies with other noise-removal strategies, and frames them in RCDL terms.
 
 While the specific results vary between datasets, Delaney notes that there was a consistent improvement with the removal of just DL \& DCL cases from the datasets. 
 
-The reader is recommended to consult \citet{Delany2009} for the thorough analysis. For the purpose of our work, the specific results are not of great importance, since we wish to try using the RCDL profiles for active learning in a pool-based scenario.
+The reader is recommended to consult \citet{Delany2009} for the thorough analysis. For the purpose of our work, the specific results are not of great importance, since we wish to try using the RCDL profiles for in a pool-based active learning scenario.
 
 \section{Continuing From Delaney's Work}
 The simplicity of the boolean set-non-emptiness characteristic of the case profiles Delaney defines has its merits. It is relatively easy to understand and reason about. 
@@ -1096,11 +1139,11 @@ Change:
 The output for this algorithm will be a set of (Case, Change) pairs. For algorithmic ease, this also includes the input unlabelled case, since technically, adding it will cause cases to be added to its reachability set, etc. But understandably, for the input case's Change, the Removed data will always be empty.
 
 \paragraph{$Add(labelled\_case)$:}
-This operation simply adds a given case to the case-base, updating the case-base's profiles as appropriate. Operationally, this involves supposing that the case was added with its label using the previous Suppose operation, and updating the case-base's profiles as per the returned set of (Case, Change) pairs.
+This operation simply adds a given case to the case-base, updating the case-base's profiles as appropriate. Operationally, this involves supposing that the case was added with its label using the previous suppose operation, and updating the case-base's profiles as per the returned set of (Case, Change) pairs.
 
 
 \subsection{Algorithm Outline}
-The rough approach taken is to first determine the changes which occur to NNs and rNNs. From these, along with knowledge of the existing RCDL profiles, the changes to reachability, coverage, dissimilarity and liability are inferred\footnote{For clarity, the outline refers to updating the actual case-base profiles collection, whereas really it's a Change object for each one that it modifies, and finally returns. While, at this stage, this is simply an implementation detail, it will become important when we start using the Suppose operation (Section \ref{sec:actofsupposing}).}.
+The rough approach taken is to first determine the changes which occur to NNs and rNNs. From these, along with knowledge of the existing RCDL profiles, the changes to reachability, coverage, dissimilarity and liability are inferred\footnote{For clarity, the outline refers to updating the actual case-base profiles collection, whereas really it's a Change object for each one that it modifies, and finally returns. While, at this stage, this is simply an implementation detail, it will become important when we start using the suppose operation (Section \ref{sec:actofsupposing}).}.
 
 \subsection{Figuring out NN / rNN changes}
 \subsubsection{Overview}
@@ -1256,17 +1299,17 @@ If however the correct-classification-status of a case $c$ does change, we need 
 
 If it went from correctly classified to incorrectly classified:
 \begin{itemize}
-	\item $c$'s Reachability set needs to be scrubbed (all items removed).
+	\item $c$'s reachability set needs to be scrubbed (all items removed).
 	\item For each \emph{scrubbed} case from the reachability set, the scrubbed case needs to have $c$ removed from its coverage set.
-	\item $c$'s Dissimilarity set needs to be populated with the elements in its new NNs that have a different label to its actual label.
+	\item $c$'s dissimilarity set needs to be populated with the elements in its new NNs that have a different label to its actual label.
 	\item For each thing put in the dissimilarity set, their liability sets need to have $c$ added.
 \end{itemize}
 
 Similarly, if it went from incorrectly classified to correctly classified:
 \begin{itemize}
-	\item $c$'s Dissimilarity set needs to be scrubbed (all items removed).
+	\item $c$'s dissimilarity set needs to be scrubbed (all items removed).
 	\item For each \emph{scrubbed} case from the dissimilarity set, the scrubbed case needs to have $c$ removed from its liability set.
-	\item $c$'s Reachability set needs to be populated with the elements in its new NNs that have the same label as its actual label.
+	\item $c$'s reachability set needs to be populated with the elements in its new NNs that have the same label as its actual label.
 	\item For each thing put in the reachability set, their coverage sets need to have $c$ added.
 \end{itemize}
 
@@ -1277,7 +1320,7 @@ The algorithm presented does not allow for an already present case in the case-b
 The algorithm presented does not allow for supposing the removal of a case from the case-base (e.g. what would happen if I removed x from the case-base?), though it could be updated to support this scenario.
 
 \subsection{Testing and Validation}
-Testing was performed in Unit-Test style to ensure the RCDL profiles achieved using the Incremental Strategy presented correlated exactly with a simple brute-force strategy. This was done on each of the datasets used.
+Testing was performed in Unit-Test style to ensure the RCDL profiles achieved using the incremental strategy presented correlated exactly with a simple brute-force strategy. This was done on each of the datasets used.
 
 \vspace{10pt}
 
@@ -1540,7 +1583,7 @@ When an unlabelled case is evaluated for inclusion in the case-base, the actual 
 For some strategies, the deviation between the changes for the different possible labels is also of interest.
 
 \subsection{Categorizing Suppose Changes}
-It should first be noted that, due to the occurrence of Shunt and Flip type changes, a single case Change (as described in Section \ref{sec:incralgstructops}) can concurrently contain multiple RCDL change types.
+It should first be noted that, due to the occurrence of Shunt and Flip type changes, a single case change (as described in Section \ref{sec:incralgstructops}) can concurrently contain multiple RCDL change types.
 
 It would be useful for when developing new selection strategies to be able to determine whether a particular change were a `Direct', `Flip' or `Shunt'.
 
@@ -1623,7 +1666,7 @@ The resultant `change' to the case-base for $Cp$:
 From this information alone, we cannot infer which of $C1$ and $C2$ was shunted (or even that anything was shunted if we don't know $k$). To minimize the information requirements that this algorithm carries, we thus decide to consider $C1$ and $C2$ as flip-related changes.
 
 \subsubsection{Inferring the changes of coverage / liability from reachability / dissimilarity}
-The duality property as described in Section \ref{sec:duality} allows us just to consider reachability and dissimilarity changes, and infer coverage and liability changes respectively. reachability and dissimilarity are chosen due to easier reasoning about programatically, since they deal with NNs as opposed to rNNs.
+The duality property as described in Section \ref{sec:duality} allows us just to consider reachability and dissimilarity changes, and infer coverage and liability changes respectively. Reachability and dissimilarity are chosen due to easier reasoning about programatically, since they deal with NNs as opposed to rNNs.
 
 The operation \verb!PlaceDuals(CPs)! represents iterating through a given Change set, and for each reachability / dissimilarity related change, adding the corresponding duality set change (coverage / liability).
 
@@ -1638,13 +1681,13 @@ We do not attempt to count unique instances here, as the weighting attached due 
 \section{Selection Strategies}
 \subsection{Counting-Based Strategies}
 \subsubsection{Local Reachability (Counting)\label{sec:compstrat1}}
-When Supposing a single case for addition to the case-base, irrespective of the label we choose to suppose, the case-base will classify it with only one label. For example, in Figure \ref{fig:NNsCorrect}, irrespective of if we Suppose Cn to be a triangle, or a circle, the case-base will still classify it a circle. Thus, the reachability set of Cn will only get populated in one instance - when we Suppose Cn to be the same label as the case-base classifies it.
+When Supposing a single case for addition to the case-base, irrespective of the label we choose to suppose, the case-base will classify it with only one label. For example, in Figure \ref{fig:NNsCorrect}, irrespective of if we suppose Cn to be a triangle, or a circle, the case-base will still classify it a circle. Thus, the reachability set of Cn will only get populated in one instance - when we suppose Cn to be the same label as the case-base classifies it.
 
-This holds true in Supposing any case for the case-base. A Supposed case will only have its reachability set populated for one single label for a case-base state - the label that the case-base classifies it as. Assuming a non-empty case-base, for when the reachability set is populated - the cardinality of the set will always be between 1 and k.
+This holds true in Supposing any case for the case-base. A supposed case will only have its reachability set populated for one single label for a case-base state - the label that the case-base classifies it as. Assuming a non-empty case-base, for when the reachability set is populated - the cardinality of the set will always be between 1 and k.
 
 With the absence of further knowledge, we could guess that when the reachability set for a new case is small compared to other candidate cases, the case-base is relatively uncertain about the new case. As a result, by choosing a new case from the unlabelled set which results in a minimally sized reachability set for that new case, we get a basic form of uncertainty sampling\footnote{If we were using non-weighted voting in our KNN implementation, we would get exactly uncertainty sampling. With distance weighted voting, it's not quite the same, since our basic strategy simply takes only the cardinality of the reachability set into account, and not the distances of the cases within it.}.
 
-This Strategy takes this approach exactly - assigning an overall score to each unlabelled case equal to the total of the reachability set Supposes across all the different possible labels\footnote{Totalling is sufficient because we are guaranteed that the reachability set will be empty for all but one of the Supposes. So totalling is equivalent to just taking the value of the non-empty reachability set.}. The unlabelled case with the minimum score is then selected. Ties are broken at random.
+This strategy takes this approach exactly - assigning an overall score to each unlabelled case equal to the total of the reachability set supposes across all the different possible labels\footnote{Totalling is sufficient because we are guaranteed that the reachability set will be empty for all but one of the supposes. So totalling is equivalent to just taking the value of the non-empty reachability set.}. The unlabelled case with the minimum score is then selected. Ties are broken at random.
 
 \subsubsection{Local Coverage (Counting)}
 
@@ -1678,7 +1721,7 @@ C2 & 3 & 0 & 2.12\tabularnewline
 
 This strategy chooses the case with the minimum Standard Deviation between the possible labels, with random tie-breaking used.
 
-One thing that initially falls out of this strategy is that, during the early selections, it will likely choose relatively diverse cases. Unlabelled cases which have no rNNs in the case-base will have empty coverage sets irrespective of their Supposed label, and thus, a standard deviation of 0.
+One thing that initially falls out of this strategy is that, during the early selections, it will likely choose relatively diverse cases. Unlabelled cases which have no rNNs in the case-base will have empty coverage sets irrespective of their supposed label, and thus, a standard deviation of 0.
 
 After all of the diverse cases have been selected, it will then move onto balancing more similar to as described in the example above.
 
@@ -1692,7 +1735,7 @@ After all of the diverse cases have been selected, it will then move onto balanc
 
 In the example presented in Figure \ref{fig:ndatmin}, case $C1$ is an unlabelled example being supposed, with $k=4$. Three labels are shown, Square, Circle and Triangle - but a fourth is also present in the dataset - an X. $C1$ will be classified as a Triangle by the case-base. 
 
-If we consider the dissimilarity set of the new case for the different Supposes, we concentrate on the other cases which contribute to its incorrect classification. We get the following table:
+If we consider the dissimilarity set of the new case for the different supposes, we concentrate on the other cases which contribute to its incorrect classification. We get the following table:
 
 \vspace{10pt}
 \begin{tabular}{|c|c|x{150pt}|}
@@ -1716,18 +1759,18 @@ X & \{Triangle, Triangle, Circle, Square\} & Incorrectly classified. All the NNs
 
 If we use $C_{P}$ to denote the set of cases in the NNs of $C1$ where the case is of the same label as the case-base's classification of $C1$, and $C_{N}$ to denote the set of cases in the NNs with a different label. Let $L$ denote the set of possible labels. In the above example $L=\left\lbrace Circle, Triangle, Square, X\right\rbrace$.
 
-Each element in $C_{P}$ will be appear in each Suppose except for:
+Each element in $C_{P}$ will be appear in each suppose except for:
 \begin{enumerate}
-	\item The Suppose of the label the case $C1$ is classified as.
+	\item The suppose of the label the case $C1$ is classified as.
 \end{enumerate}
 
-Somewhat similarly, each element in $C_{N}$ will appear in each Suppose except for:
+Somewhat similarly, each element in $C_{N}$ will appear in each suppose except for:
 \begin{enumerate}
-	\item The Suppose of the label the case $C1$ is classified as.
-	\item The Suppose of the label equal to the $C_{N}$ element's label.
+	\item The suppose of the label the case $C1$ is classified as.
+	\item The suppose of the label equal to the $C_{N}$ element's label.
 \end{enumerate}
 
-From this, we can derive the formula for the Total (summed sizes) of the dissimilarity sets in terms of the contributions of $C_{P}$ and $C_{N}$:
+From this, we can derive the formula for the total (summed sizes) of the dissimilarity sets in terms of the contributions of $C_{P}$ and $C_{N}$:
 \[ Total= (|L| - 2)\times |C_{N}| +(|L| - 1)\times |C_{P}|  \] 
 
 We can represent $|C_{P}|$ in terms of $C_{N}$:
@@ -1750,13 +1793,13 @@ There are two types of cases which can appear in the new case's liability set:
 
 In each, the new case is somehow aiding in the incorrect classification of an existing case in the case-base. If we forget about the possibility of mislabelled data, the intuition is that this is generally a bad thing - we are `overpowering' a neighbourhood of the case-base with data which could cause mislabelling.
 
-Totalling here, as in other strategies, is probably not the best approach - but as a simplistic initial investigatory strategy, we try to minimize the total of the new case's liability set summed over the different possible Supposes.
+Totalling here, as in other strategies, is probably not the best approach - but as a simplistic initial investigatory strategy, we try to minimize the total of the new case's liability set summed over the different possible supposes.
 
 \subsubsection{Global Coverage (Counting)}
 
 \paragraph{Direct}
 
-The direct rNN's coverage added is equivalent to the new case's reachability added. See Section \ref{sec:compstrat1} for justification on minimisation.
+The direct rNN's coverage added is equivalent to the new case's reachability added. See Section \ref{sec:compstrat1} for justification on minimization.
 
 \paragraph{Shunted}
 
@@ -1766,7 +1809,7 @@ When a case is shunted from an NNs set by the new case, its coverage set size mi
 
 If the new case causes a `flip' in the correct-classification-status of an rNN, that rNN's other NNs may have gained or lost (or neither) items in their coverage sets. The desire would be to minimize flips to incorrect classifications (Flip related coverage removals), but increase flips to correct classification (Flip related coverage additions).
 
-Because the overall aim in the strategy is `minimisation', to give positive contribution to Flip related coverage additions, and negative contribution to Flip related coverage removals, we subtract Flip related coverage additions, and add Flip related coverage removals.
+Because the overall aim in the strategy is `minimization', to give positive contribution to Flip related coverage additions, and negative contribution to Flip related coverage removals, we subtract Flip related coverage additions, and add Flip related coverage removals.
 
 \paragraph{Overall Formula}
 \[  
@@ -1947,7 +1990,7 @@ The work we did on building RCDL based selection-strategies was somewhat explora
 
 It might also be interesting to go in the other direction - to try to incorporate concepts from existing strategies into the simple RCDL based strategies we defined, for example taking into account case uncertainty and label probability when doing the suppose operations.
 
-\subsection{Use `Suppose' approach in developing case-base maintenance algorithms}
+\subsection{Use `suppose' approach in developing case-base maintenance algorithms}
 
 \citet{Delany2009} investigated case-base maintenance algorithms using RCDL profiles in a compute-once fashion, generating the profiles at the outset of the algorithm and subsequently just using this snapshot for the remainder of the algorithm.
 
@@ -1996,13 +2039,10 @@ For example, in Figure \ref{fig:NNsCorrect}:
 
 Here, no knowledge of $C3$ is maintained. I believe it might be useful to also maintain additional sets `helping' and `hindering', along with their duals.
 
+\subsection{Reconsider Liability Strategies}
+%TODO: Write reconsider liability section.
+
 \section{Platform Development Opportunities}
-
-\subsection{Allow Operation as a Distributed System}
-
-The current platform developed does support using multiple processing cores of a single machine for experiment-running, though does not support distributed operation. Some experiments, given the size of the datasets involved and/or the complexity of the strategies, etc. used, can take days to run on a single machine.
-
-While the platform was sufficient for the purposes of this project, for more intense research projects it would be very useful to have the capability of running the platform as a distributed system. It would not take too much effort to extend the platform to support this, so it would be a worthwhile feature to develop.
 
 \subsection{Improve Test Coverage}
 
@@ -2049,6 +2089,15 @@ This Project's source code has been placed online \citep{web:projectsourcecode}.
 It surprises me the massive body of research that doesn't follow this methodology - especially research which is publicly funded. It is important that external parties have full opportunities to validate experiment results. Small bugs in programs may cause entire projects to have invalid (though convincing) results, and while this would be disastrous for the researchers involved to have these discovered publicly, it is necessary for the actual progression of scientific knowledge.
 
 By having all backing materials available, it also allows other researchers to continue with the original research, as opposed to starting from scratch and re-developing all the architecture necessary again and again.
+
+\section{Full Experiment Results Listing}
+Due to the incorporation of a map-reduce framework towards the end of the project, along with scripts to execute across several hundred college computers, throughput was available to run many additional experiments. Due to the limited quantity of time remaining at the time, a `dumb' cross-product methodology was used to generate experiments based on the methods used previously. 
+
+Only a small proportion of these new generated experiments were some way promising, but for completeness, the full listing of experiments along with their results are presented here.
+
+\subsection{Non-Textual}
+%TODO: Fill in.
+\subsection{Textual}
 
 \section{Open source Technologies Used}
 \subsection{Development Tools}
@@ -2125,6 +2174,12 @@ During the progression of the project, a bug was identified in this package, and
 
 \subsubsection*{latexcodec}
 \emph{latexcodec} \citep{prog:latexcodec} is a Python Package which allows easy encoding of text into a \LaTeX{}-escaped format. It was used in generating the program outputs, so that they could be included directly in \LaTeX{}.
+
+\subsubsection*{Mincemeat}
+\emph{Mincemeat} \citep{prog:mincemeat} is a pure Python Map-Reduce implementation, allowing straightforward distributed parallel execution of code. It was used in enabling cluster-based operation of the platform.
+
+\subsubsection*{Virtualenv}
+\emph{Virtualenv} \citep{prog:virtualenv} is a tool which allows setting up of a reproducible, isolated, Python environment. It was used in setting up an execution environment based purely on a network-mounted home folder to allow the platform to operate on any of departmental lab computers.
 
 \subsection{Documentation Related}
 
