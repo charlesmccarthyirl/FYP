@@ -32,8 +32,8 @@ if __name__ == '__main__':
     maybe_make_dirs(REPORT_DIR)
     
     runs = [
-            ('all_non_textual', "Datasets.non_textual", "Experiments.all", False),
-            ('all_textual', "Datasets.textual", "Experiments.all", False),
+            ('all_non_textual', "Datasets.non_textual", "Experiments.all_experiments", False),
+            ('all_textual', "Datasets.textual", "Experiments.all_experiments", False),
             ('selected_baseline', 'Datasets.selected', "Experiments.baselines", True)
             ]
     
