@@ -34,7 +34,7 @@ if __name__ == '__main__':
     runs = [
             ('all_non_textual', "Datasets.non_textual", "Experiments.all", False),
             ('all_textual', "Datasets.textual", "Experiments.all", False),
-            ('selected_baseline', 'Datasets.selected', "Experiments.baseline", True)
+            ('selected_baseline', 'Datasets.selected', "Experiments.baselines", True)
             ]
     
     runs = [(cat_name, os.path.join(STORAGE_DIR, cat_name), dsfn, expn, do_plots) for (cat_name, dsfn, expn, do_plots) in runs]
@@ -52,7 +52,7 @@ if __name__ == '__main__':
         maybe_make_dirs(report_dir)
         logging.info("Beginning experiment execution on %s" % dsfn)
         my_call(["python", "-O", "test.py", "--nocolour", "--docreatesummary", "--latexencode",
-                 "experiment1", dsfn, d] + ([] if do_plots else ["--docreateplots"]))
+                 expn, dsfn, d] + ([] if do_plots else ["--docreateplots"]))
         for fn in glob(os.path.join(d, "*.pdf")):
             shutil.copyfile(fn, os.path.join(report_dir, os.path.basename(fn)))
         my_call(["python", "-O", "data_summary_processor.py", "--includeranks", 
