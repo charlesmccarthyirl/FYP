@@ -1,10 +1,10 @@
-from ..SelectionStrategyEvaluator import PercentageBasedStoppingCriteria
-from ..BreadAndButter import RANDOM_SEED, gen_case_profile_ss_generator, create_named_experiment_variations, create_experiment
-from ..SelectionStrategy import RandomSelectionStrategy, ClassifierBasedMarginSamplingMeasure, ClassifierCertaintyMeasure, \
+from SelectionStrategyEvaluator import PercentageBasedStoppingCriteria
+from BreadAndButter import RANDOM_SEED, gen_case_profile_ss_generator, create_named_experiment_variations, create_experiment
+from SelectionStrategy import RandomSelectionStrategy, ClassifierBasedMarginSamplingMeasure, ClassifierCertaintyMeasure, \
                                 SingleCompetenceSelectionStrategy, DiversityMeasure, DensityMeasure, SparsityMeasure, Measure
-from ..CompetenceSelectionStrategies import GenericCompetenceMeasure, Minus, Plus, Total, SplitterHider, Any, comp_sum, \
+from CompetenceSelectionStrategies import GenericCompetenceMeasure, Minus, Plus, Total, SplitterHider, Any, comp_sum, \
                                             Deviation
-from ..utils import average
+from utils import average
 from functools import partial
 from operator import pos, neg, itemgetter
 from itertools import combinations, product
