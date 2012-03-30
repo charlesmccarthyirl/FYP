@@ -14,7 +14,7 @@ from itertools import chain
 from utils import maybe_make_dirs, my_import
 
 def my_call(args):
-    pprint(" ".join(args))
+    print(" ".join(args))
     call(args)
 
 STORAGE_DIR = os.path.expanduser("~/FYP/data_dir/")
@@ -51,8 +51,8 @@ if __name__ == '__main__':
         report_dir = os.path.join(REPORT_DIR, cat_name)
         maybe_make_dirs(report_dir)
         logging.info("Beginning experiment execution on %s" % dsfn)
-        my_call(["python", "-O", "test.py", "--nocolour", "--docreatesummary" "--latexencode",
-                 "experiment1", dsfn, d] + ([] if do_plots else ["--genonly"]))
+        my_call(["python", "-O", "test.py", "--nocolour", "--docreatesummary", "--latexencode",
+                 "experiment1", dsfn, d] + ([] if do_plots else ["--docreateplots"]))
         for fn in glob(os.path.join(d, "*.pdf")):
             shutil.copyfile(fn, os.path.join(report_dir, os.path.basename(fn)))
         my_call(["python", "-O", "data_summary_processor.py", "--includeranks", 

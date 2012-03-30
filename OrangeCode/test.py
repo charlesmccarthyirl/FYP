@@ -13,14 +13,12 @@ from traditional_runner import main_gen_raw_results as tr_mgrr
         
 def main(experiment, named_data_sets, experiment_directory,
         do_create_summary=True, latex_encode=True, gen_only=True, 
-        do_colour_plots=True, do_multi=True,
+        do_colour_plots=True, do_multi=True, do_create_plots=True,
         main_gen_raw_results_func=wu_mgrr, password=None):
     if gen_only:
         logging.info("Beginning generating raw results")
         main_gen_raw_results_func(experiment, named_data_sets, experiment_directory, do_multi)
         logging.info("Ending generating raw results.")
-        if not do_create_summary:
-            return
     
     logging.info("Beginning Nicity Processing.")
     experiment = get_experiment_obj(experiment)
@@ -48,7 +46,7 @@ def main(experiment, named_data_sets, experiment_directory,
             summary_results[data_set_name] = OrderedDict([(variation_name, var_result.AULC()) 
                                                    for (variation_name, var_result) 
                                                    in results.items()])
-        if not gen_only: 
+        if do_create_plots: 
             try:
                 g = results.generate_graph(data_set_name, colour=do_colour_plots)
                 g.writePDFfile(os.path.abspath(full_result_path)) # Yes this is intentional, want it in the experiment directory, but with the same name as the folder.
@@ -104,6 +102,9 @@ if __name__ == "__main__":
     parser.add_option('--docreatesummary', 
                       dest='do_create_summary',
                       default=False, action='store_true')
+    parser.add_option('--docreateplots', 
+                      dest='do_create_plots',
+                      default=False, action='store_true')
     parser.add_option('--nocolour', help='boolean option forces greyscale plotting', dest='colour',
                       default=True, action='store_false')
     parser.add_option('--profile', help='Profile the experiment, storing the profile results in the specified file', dest='profile',
@@ -129,4 +130,4 @@ if __name__ == "__main__":
              do_multi=options.multi, 
              do_colour_plots=options.colour, latex_encode=options.latexencode, 
              main_gen_raw_results_func=main_gen_raw_results_func,
-             password=options.password, do_create_summary=options.do_create_summary)
+             password=options.password, do_create_summary=options.do_create_summary, do_create_plots=options.do_create_plots)
