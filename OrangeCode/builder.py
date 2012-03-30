@@ -21,9 +21,6 @@ STORAGE_DIR = os.path.expanduser("~/FYP/data_dir/")
 REPORT_DIR = os.path.expanduser("~/FYP/experiment_outputs/")
 ALL_DIR = os.path.join(STORAGE_DIR, 'all')
 
-non_textual_dir_name = "non_textual"
-textual_dir_name = "textual"
-
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s %(message)s',level=logging.DEBUG)
     
@@ -52,7 +49,7 @@ if __name__ == '__main__':
         maybe_make_dirs(report_dir)
         logging.info("Beginning experiment execution on %s" % dsfn)
         my_call(["python", "-O", "test.py", "--nocolour", "--docreatesummary", "--latexencode",
-                 expn, dsfn, d] + ([] if do_plots else ["--docreateplots"]))
+                 expn, dsfn, d] + (["--docreateplots"] if do_plots else []))
         for fn in glob(os.path.join(d, "*.pdf")):
             shutil.copyfile(fn, os.path.join(report_dir, os.path.basename(fn)))
         my_call(["python", "-O", "data_summary_processor.py", "--includeranks", 
@@ -84,7 +81,7 @@ if __name__ == '__main__':
     rsdir = os.path.join(REPORT_DIR, 'selection_graphs')
     variations = ['Maximum Diversity Sampling', 'Sparsity Minimization']
     maybe_make_dirs(rsdir)
-    r_dir = os.path.join(STORAGE_DIR, non_textual_dir_name, dsn, 'raw_results')
+    r_dir = os.path.join(ALL_DIR, dsn, 'raw_results')
     logging.info("Generating selection graphs")
     for var in variations:
         vrfn = os.path.join(r_dir, var + ".tar.gz")
