@@ -534,7 +534,7 @@ class ExperimentResult(OrderedDict):
                         
         logging.info("Ending Graph Generation")
     
-    def generate_graph(self, title=None, colour=True):
+    def generate_graph(self, title=None, colour=True, symbols=True):
         if not sys.modules.has_key('pyx'):
             raise ImportError('pyx not available on this system.')
         logging.debug("Starting graph generation")
@@ -555,9 +555,12 @@ class ExperimentResult(OrderedDict):
                                     title="%s (AULC: %.3f)" % (name, result_set.AULC())) 
                   for (name, result_set) in self.items()]
         
-        g.plot(points, [pyx.graph.style.line([pyx.color.gradient.ReverseRainbow 
+        colour_portion= [pyx.color.gradient.ReverseRainbow 
                                               if colour 
-                                              else pyx.color.lineargradient(pyx.color.grey(0), pyx.color.grey(0.5))])])
+                                              else pyx.color.lineargradient(pyx.color.grey(0), pyx.color.grey(0.5))]
+        style_portion = [pyx.graph.style.line(colour_portion) if not symbols 
+                         else pyx.graph.style.symbol(symbolattrs=colour_portion)]
+        g.plot(points, styles=style_portion)
         
         if (title):
             title = title.replace("_", r"\_")
