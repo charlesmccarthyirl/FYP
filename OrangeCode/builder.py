@@ -56,7 +56,7 @@ if __name__ == '__main__':
             shutil.copyfile(fn, os.path.join(report_dir, os.path.basename(fn)))
         my_call(["python", "-O", "data_summary_processor.py", "--includeranks", 
                  "--addavgrankcol", os.path.join(d, "summary.csv"), os.path.join(report_dir, "summary.csv")]
-                + (["--abbreviatepast 35"] if abbreviate else []))
+                + (["--abbreviatepast", "35"] if abbreviate else []))
         
         # TODO: Should really check that it has all the data stats first.
         data_stat_fn = os.path.join(REPORT_DIR, cat_name + "_data_stats.csv")
