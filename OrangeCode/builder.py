@@ -29,21 +29,23 @@ if __name__ == '__main__':
     maybe_make_dirs(REPORT_DIR)
     
     runs = [
-            ('all_non_textual', "Datasets.non_textual", "Experiments.all_experiments", False, True),
-            ('all_textual', "Datasets.textual", "Experiments.all_experiments", False, True),
-            ('selected_baseline', 'Datasets.selected', "Experiments.baselines", True, False)
+            ('all_non_textual', "Datasets.non_textual", "Experiments.all_experiments", False, True, True),
+            ('all_textual', "Datasets.textual", "Experiments.all_experiments", False, True, True),
+            ('selected_baseline', 'Datasets.selected', "Experiments.baselines", True, False, False)
             ]
     
-    runs = [(cat_name, os.path.join(STORAGE_DIR, cat_name), dsfn, expn, do_plots, gen_stats) for (cat_name, dsfn, expn, do_plots, gen_stats) in runs]
+    runs = [(cat_name, os.path.join(STORAGE_DIR, cat_name), dsfn, 
+             expn, do_plots, gen_stats, abbreviate) 
+            for (cat_name, dsfn, expn, do_plots, gen_stats, abbreviate) in runs]
     
-    for (_, d, dsfn, _, _, _) in runs:
+    for (_, d, dsfn, _, _, _, _) in runs:
         named_data_sets = my_import(dsfn).named_data_sets
         ds_names = [nds[0] for nds in named_data_sets]
         shutil.rmtree(d, True)
         for dsn in ds_names:
             shutil.copytree(os.path.join(ALL_DIR, dsn), os.path.join(d, dsn))
     
-    for (cat_name, d, dsfn, expn, do_plots, gen_stats) in runs:
+    for (cat_name, d, dsfn, expn, do_plots, gen_stats, abbreviate) in runs:
         maybe_make_dirs(d)
         report_dir = os.path.join(REPORT_DIR, cat_name)
         maybe_make_dirs(report_dir)
@@ -53,7 +55,8 @@ if __name__ == '__main__':
         for fn in glob(os.path.join(d, "*.pdf")):
             shutil.copyfile(fn, os.path.join(report_dir, os.path.basename(fn)))
         my_call(["python", "-O", "data_summary_processor.py", "--includeranks", 
-                 "--addavgrankcol", os.path.join(d, "summary.csv"), os.path.join(report_dir, "summary.csv")])
+                 "--addavgrankcol", os.path.join(d, "summary.csv"), os.path.join(report_dir, "summary.csv")]
+                + (["--abbreviatepast 35"] if abbreviate else []))
         
         # TODO: Should really check that it has all the data stats first.
         data_stat_fn = os.path.join(REPORT_DIR, cat_name + "_data_stats.csv")
