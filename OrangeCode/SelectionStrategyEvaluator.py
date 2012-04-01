@@ -534,7 +534,7 @@ class ExperimentResult(OrderedDict):
                         
         logging.info("Ending Graph Generation")
     
-    def generate_graph(self, title=None, colour=True, symbols=False, key_inside=False):
+    def generate_graph(self, title=None, colour=True, symbols=False, key_inside=False, key=True):
         if not sys.modules.has_key('pyx'):
             raise ImportError('pyx not available on this system.')
         logging.debug("Starting graph generation")
@@ -543,7 +543,7 @@ class ExperimentResult(OrderedDict):
                        for result in result_set)) 
                   for result_set in self.values()))
         
-        key_args = dict(pos='br') if key_inside else dict(pos="mr", hinside=0) #http://www.physik.tu-dresden.de/~baecker/python/pyxgraph/examples.ps.gz
+        key_args = None if not key else (dict(pos='br') if key_inside else dict(pos="mr", hinside=0)) #http://www.physik.tu-dresden.de/~baecker/python/pyxgraph/examples.ps.gz
         
         max_y=1.0
         g = pyx.graph.graphxy(width=10,

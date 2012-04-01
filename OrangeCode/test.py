@@ -14,7 +14,7 @@ from traditional_runner import main_gen_raw_results as tr_mgrr
 def main(experiment, named_data_sets, experiment_directory,
         do_create_summary=True, latex_encode=True, gen_only=True, 
         do_colour_plots=True, do_multi=True, do_create_plots=True,
-        main_gen_raw_results_func=wu_mgrr, password=None):
+        main_gen_raw_results_func=wu_mgrr, password=None, key_on_last_only=False):
     if gen_only:
         logging.info("Beginning generating raw results")
         main_gen_raw_results_func(experiment, named_data_sets, experiment_directory, do_multi)
@@ -26,7 +26,7 @@ def main(experiment, named_data_sets, experiment_directory,
     
     summary_results = OrderedDict()
     
-    for (data_set_name, data_set_generator) in named_data_sets:
+    for (i, (data_set_name, data_set_generator)) in enumerate(named_data_sets):
         logging.info("Beginning processing on %s" % data_set_name)
         
         l_experiment, data_info_generator = get_exp_ds_pair(experiment, data_set_generator)
@@ -48,7 +48,9 @@ def main(experiment, named_data_sets, experiment_directory,
                                                    in results.items()])
         if do_create_plots: 
             try:
-                g = results.generate_graph(data_set_name, colour=do_colour_plots)
+                on_last = i == len(named_data_sets - 1)
+                put_key = not (key_on_last_only and on_last)
+                g = results.generate_graph(data_set_name, colour=do_colour_plots, key=put_key)
                 g.writePDFfile(os.path.abspath(full_result_path)) # Yes this is intentional, want it in the experiment directory, but with the same name as the folder.
             except ImportError, ex:
                 logging.info("Unable to generate graph for %s data set. Graphing module unavailable in system: %s" %(data_set_name, ex)) 
@@ -96,6 +98,9 @@ if __name__ == "__main__":
     parser.add_option('--old', help='boolean option which forces old multiprocessing style computation', 
                       dest='old',
                       default=False, action='store_true')
+    parser.add_option('--keyonlast', help='boolean option which forces a key to only be placed on the last plot', 
+                      dest='key_on_last',
+                      default=False, action='store_true')
     parser.add_option('--multi', help='boolean option to enable multi-processing (local/distributed)', 
                       dest='multi',
                       default=False, action='store_true')
@@ -130,4 +135,5 @@ if __name__ == "__main__":
              do_multi=options.multi, 
              do_colour_plots=options.colour, latex_encode=options.latexencode, 
              main_gen_raw_results_func=main_gen_raw_results_func,
-             password=options.password, do_create_summary=options.do_create_summary, do_create_plots=options.do_create_plots)
+             password=options.password, do_create_summary=options.do_create_summary, 
+             do_create_plots=options.do_create_plots, key_on_last_only=options.key_on_last)

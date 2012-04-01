@@ -51,7 +51,7 @@ if __name__ == '__main__':
         maybe_make_dirs(report_dir)
         logging.info("Beginning experiment execution on %s" % dsfn)
         my_call(["python", "-O", "test.py", "--nocolour", "--docreatesummary", "--latexencode",
-                 expn, dsfn, d] + (["--docreateplots"] if do_plots else []))
+                 expn, dsfn, d] + (["--docreateplots", "-keyonlast"] if do_plots else []))
         for fn in glob(os.path.join(d, "*.pdf")):
             shutil.copyfile(fn, os.path.join(report_dir, os.path.basename(fn)))
         for (extra_opts_name, extra_opts) in [('_abbreviated', ["--abbreviatepast", "35"]), ("", [])]:
