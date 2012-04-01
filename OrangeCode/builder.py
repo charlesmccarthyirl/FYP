@@ -33,7 +33,12 @@ if __name__ == '__main__':
             ('all_textual', "Datasets.textual", "Experiments.all_experiments", False, True),
             ('all_selected', "Datasets.selected", "Experiments.all_experiments", False, False),
             ('selected_baseline', 'Datasets.selected', "Experiments.baselines", True, False),
-            ('selected_sparsity', 'Datasets.selected', "Experiments.baseline_sparsity", True, False)
+            ('selected_sparsity', 'Datasets.selected', "Experiments.baseline_sparsity", True, False),
+            ('selected_all_presented', 'Datasets.selected', "Experiments.all_presented", False, False),
+            ('selected_competence_counting', 'Datasets.selected', "Experiments.competence_counting", True, False),
+            ('selected_competence_hybrids', 'Datasets.selected', "Experiments.competence_hybrids", True, False),
+            ('selected_competence_with_similarity', 'Datasets.selected', "Experiments.competence_with_similarity", True, False),
+            ('selected_competence_withsparsity', 'Datasets.selected', "Experiments.competence_with_sparsity", True, False)
             ]
     
     runs = [(cat_name, os.path.join(STORAGE_DIR, cat_name), dsfn, 
