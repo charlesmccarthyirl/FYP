@@ -544,6 +544,7 @@ class ExperimentResult(OrderedDict):
                   for result_set in self.values()))
         
         key_args = (dict(pos='br') if key_inside else dict(pos="mr", hinside=0)) #http://www.physik.tu-dresden.de/~baecker/python/pyxgraph/examples.ps.gz
+        key_args['textattrs'] = [pyx.text.parbox(9), pyx.text.halign.flushleft]
         
         max_y=1.0
         g = pyx.graph.graphxy(width=10,
