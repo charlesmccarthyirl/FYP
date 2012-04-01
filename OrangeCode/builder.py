@@ -38,7 +38,7 @@ if __name__ == '__main__':
             ('selected_competence_counting', 'Datasets.selected', "Experiments.competence_counting", True, False),
             ('selected_competence_hybrids', 'Datasets.selected', "Experiments.competence_hybrids", True, False),
             ('selected_competence_with_similarity', 'Datasets.selected', "Experiments.competence_with_similarity", True, False),
-            ('selected_competence_withsparsity', 'Datasets.selected', "Experiments.competence_with_sparsity", True, False)
+            ('selected_competence_with_sparsity', 'Datasets.selected', "Experiments.competence_with_sparsity", True, False)
             ]
     
     runs = [(cat_name, os.path.join(STORAGE_DIR, cat_name), dsfn, 
