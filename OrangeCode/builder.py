@@ -31,7 +31,9 @@ if __name__ == '__main__':
     runs = [
             ('all_non_textual', "Datasets.non_textual", "Experiments.all_experiments", False, True),
             ('all_textual', "Datasets.textual", "Experiments.all_experiments", False, True),
-            ('selected_baseline', 'Datasets.selected', "Experiments.baselines", True, False)
+            ('all_selected', "Datasets.selected", "Experiments.all_experiments", False, False),
+            ('selected_baseline', 'Datasets.selected', "Experiments.baselines", True, False),
+            ('selected_sparsity', 'Datasets.selected', "Experiments.baseline_sparsity", True, False)
             ]
     
     runs = [(cat_name, os.path.join(STORAGE_DIR, cat_name), dsfn, 
