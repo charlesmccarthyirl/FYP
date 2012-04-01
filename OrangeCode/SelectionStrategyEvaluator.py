@@ -534,7 +534,7 @@ class ExperimentResult(OrderedDict):
                         
         logging.info("Ending Graph Generation")
     
-    def generate_graph(self, title=None, colour=True, symbols=False):
+    def generate_graph(self, title=None, colour=True, symbols=False, key_inside=True):
         if not sys.modules.has_key('pyx'):
             raise ImportError('pyx not available on this system.')
         logging.debug("Starting graph generation")
@@ -542,12 +542,15 @@ class ExperimentResult(OrderedDict):
         max_x=max((max((result.case_base_size 
                        for result in result_set)) 
                   for result_set in self.values()))
+        
+        key_args = dict(pos='br') if key_inside else dict(pos="mr", hinside=0) #http://www.physik.tu-dresden.de/~baecker/python/pyxgraph/examples.ps.gz
+        
         max_y=1.0
         g = pyx.graph.graphxy(width=10,
                           height=10, # Want a square graph . . .
                           x=pyx.graph.axis.linear(title="Case Base Size", min=0, max=max_x), #This might seem redundant - but pyx doesn't handle non-varying y well. So specifying the min and max avoids that piece of pyx code.
                           y=pyx.graph.axis.linear(title="Classification Accuracy", min=0, max=max_y),
-                          key=pyx.graph.key.key(pos="mr",hinside=0)) #http://www.physik.tu-dresden.de/~baecker/python/pyxgraph/examples.ps.gz
+                          key=pyx.graph.key.key(**key_args)) 
         
         # either provide lists of the individual coordinates
         points = [pyx.graph.data.values(x=[result.case_base_size for result in result_set], 
