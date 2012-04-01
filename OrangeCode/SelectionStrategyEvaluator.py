@@ -534,7 +534,7 @@ class ExperimentResult(OrderedDict):
                         
         logging.info("Ending Graph Generation")
     
-    def generate_graph(self, title=None, colour=True, symbols=False, key_inside=True):
+    def generate_graph(self, title=None, colour=True, symbols=False, key_inside=False):
         if not sys.modules.has_key('pyx'):
             raise ImportError('pyx not available on this system.')
         logging.debug("Starting graph generation")
