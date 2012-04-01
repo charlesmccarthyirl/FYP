@@ -543,14 +543,14 @@ class ExperimentResult(OrderedDict):
                        for result in result_set)) 
                   for result_set in self.values()))
         
-        key_args = None if not key else (dict(pos='br') if key_inside else dict(pos="mr", hinside=0)) #http://www.physik.tu-dresden.de/~baecker/python/pyxgraph/examples.ps.gz
+        key_args = (dict(pos='br') if key_inside else dict(pos="mr", hinside=0)) #http://www.physik.tu-dresden.de/~baecker/python/pyxgraph/examples.ps.gz
         
         max_y=1.0
         g = pyx.graph.graphxy(width=10,
                           height=10, # Want a square graph . . .
                           x=pyx.graph.axis.linear(title="Case Base Size", min=0, max=max_x), #This might seem redundant - but pyx doesn't handle non-varying y well. So specifying the min and max avoids that piece of pyx code.
                           y=pyx.graph.axis.linear(title="Classification Accuracy", min=0, max=max_y),
-                          key=pyx.graph.key.key(**key_args)) 
+                          key=(None if not key else pyx.graph.key.key(**key_args))) 
         
         # either provide lists of the individual coordinates
         points = [pyx.graph.data.values(x=[result.case_base_size for result in result_set], 
