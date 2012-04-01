@@ -50,7 +50,7 @@ def main(experiment, named_data_sets, experiment_directory,
             try:
                 on_last = i == len(named_data_sets) - 1
                 put_key = not key_on_last_only or on_last
-                g = results.generate_graph(data_set_name, colour=do_colour_plots, key=put_key)
+                g = results.generate_graph(data_set_name, colour=do_colour_plots, key=put_key, include_aulc=(not key_on_last_only))
                 g.writePDFfile(os.path.abspath(full_result_path)) # Yes this is intentional, want it in the experiment directory, but with the same name as the folder.
             except ImportError, ex:
                 logging.info("Unable to generate graph for %s data set. Graphing module unavailable in system: %s" %(data_set_name, ex)) 

@@ -534,7 +534,7 @@ class ExperimentResult(OrderedDict):
                         
         logging.info("Ending Graph Generation")
     
-    def generate_graph(self, title=None, colour=True, symbols=False, key_inside=False, key=True):
+    def generate_graph(self, title=None, colour=True, symbols=False, key_inside=False, key=True, include_aulc=True):
         if not sys.modules.has_key('pyx'):
             raise ImportError('pyx not available on this system.')
         logging.debug("Starting graph generation")
@@ -555,7 +555,7 @@ class ExperimentResult(OrderedDict):
         # either provide lists of the individual coordinates
         points = [pyx.graph.data.values(x=[result.case_base_size for result in result_set], 
                                     y=[result.classification_accuracy for result in result_set], 
-                                    title="%s (AULC: %.3f)" % (name, result_set.AULC())) 
+                                    title=("%s (AULC: %.3f)" % (name, result_set.AULC()) if include_aulc else name)) 
                   for (name, result_set) in self.items()]
         
         colour_portion= [pyx.color.gradient.ReverseRainbow 
