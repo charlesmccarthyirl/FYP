@@ -8,18 +8,25 @@ import csv
 from collections import OrderedDict
 from utils import average, try_convert_to_num as convert, uniqueify
 from itertools import izip
+import re
 
 class Result:
     def __init__(self, score, rank=None):
         self.score = score
         self.rank = rank
-        
+
+def abbreviate(name, extras=""):
+    bits = re.findall(r"(^|[^a-zA-Z])([a-zA-Z%s])" % extras, name)
+    return "".join([b[1] for b in bits])
+
+
 if __name__ == '__main__':
     parser = optparse.OptionParser("usage: %prog [options] input_file output_file")
     parser.add_option('--includeranks', dest='include_ranks', default=False, action='store_true')
     parser.add_option('--highlightbest', dest='highlight_best', default=False, action='store_true')
     parser.add_option('--addavgrankcol', dest='add_avg_rank_col', default=False, action='store_true')
     parser.add_option('--avgrankcolname', dest='avg_rank_col_name', default="Avg. Rank", action='store')
+    parser.add_option('--abbreviatepast', dest='abbreviatepast', default=0, action='store', type='int')
     (options, args) = parser.parse_args()
     
     input_f, output_f = args[:2]
@@ -61,7 +68,11 @@ if __name__ == '__main__':
                 
             if options.highlight_best:
                 old_f = formatter
-                formatter = lambda s: r"\textbf{%s}" % s
+                formatter = lambda s: r"\textbf{%s}" % old_f(s)
+            
+            if options.abbreviatepast > 0 and len(strat_name) > options.abbreviatepast:
+                strat_name = abbreviate(strat_name,"+")
+                
             
             row = [strat_name] + map(formatter, strat_results)
             if options.add_avg_rank_col:

@@ -4,8 +4,8 @@ Created on Dec 21, 2011
 @author: charles
 '''
 import unittest
-from DataSets import named_data_sets as non_textual_data_sets
-from TextualDataSets import named_data_sets as textual_data_sets
+from Datasets.non_textual import named_data_sets as non_textual_data_sets
+from Datasets.textual import named_data_sets as textual_data_sets
 from BreadAndButter import k, classifier_generator as _classifier_generator, nns_getter_generator as _nns_getter_generator
 from CaseProfiling import build_rcdl_profiles_brute_force, CaseProfileBuilder
 from utils import Timer

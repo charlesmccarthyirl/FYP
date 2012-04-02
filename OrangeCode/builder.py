@@ -14,15 +14,12 @@ from itertools import chain
 from utils import maybe_make_dirs, my_import
 
 def my_call(args):
-    pprint(" ".join(args))
+    print(" ".join(args))
     call(args)
 
 STORAGE_DIR = os.path.expanduser("~/FYP/data_dir/")
 REPORT_DIR = os.path.expanduser("~/FYP/experiment_outputs/")
 ALL_DIR = os.path.join(STORAGE_DIR, 'all')
-
-non_textual_dir_name = "non_textual"
-textual_dir_name = "textual"
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s %(message)s',level=logging.DEBUG)
@@ -32,32 +29,46 @@ if __name__ == '__main__':
     maybe_make_dirs(REPORT_DIR)
     
     runs = [
-            (non_textual_dir_name, "DataSets"),
-            (textual_dir_name, "TextualDataSets")
+            ('all_non_textual', "Datasets.non_textual", "Experiments.all_experiments", False, True),
+            ('all_textual', "Datasets.textual", "Experiments.all_experiments", False, True),
+            ('all_selected', "Datasets.selected", "Experiments.all_experiments", False, False),
+            ('selected_baseline', 'Datasets.selected', "Experiments.baselines", True, False),
+            ('selected_sparsity', 'Datasets.selected', "Experiments.baseline_sparsity", True, False),
+            ('selected_all_presented', 'Datasets.selected', "Experiments.all_presented", False, False),
+            ('selected_competence_counting', 'Datasets.selected', "Experiments.competence_counting", True, False),
+            ('selected_competence_hybrids', 'Datasets.selected', "Experiments.competence_hybrids", True, False),
+            ('selected_competence_with_similarity', 'Datasets.selected', "Experiments.competence_with_similarity", True, False),
+            ('selected_competence_with_sparsity', 'Datasets.selected', "Experiments.competence_with_sparsity", True, False)
             ]
     
-    runs = [(cat_name, os.path.join(STORAGE_DIR, cat_name), dsfn) for (cat_name, dsfn) in runs]
+    runs = [(cat_name, os.path.join(STORAGE_DIR, cat_name), dsfn, 
+             expn, do_plots, gen_stats) 
+            for (cat_name, dsfn, expn, do_plots, gen_stats) in runs]
     
-    for (_, d, dsfn) in runs:
+    for (_, d, dsfn, _, _, _) in runs:
         named_data_sets = my_import(dsfn).named_data_sets
         ds_names = [nds[0] for nds in named_data_sets]
         shutil.rmtree(d, True)
         for dsn in ds_names:
             shutil.copytree(os.path.join(ALL_DIR, dsn), os.path.join(d, dsn))
     
-    for (cat_name, d, dsfn) in runs:
+    for (cat_name, d, dsfn, expn, do_plots, gen_stats) in runs:
         maybe_make_dirs(d)
+        report_dir = os.path.join(REPORT_DIR, cat_name)
+        maybe_make_dirs(report_dir)
         logging.info("Beginning experiment execution on %s" % dsfn)
-        my_call(["python", "-O", "test.py", "--nocolour", 
-                 "experiment1", dsfn, d])
+        my_call(["python", "-O", "test.py", "--nocolour", "--docreatesummary", "--latexencode",
+                 expn, dsfn, d] + (["--docreateplots", "--keyonlast"] if do_plots else []))
         for fn in glob(os.path.join(d, "*.pdf")):
-            shutil.copyfile(fn, os.path.join(REPORT_DIR, os.path.basename(fn)))
-        shutil.copyfile(os.path.join(d, "summary.csv"),
-                        os.path.join(REPORT_DIR, cat_name + "_summary.csv"))
+            shutil.copyfile(fn, os.path.join(report_dir, os.path.basename(fn)))
+        for (extra_opts_name, extra_opts) in [('_abbreviated', ["--abbreviatepast", "35"]), ("", [])]:
+            my_call(["python", "-O", "data_summary_processor.py", "--includeranks", 
+                     "--addavgrankcol", os.path.join(d, "summary.csv"), os.path.join(report_dir, "summary%s.csv" % extra_opts_name)]
+                    + extra_opts)
         
         # TODO: Should really check that it has all the data stats first.
         data_stat_fn = os.path.join(REPORT_DIR, cat_name + "_data_stats.csv")
-        if not os.path.exists(data_stat_fn):
+        if gen_stats and not os.path.exists(data_stat_fn):
             logging.info("Generating data stats")
             args = ["python", "-O", "gen_data_stats.py", '--cite', dsfn,
                     data_stat_fn]
@@ -79,9 +90,12 @@ if __name__ == '__main__':
     logging.info("Generating single fold selection graphs")
     dsn = 'zoo'
     rsdir = os.path.join(REPORT_DIR, 'selection_graphs')
+    variations = ['Maximum Diversity Sampling', 'Sparsity Minimization']
     maybe_make_dirs(rsdir)
-    r_dir = os.path.join(STORAGE_DIR, non_textual_dir_name, dsn, 'raw_results')
+    r_dir = os.path.join(ALL_DIR, dsn, 'raw_results')
     logging.info("Generating selection graphs")
-    my_call(["python", "-O", "gen_selection_graphs.py", dsn, r_dir, rsdir, 
-             '--experiment', 'experiment1', "--nocolour"]) 
+    for var in variations:
+        vrfn = os.path.join(r_dir, var + ".tar.gz")
+        my_call(["python", "-O", "gen_selection_graphs.py", dsn, vrfn, rsdir, 
+              "--nocolour"]) 
         

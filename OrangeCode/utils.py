@@ -4,6 +4,10 @@ from operator import gt, lt
 from StringIO import StringIO
 from itertools import ifilter
 
+def sub_pairs(pairs, keys):
+    pairs_dict = dict(pairs)
+    return [(k, pairs_dict[k]) for k in keys]
+
 def checkLogFor(logfn, string):
     if not os.path.exists(logfn):
         print "%s doesn't exist" % logfn

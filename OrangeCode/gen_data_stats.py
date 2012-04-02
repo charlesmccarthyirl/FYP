@@ -8,7 +8,7 @@ import optparse
 import csv
 from PrecomputedDistance import DataInfo
 from itertools import groupby
-from utils import count_iterable
+from utils import count_iterable, my_import
 from operator import itemgetter
 
 if __name__ == '__main__':
@@ -17,7 +17,7 @@ if __name__ == '__main__':
                       default=False, action='store_true')
     (options, args) = parser.parse_args()
     named_data_sets_module, output_filename = args
-    named_data_sets = __import__(named_data_sets_module).named_data_sets
+    named_data_sets = my_import(named_data_sets_module).named_data_sets
     
     with open(output_filename, 'wb') as summary_stream:
         writer = csv.writer(summary_stream)

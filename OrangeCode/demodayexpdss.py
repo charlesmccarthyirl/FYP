@@ -3,12 +3,10 @@ Created on Mar 13, 2012
 
 @author: charles
 '''
-from experiment1 import experiment as expbase
-from BreadAndButter import get_sub_experiment
-from DataSets import named_data_sets as basedss
+from Experiments.all import experiment as expbase
+from Datasets.non_textual import named_data_sets as basedss
 
-experiment = get_sub_experiment(expbase, 
-                                (
+experiment = expbase.create_sub_experiment((
                                     "Random Selection",
                                     "Maximum Diversity Sampling",
                                     "CompStrat 2 - New Case - Coverage"

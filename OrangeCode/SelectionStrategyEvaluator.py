@@ -30,7 +30,7 @@ from itertools import compress, imap, izip, islice, izip_longest, chain, combina
 import random
 import tarfile, StringIO
 from os.path import splitext
-from utils import average, try_convert_to_num as convert, MyStringIO
+from utils import average, try_convert_to_num as convert, MyStringIO, sub_pairs
 
 def to_numerically_indexed(sequence):
     index_dict = {}
@@ -341,6 +341,11 @@ class Experiment:
         self.training_test_sets_extractor = training_test_sets_extractor
         self.named_experiment_variations = named_experiment_variations
     
+    def create_sub_experiment(self, keys):
+        new_exp = self.copy()
+        new_exp.named_experiment_variations = sub_pairs(self.named_experiment_variations, keys)
+        return new_exp
+    
     def get_selection_strategy_evaluator(self, data_info, variation):
         return SelectionStrategyEvaluator(self.oracle_generator_generator(data_info.oracle), 
                                            data_info.oracle,
@@ -529,7 +534,7 @@ class ExperimentResult(OrderedDict):
                         
         logging.info("Ending Graph Generation")
     
-    def generate_graph(self, title=None, colour=True):
+    def generate_graph(self, title=None, colour=True, symbols=False, key_inside=False, key=True, include_aulc=True):
         if not sys.modules.has_key('pyx'):
             raise ImportError('pyx not available on this system.')
         logging.debug("Starting graph generation")
@@ -537,22 +542,29 @@ class ExperimentResult(OrderedDict):
         max_x=max((max((result.case_base_size 
                        for result in result_set)) 
                   for result_set in self.values()))
+        
+        key_args = (dict(pos='br') if key_inside else dict(pos="mr", hinside=0)) #http://www.physik.tu-dresden.de/~baecker/python/pyxgraph/examples.ps.gz
+        key_args['textattrs'] = [pyx.text.parbox(9), pyx.text.halign.flushleft]
+        
         max_y=1.0
         g = pyx.graph.graphxy(width=10,
                           height=10, # Want a square graph . . .
                           x=pyx.graph.axis.linear(title="Case Base Size", min=0, max=max_x), #This might seem redundant - but pyx doesn't handle non-varying y well. So specifying the min and max avoids that piece of pyx code.
                           y=pyx.graph.axis.linear(title="Classification Accuracy", min=0, max=max_y),
-                          key=pyx.graph.key.key(pos="mr",hinside=0)) #http://www.physik.tu-dresden.de/~baecker/python/pyxgraph/examples.ps.gz
+                          key=(None if not key else pyx.graph.key.key(**key_args))) 
         
         # either provide lists of the individual coordinates
         points = [pyx.graph.data.values(x=[result.case_base_size for result in result_set], 
                                     y=[result.classification_accuracy for result in result_set], 
-                                    title="%s (AULC: %.3f)" % (name, result_set.AULC())) 
+                                    title=("%s (AULC: %.3f)" % (name, result_set.AULC()) if include_aulc else name)) 
                   for (name, result_set) in self.items()]
         
-        g.plot(points, [pyx.graph.style.line([pyx.color.gradient.ReverseRainbow 
+        colour_portion= [pyx.color.gradient.ReverseRainbow 
                                               if colour 
-                                              else pyx.color.lineargradient(pyx.color.grey(0), pyx.color.grey(0.5))])])
+                                              else pyx.color.lineargradient(pyx.color.grey(0), pyx.color.grey(0.5))]
+        style_portion = [pyx.graph.style.line(colour_portion) if not symbols 
+                         else pyx.graph.style.symbol(symbolattrs=colour_portion)]
+        g.plot(points, styles=style_portion)
         
         if (title):
             title = title.replace("_", r"\_")

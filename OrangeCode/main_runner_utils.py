@@ -5,7 +5,7 @@ Created on Mar 19, 2012
 '''
 import os
 import glob
-from utils import stream_getter
+from utils import stream_getter, my_import
 from os.path import basename, splitext
 from functools import partial
 from SelectionStrategyEvaluator import BudgetBasedStoppingCriteria
@@ -23,7 +23,7 @@ def tgz_filename_getter(variation_name, path):
 
 def get_experiment_obj(experiment):
     if isinstance(experiment, str):
-        experiment_obj = __import__(experiment).experiment
+        experiment_obj = my_import(experiment).experiment
     else:
         experiment_obj = experiment
     
@@ -31,7 +31,7 @@ def get_experiment_obj(experiment):
 
 def get_named_data_sets_obj(named_data_sets):
     if isinstance(named_data_sets, str):
-        named_data_sets_obj = __import__(named_data_sets).named_data_sets
+        named_data_sets_obj = my_import(named_data_sets).named_data_sets
     else:
         named_data_sets_obj = named_data_sets
     return named_data_sets_obj

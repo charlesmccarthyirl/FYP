@@ -1,12 +1,13 @@
-from SelectionStrategyEvaluator import *
-from BreadAndButter import *
-from CaseProfiling import *
-from SelectionStrategy import *
-from CompetenceSelectionStrategies import *
+from SelectionStrategyEvaluator import PercentageBasedStoppingCriteria
+from BreadAndButter import RANDOM_SEED, gen_case_profile_ss_generator, create_named_experiment_variations, create_experiment
+from SelectionStrategy import RandomSelectionStrategy, ClassifierBasedMarginSamplingMeasure, ClassifierCertaintyMeasure, \
+                                SingleCompetenceSelectionStrategy, DiversityMeasure, DensityMeasure, SparsityMeasure, Measure
+from CompetenceSelectionStrategies import GenericCompetenceMeasure, Minus, Plus, Total, SplitterHider, Any, comp_sum, \
+                                            Deviation
+from utils import average
 from functools import partial
-from collections import OrderedDict
 from operator import pos, neg, itemgetter
-from itertools import combinations
+from itertools import combinations, product
 
 stopping_condition_generator = lambda data, *args, **kwargs: PercentageBasedStoppingCriteria(0.1, data, 0)
 random_selection_strategy_generator = lambda *args, **kwargs: RandomSelectionStrategy(random_seed=RANDOM_SEED)
@@ -26,9 +27,6 @@ maximum_diversity_selection_strategy_generator = partial(SingleCompetenceSelecti
                                                             DiversityMeasure, 
                                                             SingleCompetenceSelectionStrategy.take_maximum)
 
-maximum_dtd_selection_strategy_generator = partial(SingleCompetenceSelectionStrategy,
-                                                            DensityTimesDiversityMeasure, 
-                                                            SingleCompetenceSelectionStrategy.take_maximum)
 
 def g(measurer, op):
     return gen_case_profile_ss_generator(partial(GenericCompetenceMeasure, measurer), op=op)
@@ -42,8 +40,6 @@ take_minimum = SingleCompetenceSelectionStrategy.take_minimum
 take_maximum = SingleCompetenceSelectionStrategy.take_maximum
 
 wrapped_len = f(len)
-
-from utils import average
 
 def all_pairs_similarity(_set, source, distance_constructor, case_base, include_source=True, 
                          op=average, **kwargs):
@@ -130,9 +126,9 @@ set_item_score_seq_generators = {"All-Pairs Similarity (incl source)": partial(a
                                 "Counting": wrapped_len}
 set_item_score_combiners = {"Average": average, "Total": sum}
 rcdl_sets = {"Reachability": "r", "Coverage": "c", "Dissimilarity": "d", "Liability": "l"}
-all_rcdl_set_combinations = (  list(itertools.combinations(rcdl_sets.items(), 1)) 
-                             + list(itertools.combinations(rcdl_sets.items(), 2)) 
-                             + list(itertools.combinations(rcdl_sets.items(), 3)) 
+all_rcdl_set_combinations = (  list(combinations(rcdl_sets.items(), 1)) 
+                             + list(combinations(rcdl_sets.items(), 2)) 
+                             + list(combinations(rcdl_sets.items(), 3)) 
                              + [rcdl_sets.items()])
 density_inclusions = {"(With Density)": DensityMeasure, "(With Sparsity)": SparsityMeasure, "": None}
 localities = {"Local": None, "Global": None }
@@ -218,7 +214,7 @@ def sel_strat_filter(sel_strat_spec):
                 ) and (len(sel_strat_spec.rcdl_sets_kvs) == 1 or accept_multi_rcdl_strat_spec(sel_strat_spec))
     
 all_possible_exp_specs = [SelectionStrategySpecification(*p) 
-                          for p in itertools.product(localities.iteritems(), 
+                          for p in product(localities.iteritems(), 
                                                      all_rcdl_set_combinations, 
                                                      set_item_score_combiners.iteritems(), 
                                                      set_item_score_seq_generators.iteritems(), 

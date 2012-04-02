@@ -5,8 +5,8 @@ Created on Jan 28, 2012
 '''
 import csv, sys, os
 from CaseProfilingTests import testIncrementalRcdl
-from TextualDataSets import named_data_sets as textual_data_sets
-from DataSets import named_data_sets as non_textual_data_sets
+from Datasets.textual import named_data_sets as textual_data_sets
+from Datasets.non_textual import named_data_sets as non_textual_data_sets
 from itertools import chain, islice
 import pyx
 import optparse

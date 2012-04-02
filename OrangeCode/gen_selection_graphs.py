@@ -8,10 +8,11 @@ import optparse
 import os
 from SelectionStrategyEvaluator import ExperimentResult
 from functools import partial
-from DataSets import named_data_sets as non_textual_data_sets
-from TextualDataSets import named_data_sets as textual_data_sets
+from Datasets.non_textual import named_data_sets as non_textual_data_sets
+from Datasets.textual import named_data_sets as textual_data_sets
 from itertools import chain
 from glob import glob
+from utils import my_import
 
 if __name__ == '__main__':
     parser = optparse.OptionParser("usage: %prog [options] data_info_name input_results_file output_file")
@@ -35,7 +36,7 @@ if __name__ == '__main__':
     data_info = data_sets_dict[data_info_name]()
     
     if options.experiment:
-        experiment_obj = __import__(options.experiment).experiment
+        experiment_obj = my_import(options.experiment).experiment
         var_names = [name for (name, variation) 
                      in experiment_obj.named_experiment_variations]
         variation_files = [os.path.join(input_results_file, var_name+".tar.gz")

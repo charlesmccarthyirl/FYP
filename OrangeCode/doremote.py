@@ -93,7 +93,7 @@ if __name__ == '__main__':
     os.chdir(CODE_DIR)
     
     if not options.remote:
-        cat_name, dsfn = 'all', "AllDataSets"
+        cat_name, dsfn = 'all', "Datasets.all"
         d = os.path.join(STORAGE_DIR, cat_name)
         logging.info("Beginning experiment execution on %s" % dsfn)
         logfn = get_full_logfn("%s.master.log" % host)
