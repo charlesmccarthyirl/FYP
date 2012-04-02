@@ -1,0 +1,116 @@
+,Comp,Vehicle,breathalyzer,haberman,dermatology,Avg. Rank
+Random Selection,99.852 (38),112.572 (27),35.225 (26),29.227 (5),27.996 (20),23.20
+Uncertainty Sampling,100.797 (35),110.307 (33),32.071 (53),27.652 (26),25.909 (26),34.60
+Margin Sampling,100.797 (35),110.307 (33),32.071 (53),27.652 (26),28.257 (19),33.20
+Maximum Diversity Sampling,96.559 (57),106.469 (47),31.155 (60),27.606 (27),23.648 (39),46.00
+Sparsity Minimization,105.268 (30),113.357 (26),39.388 (3),29.152 (6),12.706 (64),25.80
+Diversity + Density Maximization,113.153 (1),119.469 (15),37.204 (12),28.699 (11),21.511 (42),16.20
+Certainty + Sparsity Minimization,111.804 (7),122.310 (11),38.890 (4),28.218 (17),23.706 (37),15.20
+CompStrat - Global Coverage (Counting),96.125 (58),104.644 (54),31.496 (58),29.021 (7),25.245 (27),40.80
+CompStrat - Global Reachability (Counting),97.199 (54),112.306 (28),31.580 (57),28.586 (12),29.541 (15),33.20
+CompStrat - Global Liability (Counting),107.075 (25),116.088 (22),36.040 (18),28.902 (8),28.909 (17),18.00
+CompStrat - Global Dissimilarity (Counting),93.765 (59),100.461 (62),30.559 (64),29.408 (2),20.876 (45),46.40
+CompStrat - Global Coverage (Similarity),88.112 (68),103.758 (56),31.841 (54),16.762 (62),26.880 (22),52.40
+CompStrat - Global Reachability (Similarity),96.586 (56),111.172 (30),30.240 (67),28.181 (18),30.847 (3),34.80
+CompStrat - Global Liability (Similarity),106.603 (26),116.488 (20),35.632 (21),28.261 (15),29.027 (16),19.60
+CompStrat - Global Dissimilarity (Similarity),93.487 (60),102.911 (57),30.509 (65),27.429 (30),17.877 (53),53.00
+Local Liability Average All-Pairs Similarity (incl source) Cross-Label Deviation Minimization,99.228 (40),104.988 (51),33.058 (42),25.426 (39),19.938 (49),44.20
+Local Liability Average All-Pairs Similarity (incl source) Cross-Label Total Minimization,88.945 (67),90.571 (67),30.756 (62),29.516 (1),18.907 (51),49.60
+Local Liability Average All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Deviation Minimization,105.083 (32),110.636 (32),39.705 (1),23.179 (51),14.464 (61),35.40
+Local Liability Average All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Total Minimization,106.573 (27),109.389 (38),32.817 (46),28.049 (20),14.319 (63),38.80
+Local Liability Average Direct Similarity Cross-Label Deviation Minimization,99.973 (37),102.731 (58),35.468 (24),25.547 (38),20.412 (47),40.80
+Local Liability Average Direct Similarity Cross-Label Total Minimization,89.104 (66),90.226 (68),30.933 (61),28.242 (16),17.631 (54),53.00
+Local Liability Average Direct Similarity (With Sparsity) Cross-Label Deviation Minimization,105.831 (29),110.785 (31),39.416 (2),24.757 (42),14.325 (62),33.20
+Local Liability Average Direct Similarity (With Sparsity) Cross-Label Total Minimization,106.191 (28),109.109 (41),33.091 (41),27.798 (24),14.738 (60),38.80
+Local Liability Average All-Pairs Similarity (excl source) Cross-Label Deviation Minimization,99.228 (40),104.988 (51),33.058 (42),25.426 (39),19.938 (49),44.20
+Local Liability Average All-Pairs Similarity (excl source) Cross-Label Total Minimization,88.945 (67),90.571 (67),30.756 (62),29.516 (1),18.907 (51),49.60
+Local Liability Average All-Pairs Similarity (excl source) (With Sparsity) Cross-Label Deviation Minimization,105.083 (32),110.636 (32),39.705 (1),23.179 (51),14.464 (61),35.40
+Local Liability Average All-Pairs Similarity (excl source) (With Sparsity) Cross-Label Total Minimization,106.573 (27),109.389 (38),32.817 (46),28.049 (20),14.319 (63),38.80
+Local Liability Total All-Pairs Similarity (incl source) Cross-Label Deviation Minimization,100.396 (36),106.318 (49),32.300 (50),24.180 (48),21.498 (43),45.20
+Local Liability Total All-Pairs Similarity (incl source) Cross-Label Total Minimization,90.405 (64),100.479 (61),31.695 (56),26.559 (35),19.795 (50),53.20
+Local Liability Total All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Deviation Minimization,107.635 (23),107.597 (46),31.370 (59),25.136 (40),16.834 (56),44.80
+Local Liability Total All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Total Minimization,91.949 (62),98.524 (65),32.640 (48),27.963 (22),15.852 (58),51.00
+Local Liability Total Counting Cross-Label Deviation Minimization,105.242 (31),114.542 (24),32.264 (51),26.230 (37),22.811 (41),36.80
+Local Liability Total Counting Cross-Label Total Minimization,92.185 (61),101.093 (60),30.337 (66),29.323 (4),21.037 (44),47.00
+Local Liability Total Counting (With Sparsity) Cross-Label Deviation Minimization,108.388 (22),101.280 (59),37.648 (10),24.558 (43),17.285 (55),37.80
+Local Liability Total Counting (With Sparsity) Cross-Label Total Minimization,96.695 (55),99.675 (63),36.000 (19),27.091 (32),17.285 (55),44.80
+Local Liability Total Direct Similarity Cross-Label Deviation Minimization,99.216 (41),104.721 (53),34.343 (30),24.927 (41),18.701 (52),43.40
+Local Liability Total Direct Similarity Cross-Label Total Minimization,89.602 (65),97.902 (66),31.829 (55),26.559 (35),20.058 (48),53.80
+Local Liability Total Direct Similarity (With Sparsity) Cross-Label Deviation Minimization,107.445 (24),108.816 (44),32.678 (47),21.809 (57),16.834 (56),45.60
+Local Liability Total Direct Similarity (With Sparsity) Cross-Label Total Minimization,91.818 (63),98.547 (64),32.594 (49),27.979 (21),15.852 (58),51.00
+Local Liability Total All-Pairs Similarity (excl source) Cross-Label Deviation Minimization,100.396 (36),106.318 (49),32.300 (50),24.180 (48),21.498 (43),45.20
+Local Liability Total All-Pairs Similarity (excl source) Cross-Label Total Minimization,90.405 (64),100.479 (61),31.695 (56),26.559 (35),19.795 (50),53.20
+Local Liability Total All-Pairs Similarity (excl source) (With Sparsity) Cross-Label Deviation Minimization,107.635 (23),107.597 (46),31.370 (59),25.136 (40),16.834 (56),44.80
+Local Liability Total All-Pairs Similarity (excl source) (With Sparsity) Cross-Label Total Minimization,91.949 (62),98.524 (65),32.640 (48),27.963 (22),15.852 (58),51.00
+Local Reachability Average All-Pairs Similarity (incl source) Cross-Label Deviation Minimization,99.229 (39),106.412 (48),30.671 (63),26.452 (36),23.056 (40),45.20
+Local Reachability Average All-Pairs Similarity (incl source) Cross-Label Total Minimization,99.229 (39),106.412 (48),30.671 (63),26.452 (36),23.056 (40),45.20
+Local Reachability Average All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Deviation Minimization,110.359 (19),115.921 (23),35.066 (27),28.845 (9),15.551 (59),27.40
+Local Reachability Average All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Total Minimization,111.223 (14),116.976 (19),34.445 (29),27.847 (23),20.663 (46),26.20
+Local Reachability Average Direct Similarity Cross-Label Deviation Minimization,97.312 (53),103.961 (55),33.387 (35),27.479 (29),27.126 (21),38.60
+Local Reachability Average Direct Similarity Cross-Label Total Minimization,97.312 (53),103.961 (55),33.387 (35),27.479 (29),27.126 (21),38.60
+Local Reachability Average Direct Similarity (With Sparsity) Cross-Label Deviation Minimization,111.503 (11),116.352 (21),35.554 (23),27.716 (25),16.651 (57),27.40
+Local Reachability Average Direct Similarity (With Sparsity) Cross-Label Total Minimization,112.544 (3),117.426 (18),34.811 (28),26.744 (33),24.184 (36),23.60
+Local Reachability Average All-Pairs Similarity (excl source) Cross-Label Deviation Minimization,99.229 (39),106.412 (48),30.671 (63),26.452 (36),23.056 (40),45.20
+Local Reachability Average All-Pairs Similarity (excl source) Cross-Label Total Minimization,99.229 (39),106.412 (48),30.671 (63),26.452 (36),23.056 (40),45.20
+Local Reachability Average All-Pairs Similarity (excl source) (With Sparsity) Cross-Label Deviation Minimization,110.359 (19),115.921 (23),35.066 (27),28.845 (9),15.551 (59),27.40
+Local Reachability Average All-Pairs Similarity (excl source) (With Sparsity) Cross-Label Total Minimization,111.223 (14),116.976 (19),34.445 (29),27.847 (23),20.663 (46),26.20
+Local Reachability Total All-Pairs Similarity (incl source) Cross-Label Deviation Minimization,98.420 (50),106.045 (50),32.146 (52),26.649 (34),26.620 (23),41.80
+Local Reachability Total All-Pairs Similarity (incl source) Cross-Label Total Minimization,98.420 (50),106.045 (50),32.146 (52),26.649 (34),26.620 (23),41.80
+Local Reachability Total All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Deviation Minimization,109.631 (20),123.276 (10),33.291 (37),27.228 (31),25.910 (25),24.60
+Local Reachability Total All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Total Minimization,108.476 (21),123.514 (9),32.891 (45),28.374 (13),29.649 (13),20.20
+Local Reachability Total Counting Cross-Label Deviation Minimization,104.740 (33),114.028 (25),35.627 (22),29.329 (3),31.015 (2),17.00
+Local Reachability Total Counting Cross-Label Total Minimization,104.740 (33),114.028 (25),35.627 (22),29.329 (3),31.015 (2),17.00
+Local Reachability Total Counting (With Sparsity) Cross-Label Deviation Minimization,111.581 (10),122.300 (12),38.000 (8),28.321 (14),23.684 (38),16.40
+Local Reachability Total Counting (With Sparsity) Cross-Label Total Minimization,111.581 (10),122.300 (12),38.000 (8),28.321 (14),23.648 (39),16.60
+Local Reachability Total Direct Similarity Cross-Label Deviation Minimization,97.882 (52),104.894 (52),33.459 (34),27.487 (28),28.697 (18),36.80
+Local Reachability Total Direct Similarity Cross-Label Total Minimization,97.882 (52),104.894 (52),33.459 (34),27.487 (28),28.697 (18),36.80
+Local Reachability Total Direct Similarity (With Sparsity) Cross-Label Deviation Minimization,112.972 (2),123.629 (8),34.147 (31),28.113 (19),26.395 (24),16.80
+Local Reachability Total Direct Similarity (With Sparsity) Cross-Label Total Minimization,110.739 (17),124.257 (7),35.671 (20),28.756 (10),29.583 (14),13.60
+Local Reachability Total All-Pairs Similarity (excl source) Cross-Label Deviation Minimization,98.420 (50),106.045 (50),32.146 (52),26.649 (34),26.620 (23),41.80
+Local Reachability Total All-Pairs Similarity (excl source) Cross-Label Total Minimization,98.420 (50),106.045 (50),32.146 (52),26.649 (34),26.620 (23),41.80
+Local Reachability Total All-Pairs Similarity (excl source) (With Sparsity) Cross-Label Deviation Minimization,109.631 (20),123.276 (10),33.291 (37),27.228 (31),25.910 (25),24.60
+Local Reachability Total All-Pairs Similarity (excl source) (With Sparsity) Cross-Label Total Minimization,108.476 (21),123.514 (9),32.891 (45),28.374 (13),29.649 (13),20.20
+Local Coverage Average All-Pairs Similarity (incl source) Cross-Label Deviation Minimization,99.178 (43),108.800 (45),33.136 (39),21.912 (54),30.370 (9),38.00
+Local Coverage Average All-Pairs Similarity (incl source) Cross-Label Total Minimization,98.990 (45),110.273 (34),32.925 (43),22.217 (53),30.368 (10),37.00
+Local Coverage Average All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Deviation Minimization,111.347 (13),118.792 (17),38.492 (6),24.106 (49),24.778 (32),23.40
+Local Coverage Average All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Total Minimization,110.373 (18),119.591 (14),37.139 (14),23.899 (50),24.805 (31),25.40
+Local Coverage Average Direct Similarity Cross-Label Deviation Minimization,98.871 (48),109.752 (35),32.906 (44),21.881 (55),30.231 (11),38.60
+Local Coverage Average Direct Similarity Cross-Label Total Minimization,98.982 (46),109.517 (37),33.133 (40),21.864 (56),30.227 (12),38.20
+Local Coverage Average Direct Similarity (With Sparsity) Cross-Label Deviation Minimization,111.932 (6),119.462 (16),38.148 (7),24.226 (46),24.815 (29),20.80
+Local Coverage Average Direct Similarity (With Sparsity) Cross-Label Total Minimization,111.798 (9),120.334 (13),37.680 (9),23.899 (50),24.739 (35),23.20
+Local Coverage Average All-Pairs Similarity (excl source) Cross-Label Deviation Minimization,99.178 (43),108.800 (45),33.136 (39),21.912 (54),30.370 (9),38.00
+Local Coverage Average All-Pairs Similarity (excl source) Cross-Label Total Minimization,98.990 (45),110.273 (34),32.925 (43),22.217 (53),30.368 (10),37.00
+Local Coverage Average All-Pairs Similarity (excl source) (With Sparsity) Cross-Label Deviation Minimization,111.347 (13),118.792 (17),38.492 (6),24.106 (49),24.778 (32),23.40
+Local Coverage Average All-Pairs Similarity (excl source) (With Sparsity) Cross-Label Total Minimization,110.373 (18),119.591 (14),37.139 (14),23.899 (50),24.805 (31),25.40
+Local Coverage Total All-Pairs Similarity (incl source) Cross-Label Deviation Minimization,98.557 (49),108.954 (43),32.891 (45),21.296 (60),30.723 (5),40.40
+Local Coverage Total All-Pairs Similarity (incl source) Cross-Label Total Minimization,99.100 (44),109.171 (39),33.386 (36),21.317 (59),30.584 (8),37.20
+Local Coverage Total All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Deviation Minimization,111.969 (5),125.481 (1),37.016 (15),24.419 (45),24.811 (30),19.20
+Local Coverage Total All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Total Minimization,110.955 (15),124.798 (6),37.160 (13),23.899 (50),24.752 (33),23.40
+Local Coverage Total Counting Cross-Label Deviation Minimization,101.852 (34),112.005 (29),34.110 (32),21.787 (58),30.802 (4),31.40
+Local Coverage Total Counting Cross-Label Total Minimization,98.942 (47),108.981 (42),35.427 (25),22.374 (52),31.052 (1),33.40
+Local Coverage Total Counting (With Sparsity) Cross-Label Deviation Minimization,112.073 (4),125.223 (3),38.502 (5),24.209 (47),24.811 (30),17.80
+Local Coverage Total Counting (With Sparsity) Cross-Label Total Minimization,111.477 (12),125.258 (2),36.234 (17),23.899 (50),24.742 (34),23.00
+Local Coverage Total Direct Similarity Cross-Label Deviation Minimization,98.243 (51),109.668 (36),33.159 (38),21.118 (61),30.679 (6),38.40
+Local Coverage Total Direct Similarity Cross-Label Total Minimization,99.202 (42),109.113 (40),33.954 (33),21.317 (59),30.660 (7),36.20
+Local Coverage Total Direct Similarity (With Sparsity) Cross-Label Deviation Minimization,111.801 (8),125.126 (4),37.214 (11),24.467 (44),24.825 (28),19.00
+Local Coverage Total Direct Similarity (With Sparsity) Cross-Label Total Minimization,110.876 (16),124.826 (5),36.887 (16),23.899 (50),24.752 (33),24.00
+Local Coverage Total All-Pairs Similarity (excl source) Cross-Label Deviation Minimization,98.557 (49),108.954 (43),32.891 (45),21.296 (60),30.723 (5),40.40
+Local Coverage Total All-Pairs Similarity (excl source) Cross-Label Total Minimization,99.100 (44),109.171 (39),33.386 (36),21.317 (59),30.584 (8),37.20
+Local Coverage Total All-Pairs Similarity (excl source) (With Sparsity) Cross-Label Deviation Minimization,111.969 (5),125.481 (1),37.016 (15),24.419 (45),24.811 (30),19.20
+Local Coverage Total All-Pairs Similarity (excl source) (With Sparsity) Cross-Label Total Minimization,110.955 (15),124.798 (6),37.160 (13),23.899 (50),24.752 (33),23.40
+Local Liability + Reachability Total All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Deviation Minimization,109.631 (20),123.276 (10),33.291 (37),27.228 (31),25.910 (25),24.60
+Local Liability + Reachability Total Counting Cross-Label Total Minimization,104.740 (33),114.028 (25),35.627 (22),29.329 (3),31.015 (2),17.00
+Local Liability + Reachability Total Counting (With Sparsity) Cross-Label Total Minimization,111.581 (10),122.300 (12),38.000 (8),28.321 (14),23.648 (39),16.60
+Local Liability + Reachability Total Direct Similarity (With Sparsity) Cross-Label Total Minimization,110.739 (17),124.257 (7),35.671 (20),28.756 (10),29.583 (14),13.60
+Local Liability + Coverage Total All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Deviation Minimization,111.969 (5),125.481 (1),37.016 (15),24.419 (45),24.811 (30),19.20
+Local Liability + Coverage Total Counting Cross-Label Total Minimization,98.942 (47),108.981 (42),35.427 (25),22.374 (52),31.052 (1),33.40
+Local Liability + Coverage Total Counting (With Sparsity) Cross-Label Total Minimization,111.477 (12),125.258 (2),36.234 (17),23.899 (50),24.742 (34),23.00
+Local Liability + Coverage Total Direct Similarity (With Sparsity) Cross-Label Total Minimization,110.876 (16),124.826 (5),36.887 (16),23.899 (50),24.752 (33),24.00
+Local Reachability + Coverage Total All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Deviation Minimization,111.969 (5),125.481 (1),37.016 (15),24.419 (45),24.811 (30),19.20
+Local Reachability + Coverage Total Counting Cross-Label Total Minimization,98.942 (47),108.981 (42),35.427 (25),22.374 (52),31.052 (1),33.40
+Local Reachability + Coverage Total Counting (With Sparsity) Cross-Label Total Minimization,111.477 (12),125.258 (2),36.234 (17),23.899 (50),24.742 (34),23.00
+Local Reachability + Coverage Total Direct Similarity (With Sparsity) Cross-Label Total Minimization,110.876 (16),124.826 (5),36.887 (16),23.899 (50),24.752 (33),24.00
+Local Liability + Reachability + Coverage Total All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Deviation Minimization,111.969 (5),125.481 (1),37.016 (15),24.419 (45),24.811 (30),19.20
+Local Liability + Reachability + Coverage Total Counting Cross-Label Total Minimization,98.942 (47),108.981 (42),35.427 (25),22.374 (52),31.052 (1),33.40
+Local Liability + Reachability + Coverage Total Counting (With Sparsity) Cross-Label Total Minimization,111.477 (12),125.258 (2),36.234 (17),23.899 (50),24.742 (34),23.00
+Local Liability + Reachability + Coverage Total Direct Similarity (With Sparsity) Cross-Label Total Minimization,110.876 (16),124.826 (5),36.887 (16),23.899 (50),24.752 (33),24.00

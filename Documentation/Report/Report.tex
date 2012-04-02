@@ -1,7 +1,7 @@
 %& -shell-escape
 \documentclass[a4paper,11pt]{report}
-
 \usepackage{times}
+\usepackage{longtable}
 \usepackage{morefloats}
 \usepackage{multirow}
 \usepackage{array}
@@ -19,20 +19,16 @@
 \usepackage{caption}
 \usepackage{fancyvrb}
 \usepackage{float}
+\usepackage{subfigure}
+\usepackage{lscape}
 \usepackage[parfill]{parskip} %http://stackoverflow.com/questions/3159606/latex-have-new-line-between-paragraphs-no-indentation
-%TODO Fix minimis . . .
 \newcolumntype{x}[1] {>{\raggedright}p{#1}} %http://nepsweb.co.uk/docs/tableTricks.pdf
 
 \newcommand{\sst}[1]{\ensuremath{^{\textrm{#1}}}}
 \newcommand{\sbt}[1]{\ensuremath{_{\textrm{#1}}}}
 
+
 \DefineVerbatimEnvironment{code}{Verbatim}{fontsize=\small,numbers=left,frame=lines,samepage=true,commandchars=\\\{\},numbersep=6pt,baselinestretch=1.2,xleftmargin=12pt}
-
-
-\DTLloaddb{summary}{./ExperimentResults/non_textual_summary.csv}
-\DTLloaddb{textual_summary}{./ExperimentResults/textual_summary.csv}
-\DTLloaddb{non_textual_data_stats}{./ExperimentResults/non_textual_data_stats.csv}
-\DTLloaddb{textual_data_stats}{./ExperimentResults/textual_data_stats.csv}
 
 \title{Competence-Driven Active Learning}
 \author{Charles McCarthy\\
@@ -53,8 +49,13 @@
 \maketitle
 
 \begin{abstract}
-An overview of the fundamental concepts in active learning, with particular focus on the use of competence models. Experimental analysis of basic selection strategy approaches, along with experiments on new competence model based approaches.
-%TODO:A larger abstract will spell out what the work has shown - i.e. results, more than background.
+In this report, we:
+\begin{itemize}
+\item Present an overview of the active learning domain.
+\item Investigate the notions of competence models applied to the area of selection strategies in pool-based active learning, attempting to expand on the work of \citet{Delany2009}.
+\item Develop and experiment on new selection strategies based on competence models, and present several, which also incorporate the idea of density, which perform favourably against more traditional strategies.
+\item Present the platform which we developed for the experimentation, which has the useful capability of operating in a distributed-computing fashion.
+\end{itemize}
 \end{abstract}
 
 \chapter*{Declaration of Originality}
@@ -300,8 +301,8 @@ The reasoning is that the entire dataset is hopefully representative of real-wor
 \begin{samepage}
 Even with the commonality of the density notion, there is quite a bit of variance in the literature around how density is actually measured. Two examples of relatively straightforward measures:
 \begin{enumerate}
-	\item \textbf{Global Density}: The average distance from a case to every case in the dataset \citep{Xu2007}.
-	\item \textbf{Local KNN Based Density}: The average distance to its k-nearest neighbours in the dataset \citep{Zhu2008}.
+	\item \textbf{Global Density}: The average similarity from a case to every case in the dataset \citep{Xu2007}.
+	\item \textbf{Local KNN Based Density}: The average similarity to its k-nearest neighbours in the dataset \citep{Zhu2008}.
 \end{enumerate}
 \end{samepage}
 
@@ -892,14 +893,28 @@ PyX \citep{prog:pyx} is used to generate a PDF file of plots of the learning cur
 \subsection{Selection Graphs\label{sec:selectiongraphs}}
 We also generate a visualisation of the case-base that each selection strategy produces. The distance matrix for the entire dataset is used to generate a spring-graph of all the cases, where each case (represented by a node in the graph) has an edge to a small proportion of its nearest neighbours, with a force proportional to the distance. Graphviz \citep{prog:graphviz} was used to perform this graph generation, with PyGraphviz \citep{prog:pygraphviz} as the interface from Python.
 
-Cases which a given selection strategy chooses are highlighted at each selection iteration. These are then output to a PDF file, with each page representing an iteration in the selection strategy.
+Cases which a given selection strategy chooses are highlighted at each selection iteration. These are then output to a PDF file, with each page representing an iteration in the selection strategy. Examples of the final state of these, after the stopping condition has been reached, can be seen in Figure \ref{fig:selectiongraphexample}.
 
 Because selections can't really be averaged across the different folds in cross validation, a PDF file is generated for each cross validation fold. White nodes represent test cases, grey nodes represent unlabelled cases, and black nodes represent cases selected by the selection strategy.
 
 Due to the flattening of varying dimensionality datasets, the usefulness of these graphs vary widely depending on the datasets used, so it is not beneficial for all datasets.
 
+
+\begin{figure}[ht]
+\centering
+\subfigure[Selections graph for `Sparsity Minimization' on `zoo' dataset]{
+\includegraphics[width=0.98\textwidth]{"./ExperimentResults/selection_graphs/Sparsity Minimization"}
+}
+\subfigure[Selections graph for `Maximum Diversity Samplingn' on `zoo' dataset]{
+\includegraphics[width=0.98\textwidth]{"./ExperimentResults/selection_graphs/Maximum Diversity Sampling"}
+}
+
+\label{fig:selectiongraphexample}
+\caption{Examples of Selection Graphs of final case-bases}
+\end{figure}
+
 \subsection{Experiments Summary}
-A summary CSV file is also output for the experiments executed during a run of the platform. It simply gives a tabular breakdown of dataset vs selection strategy AULC values.
+A summary CSV file is also output for the experiments executed during a run of the platform. It simply gives a tabular breakdown of dataset vs selection strategy AULC values. This summary also shows the ranking for each strategy on each dataset - i.e. what rank it came in on a given dataset compared to all the other selection strategies in the experiment.
 
 \section{Platform Usage}
 The general workflow of using the platform is relatively straightforward: provide inputs to the experimentation engine, allow the engine to run the requested experiments, and analyse the results output from the engine. This methodology provides a generic mechanism of experimenting with selection strategies.
@@ -1678,8 +1693,166 @@ If there are more than 2 labels and we totalled across different labels, both fl
 
 We do not attempt to count unique instances here, as the weighting attached due to the duplicates is somewhat useful. If a flip occurs for e.g. 3 out of 4 labels for a case, it is somewhat more relevant than if it occurs for 1 of the 4 labels.
 
+
+\section{A Grammar for Naming Competence Strategies}
+
+Due to the availability of compute resources with the incorporation of cluster-like functionality in the platform developed, it was possible to execute a large quantity of competence-based selection strategies. Naming individually every single strategy would be unwieldy at best, therefore a naming convention was adopted based on the various decision points in the strategies we developed.
+
+\subsection{Decision Points}
+
+\subsubsection{Locality}
+\emph{Locality}, in the context of our selection strategies, indicates which cases' RCDL sets we consider during the selection among the candidate cases.
+
+\emph{Local} refers to just the candidate case's RCDL sets being considered, while \emph{Global} relates to the candidate case's effects on the RCDL sets of the cases already in the case-base. 
+
+While there certainly is overlap due to duality property, it is also possible that other cases not directly related to the candidate case can be affected due to the candidate case's addition. Some of these side-effects, in particular what we term `flips', can be quite interesting.
+
+\subsubsection{Cross Label Aggregation}
+RCDL profiles are highly dependent on knowing the labels of the cases in question. Given that we do not know what the label of a candidate case will be before we provide it to the oracle, it is necessary to consider ``what-if'' style analysis when considering the RCDL effects of a candidate case.
+
+For the purpose of combining the possible labels' measures, we chose two basic aggregation approaches: 
+
+\paragraph{Total} Simply adding the overall measure values produced for each of the labels.
+
+\paragraph{Deviation} Calculating the standard deviation between the values of the different possible labels.
+
+\subsubsection{Quantity Goal}
+The overall goal of the strategies we developed is based on \emph{minimizing} or \emph{maximizing} the scores of the individual cases.
+
+\subsubsection{Density Inclusion}
+Density information regarding the overall dataset can also be incorporated as a measure in the overall strategy. The density measure is defined as the average similarity to all other cases in the entire dataset, stretched to the range 0 to 1. The sparsity of a case we simply define as 1 minus the density of the case.
+
+When either measure is included, it is combined with each RCDL measure in a non-weighted average fashion.
+
+\subsubsection{Set to Scores Mapper}
+The set to score mapper defines the mechanism to map a single R, C, D or L set for a single case, to a sequence of scores. This may not necessarily be a one-to-one mapping for the cases contained in the set.
+
+We define 4 simple maps:
+
+\begin{enumerate}
+\item \underline{All-Pairs Similarity (incl source):} 
+
+This maps a set to the similarity values for the all-pairs of the set plus the source case from which the set emanates.
+\item \underline{All-Pairs Similarity (excl source):} 
+
+This is similar to the previous mapper, except it does not include the source case from which the set emanates.
+
+\item \underline{Direct Similarity:} 
+
+This maps a set to the similarity values between the source case and each case in the set in question.
+
+\item \underline{Counting:} 
+
+This simply maps a set to a sequence of ones of length equal to the size of the set.
+\end{enumerate}
+
+\subsubsection{Set Scores Reducer}
+The reducer here combines a set of scores down to a single score. Two simple reducers are defined; total, and average.
+
+\subsubsection{RCDL Sets to Use}
+Another decision point for a strategy is which of the RCDL sets to consider in the strategy. For our strategies, for a given strategy, the other decision points applied to one set are also applied to separately to the others.the same decision points are used for each of the RCDL sets in the strategy. 
+
+It should be noted that this grammar design does not allow representation of a selection strategy with more than one RCDL set, but based on different measures, but is sufficient for us given that we only experimented with basic hybrid strategies. 
+
+\subsubsection{Measures Reducer}
+The individual RCDL measures for a strategy need to be combined in some fashion. We chose simple summing, this being equivalent to non-weighed average given that the denominator is the same for every candidate, and given that no more combinations are done subsequent to this last step. We represent this simply as `+'. The other possibility considered was multiplication, but we decided against this due to the issue with how to deal with zero values, but in our naming convention, would be represented with `*'.
+
+\begin{tabular}{|l|l|x{200px}|c|}
+\hline 
+ID & Decision Point & Possible Values & \# Values\tabularnewline
+\hline 
+\hline 
+1 & Locality & Local, Global & 2\tabularnewline
+\hline 
+2 & RCDL Sets & \{Reachability\}, \{Dissimilarity\} . . . \{Reachability, Coverage\},
+\{Reachability, Dissimilarity\} . . . & 17\tabularnewline
+\hline 
+3 & Measure Reducer & +, {*} & 2\tabularnewline
+\hline 
+4 & Set Scores Reducer & Average, Total & 2\tabularnewline
+\hline 
+5 & Set to Scores Mapper & All Pairs Similarity (incl source), All Pairs Similarity (excl source),
+Direct Similarity, Counting & 4\tabularnewline
+\hline 
+6 & Density Inclusion & With Density, With Sparsity, (None) & 3\tabularnewline
+\hline 
+7 & Cross Label Aggregator & Total, Deviation & 2\tabularnewline
+\hline 
+8 & Quantity Goal & Minimization, Maximization & 2\tabularnewline
+\hline 
+\end{tabular}
+
+\subsection{Combining Decision Points to a Name}
+Decision points are used to generate a string as follows, where `[ID]' represents the value of the decision point referenced by `ID' in the matrix above:
+
+\begin{quote}
+[1] ([2] with items separated by [3]) [4] [5] [6] Cross-Label [7] [8]
+\end{quote}
+
+\subsection{Example Strategy Name}
+For this example, we shall consider:
+\begin{quote}
+Local Liability + Coverage Total Counting (With Sparsity) Cross-Label Total Minimization
+\end{quote}
+
+The decision points are then extracted as follows:
+
+\begin{tabular}{|l|l|c|c|}
+\hline 
+ID & Decision Point & Value\tabularnewline
+\hline 
+\hline 
+1 & Locality & Local, Global \tabularnewline
+\hline 
+2 & RCDL Sets & Liability, Coverage \tabularnewline
+\hline 
+3 & Measure Reducer & + \tabularnewline
+\hline 
+4 & Set Scores Reducer & Total \tabularnewline
+\hline 
+5 & Set to Scores Mapper & Counting \tabularnewline
+\hline 
+6 & Density Inclusion & With Sparsity \tabularnewline
+\hline 
+7 & Cross Label Aggregator & Total \tabularnewline
+\hline 
+8 & Quantity Goal & Minimization \tabularnewline
+\hline 
+\end{tabular}
+
+Stepping through each in turn:
+
+\begin{enumerate}
+	\item \underline{Locality: Local}
+	
+	Just the RCDL sets of the candidate case are considered.
+	\item \underline{RCDL Sets: Liability, Coverage}
+	
+	The measure subsequently defined shall be calculated separately for each of the liability and coverage sets of the candidate case.
+	\item \underline{Measure Reducer: +}
+	
+	The value for the liability based measure and the value for the coverage based measure will be 
+	combined through simple summing.
+	\item \underline{Set Scores Reducer: Total}
+	\item \underline{Set to Scores Mapper: Counting}
+	
+	The sequence of values generated through the mapper (counting) will be reduced by totalling. In this strategy, this is simply the cardinality of the RCDL set in question. This will be used as the overall score for that set.	
+	\item \underline{Density Inclusion: With Sparsity}
+	
+	Density information shall be incorporated through the notion of sparsity, with sparsity combined with each RCDL based measure through non-weighted average.
+	\item \underline{Cross Label Aggregator: Total}
+	
+	A score will be calculated for each possible label, with the scores combined to an overall score through simple summing 
+	\item \underline{Quantity Goal: Minimization}
+	
+	The overall goal of the strategy will be minimization. This means that for each candidate set, a value will be assigned by the strategy, and the candidate set with the lowest value will be selected (with random tie breaking used in the case of ties for lowest).
+	
+\end{enumerate}
+
 \section{Selection Strategies}
-\subsection{Counting-Based Strategies}
+
+\subsection{Simple Single-Set Counting Strategies}
+
 \subsubsection{Local Reachability (Counting)\label{sec:compstrat1}}
 When Supposing a single case for addition to the case-base, irrespective of the label we choose to suppose, the case-base will classify it with only one label. For example, in Figure \ref{fig:NNsCorrect}, irrespective of if we suppose Cn to be a triangle, or a circle, the case-base will still classify it a circle. Thus, the reachability set of Cn will only get populated in one instance - when we suppose Cn to be the same label as the case-base classifies it.
 
@@ -1795,6 +1968,40 @@ In each, the new case is somehow aiding in the incorrect classification of an ex
 
 Totalling here, as in other strategies, is probably not the best approach - but as a simplistic initial investigatory strategy, we try to minimize the total of the new case's liability set summed over the different possible supposes.
 
+\subsection{Pruned Cross Product Strategies}
+Understandably, given the 6,528 possible strategies possible through the simple cross-product grammar based approach presented, it was necessary to prune the combinations to a more tractable level. As such - the following restrictions on decision point combinations were made:
+
+\begin{itemize}
+	\item \underline{No Global Strategies:}
+	
+	Global strategies require more careful thought than local strategies given the possibility of shunting and flipping, and dealing with many cases' sets as opposed to just the candidate case. Certain measures, such as all-pairs similarity, also would need tweaking. As a result, we decided not to include global strategies in our simple cross-product style investigation.
+    \item \underline{Only Minimization Strategies:}
+    
+    Strategies which were initially thought out were all minimization strategies to try to encourage some kind of sparsity. To cut down largely the number of possibilities given the somewhat limited compute-time available, we only chose minimization cross-product based strategies.
+    \item \underline{Disallow Averaged Counting}
+    
+    Averaging makes sense for the similarity based set scores, but for counting, it would lead to more of a boolean 0 or 1 defining if the set was empty or not. While this might well lead to valid strategies in some cases, we wanted to reason more about the contents of the sets as opposed to simply if they contained elements or not. 
+    \item \underline{Use Sparsity as the only density based measure:}
+    
+    Due to our decision to only do minimization strategies, we do not use density in our measures, since we want to pick from dense regions, thus minimize sparsity.
+    \item \underline{Exclude Dissimilarity:}
+    
+    From initial investigation, it was noted that our simple dissimilarity strategies performed identically or near-identically to the corresponding reachability strategies. This is relatively unsurprising given the definition of dissimilarity, and given that we perform the calculation for each possible label, with each getting equal weighting.
+    \item \underline{Restrict hybrid strategies to well performing single-set strategies:}
+    
+    Hybrid strategies are a large reason for the high number of cross-product based strategies. We thus limit our hybrid strategies (the strategies with more than one RCDL set considered) to a small selection of well-performing single-set strategies. The strategies we picked:
+    \begin{itemize}
+        \item Total Direct Similarity (With Sparsity) Cross-Label Total Minimization
+        \item Total All-Pairs Similarity (incl source) (With Sparsity) Cross-Label Deviation Minimization
+        \item Total Counting (With Sparsity) Cross-Label Total Minimization
+        \item Total Counting Cross-Label Total Minimization
+    \end{itemize}
+\end{itemize}
+
+These restrictions lead to a somewhat more manageable total of 100 cross-product based strategies.
+
+\subsection{Global Counting-Based Strategies}
+
 \subsubsection{Global Coverage (Counting)}
 
 \paragraph{Direct}
@@ -1868,110 +2075,108 @@ Causing a flip to correct classification (Flip related dissimilarity removals) c
   T~=~Direct_{D+}~+~Shunted_{D-}~+~Flip_{D+}~-~Flip_{D-}
 \]
 
+\subsection{Global Similarity-Based Strategies}
+We also briefly experimented with global similarity-based strategies. We used direct similarity instead of counting, and applied the same formulas as defined for the global counting-based strategies, with the exceptions that for coverage and reachability, we subtract instead of add shunted.
+
 \chapter{Experimental Analysis\label{cha:expanalysis}}
 \section{Datasets Used}
+
+\DTLloaddb{non_textual_data_stats}{./ExperimentResults/all_non_textual_data_stats.csv}
+\DTLloaddb{textual_data_stats}{./ExperimentResults/all_textual_data_stats.csv}
+
 \subsubsection{Non-Textual}
-\DTLdisplaydb{non_textual_data_stats}
+\DTLdisplaylongdb{non_textual_data_stats}
 
 \subsubsection{Textual}
-\DTLdisplaydb{textual_data_stats}
+\DTLdisplaylongdb{textual_data_stats}
 
 \section{Results}
-Results are presented using a learning curve (classification accuracy vs case-base size). The AULC figure is also calculated.
+Due to the large quantity of datasets experimented on, along with the sheer volume of selection strategies attempted, we do not present the results in entirety here. The reader can view these in the appendix, in Section \ref{sec:fullresults}.
 
-\begin{sidewaystable}
-\subsection{Summary}
+In each category, we choose a small subset of the noteworthy results, comparing it against some previously presented well-performing strategy to aid in comparison.
 
-\subsubsection{Non-Textual}
-{\footnotesize \DTLdisplaydb{summary}}
-
-\subsubsection{Textual}
-{\footnotesize \DTLdisplaydb{textual_summary}}
-\end{sidewaystable}
+\newpage
 
 \begin{python}
-import csv
-import os
-
-exp_results_dir = "./ExperimentResults/"
-
-cat_to_files = [("Non-Textual", exp_results_dir + "non_textual_summary.csv"),
-                ("Textual", exp_results_dir + "textual_summary.csv")
-                ]
-
-for (cat, fn) in cat_to_files:
-    print r'\subsection{' + cat + r' Datasets}'
-    print 
-    with open(fn) as f:
-        r = csv.reader(f)
-        r = list(r)
-        datasets = r[0][1:]
-        for ds in datasets:
-            print
-            print r'\begin{figure}[h!] \centering'
-            print r'\includegraphics[width=0.98\textwidth]{' + exp_results_dir + ds + '}'
-            print r"\caption*{Learning Curve Plots for the `" + ds + "' \citep{data:" + ds + "} Dataset}"
-            print r'\end{figure}'
-            print r'\vspace{10pt}'
-            print
+from collections import OrderedDict
+from utils import printFigure
+d = OrderedDict()
+d['Baseline Comparison'] = "./ExperimentResults/selected_baseline/"
+d['Competence Based Counting'] = "./ExperimentResults/selected_competence_counting/"
+d['Competence with Similarity'] = "./ExperimentResults/selected_competence_with_similarity/"
+d['Basic Density Incorporation'] = "./ExperimentResults/selected_sparsity/"
+d['Competence with Sparsity'] = "./ExperimentResults/selected_competence_with_sparsity/"
+d['Competence Set Hybrids'] = "./ExperimentResults/selected_competence_hybrids/"
+for (n, d) in d.iteritems():
+    print r'\subsection{%s}' % n
+    printFigure(d)
 \end{python}
 
-\begin{python}
-import csv
-import os
+\section{Results Summary}
+\DTLloaddb{presented_summary}{./ExperimentResults/selected_all_presented/summary.csv}
+\resizebox{\textwidth}{!} {
+  \DTLdisplaydb{presented_summary}
+}
 
-exp_results_dir = "./ExperimentResults/"
-sel_graphs_dir = exp_results_dir + "selection_graphs/"
-with open(exp_results_dir + "non_textual_summary.csv") as f:
-    r = csv.reader(f)
-    r = list(r)
-    variations = [row[0] for row in r[1:]]
-    for (i, v) in enumerate(variations):
-        print r'\begin{figure}[h!]'
-        if i == 0:
-            print r'\section{Selection Graphs}'
-        print r'\subsection{' + v + '}'
-        print r'\centering'
-        print r'\includegraphics[width=0.98\textwidth]{"' + sel_graphs_dir + v + '"}'
-        print r"\caption*{Selections graph for Variation `" + v + "'}" 
-        print r'\end{figure}'
-        print r'\vspace{10pt}'
-        print
-\end{python}
+\section{Results Discussions}
+It should be noted that the following discussion also incorporates the full results, as opposed to the small subset presented above.
 
+\subsection{Random Selection Performance}
+It bears mention that, considering how utterly inexpensive a strategy it is, random selection performs quite well. 
 
+\subsection{Local Reachability Counting}
+Considering their simplicity, strategies involving local reachability counting perform very well compared to uncertainty and random sampling. 
+
+One possible reason for this is due to the strategies' benefit of creating a candidate set of relatively uncertain cases from which random selection is used. This is slightly different to uncertainty sampling based on non-weighted voting, in that firstly, voting is performed in a distance weighted fashion to determine the probable label, then the cardinality of the set of cases in the k-nearest neighbours with the same label is minimized.
+
+In this way, it doesn't fall prey to the traditional downfall of pure uncertainty sampling of always querying outliers, instead picking from the relatively uncertain cases at random.
+
+\subsection{Benefit of addition of Sparsity}
+
+The addition of density information (in the form of sparsity), has an undeniable benefit to the competence-based strategies, especially on textual data. The benefit is less seen on the non-textual data, probably due to the quicker convergence and smaller data sizes.
+
+It should probably be noted that Diversity + Sparsity, and Uncertainty + Sparsity, also do quite well. We decided to perform basic tests on these to determine if the increase in competence strategies' performance was at all significant. The competence strategies on their own generally aim to pick somewhat diverse cases, and thus adding density information intends to augment this diversity picking with information regarding density of that region in the dataset.
+
+Some of the competence strategies augmented with sparsity do perform significantly better than either Diversity + Sparsity, or Uncertainty + Sparsity, on the textual datasets. Though given the naive approach used for these two comparative strategies, further work is needed to compare with established strategies which aim to incorporate uncertainty, density, and diversity.
+
+\subsection{Deviation almost equivalent results to total}
+Although deviation and totalling are technically different approaches, for the datasets tested and the manner in which we used these approaches in our selection strategies, they produced for the most part identical performance.
+
+\subsection{Poor hybrid results}
+Upon consultation of the full results, and as demonstrated in the subset of the results above, it can be seen that the hybrid strategies in our simple combinations appear to be dominated by one of the sets, being identical to that one set's non-hybrid strategy. 
 
 \chapter{Conclusions and Future Work\label{cha:conclusions}}
 
 \section{Project Results}
-\subsection{Contributions Made}
-\subsubsection{Experimental Platform}
+The project has led to some promising competence-based selection strategies which perform quite well compared to traditional strategies. While the results vary between datasets, there being no single overall winner, they do prove somewhat that incorporating competence in active learning, as opposed to its traditional domain of case-base maintenance, might have some merit. Though certainly, further work would be needed to establish this more concretely.
+
+\section{Contributions Made}
+\subsection{Experimental Platform}
 The Python-based platform developed for the project has some useful features for selection-strategy experimentation in a pool-based active learning context.
 
 It allows pluggable definitions of selection strategies, without requiring code changes to the main platform. It also has very pluggable definitions for things like the oracle, stopping condition, classifier, etc. It could thus be used for evaluations far beyond the current scope of this project.
 
 One small but useful additional capability of the platform is how it deals with data loading and distance computation. It provides two interoperable formats to store pre-computed distance information along with the data. This allows for very different platforms to be used in initially processing the data. Even in this project, it allowed textual data to be added by using the facilities of SciKit Learn, but required no modification to the platform code.
 
-The experimental result re-use mechanism is another useful feature to the platform, which allows it to read in previous results, and use them if necessary when running the new experiment.  
+The experimental result re-use mechanism is another useful feature to the platform, which allows it to read in previous results, and use them if necessary when running the new experiment. 
 
-\subsubsection{Incremental Algorithm to RCDL}
+The capability of the platform to operate on a distributed cluster-based map-reduce fashion is another significant benefit, albeit a relatively undocumented benefit given the late stage of the project that the feature was added. 
+
+\subsection{Incremental Algorithm to RCDL}
 
 The incremental algorithm to RCDL profile generation presented in Section \ref{sec:incrstrategy} is a new addition to the area. It was not necessary in \citet{Delany2009} due to how she was using it, but for active learning approaches, having an incremental approach becomes a lot more relevant. 
 
 The `suppose' operation is also somewhat novel, allowing selection strategies to determine in advance what the changes to the RCDL profiles would be if it picked a certain case, and that case turned out to have a certain label.
 
-\subsubsection{Competence Based Selection Strategies}
+\subsection{Competence Based Selection Strategies}
 
 We presented how we interpret the changes that might occur the competence profiles of cases following the addition of a new case to the case-base, and ran experimentation to test our derivations.
 
 While the presented competence based strategies were by no means ground-breaking in their results, I believe their investigation still contributed useful thought-experiments in the field, and also set some of the ground work for potential future investigation into competence based methodologies.
 
-\subsubsection{SciKit-Learn Fix Contribution}
+\subsection{SciKit-Learn Fix Contribution}
 
 Although relatively trivial in size, I identified a bug in the SciKit-Learn 20 newsgroups textual data loading mechanism. I fixed the bug, added unit tests to verify the presence of the bug, and the fix written, and subsequently pushed the changes back to the main SciKit-Learn repository. The community members in charge of the repository verified and accepted the change.
-
-\subsection{Experimental Analysis}
-%TODO Write Conclusions based on experiments
 
 
 \section{Further Research Opportunities}
@@ -2040,7 +2245,18 @@ For example, in Figure \ref{fig:NNsCorrect}:
 Here, no knowledge of $C3$ is maintained. I believe it might be useful to also maintain additional sets `helping' and `hindering', along with their duals.
 
 \subsection{Reconsider Liability Strategies}
-%TODO: Write reconsider liability section.
+The liability-based strategies perform quite poorly overall. Some further consideration and investigation is deserved around the causes.
+
+\subsection{Try more hybrid strategies}
+Our investigation into hybrid RCDL set strategies was very limited. Considering different combinations in a more meaningful and systematic way could prove interesting.
+
+\subsection{Incorporate certain aspects of global strategies}
+Certain global-type changes, in particular `flips', are quite interesting, and much underused in our work. Selective incorporation of side-effect style information could allow some interesting variations on some of the strategies we defined, and also more traditional strategies.
+
+\subsection{Profile datasets, applying appropriate strategies}
+Analysis on which strategies perform well based on dataset characteristics could be useful. Certain types of strategies perform very well on some datasets, but only mediocre on others. For example, sparsity based strategies perform well on the textual data.
+
+Trying to dynamically pick which strategy to apply based on the current case-base, and the dataset in general might be promising.
 
 \section{Platform Development Opportunities}
 
@@ -2090,14 +2306,21 @@ It surprises me the massive body of research that doesn't follow this methodolog
 
 By having all backing materials available, it also allows other researchers to continue with the original research, as opposed to starting from scratch and re-developing all the architecture necessary again and again.
 
-\section{Full Experiment Results Listing}
+\section{Full Experiment Results Listing\label{sec:fullresults}}
 Due to the incorporation of a map-reduce framework towards the end of the project, along with scripts to execute across several hundred college computers, throughput was available to run many additional experiments. Due to the limited quantity of time remaining at the time, a `dumb' cross-product methodology was used to generate experiments based on the methods used previously. 
 
-Only a small proportion of these new generated experiments were some way promising, but for completeness, the full listing of experiments along with their results are presented here.
+Only a small proportion of these new generated experiments were some way promising, but for completeness, the full listing of experiments along with their results are presented here. Due to the cross-product style strategy name length, these names have been abbreviated, but due to their resulting unintelligibleness, the reader is recommended to instead consult the results online \cite{web:projectsourcecode}.
 
+\begin{landscape}
 \subsection{Non-Textual}
-%TODO: Fill in.
+\DTLloaddb{all_non_textual_summary}{./ExperimentResults/all_non_textual/summary_abbreviated.csv}
+{\scriptsize \DTLdisplaylongdb{all_non_textual_summary}}
+\end{landscape}
+
 \subsection{Textual}
+\DTLloaddb{all_textual_summary}{./ExperimentResults/all_textual/summary_abbreviated.csv}
+{\footnotesize \DTLdisplaylongdb{all_textual_summary}}
+
 
 \section{Open source Technologies Used}
 \subsection{Development Tools}

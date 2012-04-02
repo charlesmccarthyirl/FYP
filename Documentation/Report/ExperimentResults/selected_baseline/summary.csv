@@ -1,0 +1,5 @@
+,Comp,Vehicle,breathalyzer,haberman,dermatology,Avg. Rank
+Random Selection,99.852 (2),112.572 (1),35.225 (1),29.227 (1),27.996 (2),1.40
+Uncertainty Sampling,100.797 (1),110.307 (2),32.071 (2),27.652 (2),25.909 (3),2.00
+Margin Sampling,100.797 (1),110.307 (2),32.071 (2),27.652 (2),28.257 (1),1.60
+Maximum Diversity Sampling,96.559 (3),106.469 (3),31.155 (3),27.606 (3),23.648 (4),3.20

@@ -1,0 +1,5 @@
+,Comp,Vehicle,breathalyzer,haberman,dermatology,Avg. Rank
+Local Reachability Total Counting Cross-Label Total Minimization,104.740 (2),114.028 (2),35.627 (2),29.329 (1),31.015 (1),1.60
+CompStrat - Global Liability (Similarity),106.603 (1),116.488 (1),35.632 (1),28.261 (2),29.027 (3),1.60
+Local Coverage Total Direct Similarity Cross-Label Total Minimization,99.202 (3),109.113 (3),33.954 (3),21.317 (4),30.660 (2),3.00
+Local Reachability Total Direct Similarity Cross-Label Total Minimization,97.882 (4),104.894 (4),33.459 (4),27.487 (3),28.697 (4),3.80

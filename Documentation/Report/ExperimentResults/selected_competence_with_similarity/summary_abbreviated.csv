@@ -1,0 +1,5 @@
+,Comp,Vehicle,breathalyzer,haberman,dermatology,Avg. Rank
+Certainty + Sparsity Minimization,111.804 (1),122.310 (3),38.890 (1),28.218 (2),23.706 (4),2.20
+LRTDSWSCLTM,110.739 (4),124.257 (2),35.671 (4),28.756 (1),29.583 (1),2.40
+LCTDSWSCLDM,111.801 (2),125.126 (1),37.214 (3),24.467 (3),24.825 (2),2.20
+LCAAPSisWSCLDM,111.347 (3),118.792 (4),38.492 (2),24.106 (4),24.778 (3),3.20

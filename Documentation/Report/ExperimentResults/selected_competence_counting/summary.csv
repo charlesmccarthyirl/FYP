@@ -1,0 +1,5 @@
+,Comp,Vehicle,breathalyzer,haberman,dermatology,Avg. Rank
+Uncertainty Sampling,100.797 (4),110.307 (4),32.071 (4),27.652 (3),25.909 (3),3.60
+Local Reachability Total Counting Cross-Label Total Minimization,104.740 (3),114.028 (3),35.627 (2),29.329 (1),31.015 (1),2.00
+Local Liability Total Counting Cross-Label Deviation Minimization,105.242 (2),114.542 (2),32.264 (3),26.230 (4),22.811 (4),3.00
+CompStrat - Global Liability (Counting),107.075 (1),116.088 (1),36.040 (1),28.902 (2),28.909 (2),1.40
