@@ -35,7 +35,7 @@
   106380221\\
   \texttt{cmmc1@student.cs.ucc.ie}
   \\Supervisor: Dr. Derek Bridge}
-\date{March 2012}
+\date{April 2012}
 
 \usepackage{hyperref} % Taken from Barry Hurley
 \hypersetup{colorlinks,%
@@ -817,10 +817,10 @@ A commonly presented representation of selection strategy evaluation is the \emp
 A metric to summarise the progression, and allow for comparison among different selection strategies against the same dataset and same starting and finishing case-base size is \emph{AULC (Area Under the Learning Curve}). As can be expected, this is simply the area under the learning curve. Result Set objects have the inbuilt capability of computing the AULC value for their contained Results.
 
 \subsection{Cluster-Based Execution}
-Due to the enormity of data processing involved, as a slight deviation towards the end, cluster based platform execution was implemented. Unused lab machines in the WGB were used to perform approximately three thousand compute hours worth of experiments. At peak, the platform was executing slave processes on just over 200 machines - 400 processor cores. 
+Due to the enormity of data processing involved, as a slight deviation towards the end, cluster based platform execution was implemented. Unused lab machines were used to perform approximately two thousand compute hours worth of experiments. At peak, the platform was executing slave processes concurrently on just over 200 machines - 400 processor cores. 
 
 \subsubsection{Map Reduce Framework: Mincemeat}
-Mincemeat \citep{prog:mincemeat} is a relatively simple implementation of a Map Reduce framework, written in pure Python. While not as fully featured as other more developed frameworks, it was chosen for its simplicity, which allowed easy understanding and modification, and portability, having no dependencies other than Python.
+Mincemeat \citep{prog:mincemeat} is a relatively simple implementation of a Map Reduce framework, written in pure Python. While not as fully featured as other more developed frameworks, it was chosen for its simplicity, which allowed easy understanding, modification, and portability, having no dependencies other than Python.
 
 \subsubsection{Work Unit Definition}
 Independent work units are first computed by the platform before providing to the map reduce framework. They represent the smallest unit of work that the platform can meaningfully execute.
@@ -844,14 +844,14 @@ The reduce operation takes the results for all of the folds of a single experime
 
 \subsubsection{Handling Failures}
 
-In the given environment, failures of nodes and job was an inevitability. Computers are continuously being turned off / rebooted, and sometimes other tasks can be running on a machine meaning that a mapping operation being run on that machine would be essentially non-terminating.
+In the given environment, failures of nodes and jobs was an inevitability. Computers are continuously being turned off / rebooted, and sometimes other tasks can be running on a machine meaning that a mapping operation being run on that machine would be essentially non-terminating.
 
 Thankfully, mincemeat provided sufficient handling for these circumstances. Any time spare capacity is available, it re-sends unfinished maps to use the capacity.
 
 Failure of the `master' was less well handled by the framework. Maps were carried out first until all were successfully completed, followed by the reduces. If the master died, or a bug occurred, all the completed maps would be lost. The framework was modified to allow early reduction of a reduce group, if the user could give a guarantee that no more values for the reduce group would be produced in any of the remaining map operations.
 
 \subsubsection{Execution Environment}
-One problem with using the college machines was the very dated Ubuntu installation present on the machines. To get around this, virtualenv \citep{prog:virtualenv} was used to set up an isolated Python environment in a network-hosted home directory. The `.bashrc' file was then updated to correctly activate this environment upon login.
+One problem with using the college lab computers was the very dated Ubuntu installation present on the machines. To get around this, virtualenv \citep{prog:virtualenv} was used to set up an isolated Python environment in a network-hosted home directory. The `.bashrc' file was then updated to correctly activate this environment upon login.
 
 To allow for promptless operation, public/private key pairs were generated and installed to the executing user's SSH environment. On the master node, given that root access was available, the SSH configuration was changed to automatically accept without prompt previously unseen public keys.
 
@@ -1705,27 +1705,31 @@ Due to the availability of compute resources with the incorporation of cluster-l
 
 \emph{Local} refers to just the candidate case's RCDL sets being considered, while \emph{Global} relates to the candidate case's effects on the RCDL sets of the cases already in the case-base. 
 
-While there certainly is overlap due to duality property, it is also possible that other cases not directly related to the candidate case can be affected due to the candidate case's addition. Some of these side-effects, in particular what we term `flips', can be quite interesting.
+While there certainly is overlap due to the duality property, it is also possible that other cases not directly related to the candidate case can be affected due to the candidate case's addition. Some of these side-effects, in particular what we term `flips', can be quite interesting.
 
 \subsubsection{Cross Label Aggregation}
 RCDL profiles are highly dependent on knowing the labels of the cases in question. Given that we do not know what the label of a candidate case will be before we provide it to the oracle, it is necessary to consider ``what-if'' style analysis when considering the RCDL effects of a candidate case.
 
 For the purpose of combining the possible labels' measures, we chose two basic aggregation approaches: 
+\begin{enumerate}
+\item \underline{Total:} 
 
-\paragraph{Total} Simply adding the overall measure values produced for each of the labels.
+Simply adding the overall measure values produced for each of the labels.
+\item \underline{Deviation:} 
 
-\paragraph{Deviation} Calculating the standard deviation between the values of the different possible labels.
+Calculating the standard deviation between the values of the different possible labels.
+\end{enumerate}
 
 \subsubsection{Quantity Goal}
 The overall goal of the strategies we developed is based on \emph{minimizing} or \emph{maximizing} the scores of the individual cases.
 
 \subsubsection{Density Inclusion}
-Density information regarding the overall dataset can also be incorporated as a measure in the overall strategy. The density measure is defined as the average similarity to all other cases in the entire dataset, stretched to the range 0 to 1. The sparsity of a case we simply define as 1 minus the density of the case.
+Density information regarding the dataset can also be incorporated as a measure in the overall strategy. The density measure is defined as the average similarity to all other cases in the entire dataset, stretched to the range 0 to 1. The sparsity of a case we simply define as 1 minus the density of the case.
 
 When either measure is included, it is combined with each RCDL measure in a non-weighted average fashion.
 
 \subsubsection{Set to Scores Mapper}
-The set to score mapper defines the mechanism to map a single R, C, D or L set for a single case, to a sequence of scores. This may not necessarily be a one-to-one mapping for the cases contained in the set.
+The set to scores mapper defines the mechanism to map a single R, C, D or L set for a single case, to a sequence of scores. This may not necessarily be a one-to-one mapping for the cases contained in the set.
 
 We define 4 simple maps:
 
@@ -1757,6 +1761,7 @@ It should be noted that this grammar design does not allow representation of a s
 \subsubsection{Measures Reducer}
 The individual RCDL measures for a strategy need to be combined in some fashion. We chose simple summing, this being equivalent to non-weighed average given that the denominator is the same for every candidate, and given that no more combinations are done subsequent to this last step. We represent this simply as `+'. The other possibility considered was multiplication, but we decided against this due to the issue with how to deal with zero values, but in our naming convention, would be represented with `*'.
 
+\subsection{Decision Points Summary}
 \begin{tabular}{|l|l|x{200px}|c|}
 \hline 
 ID & Decision Point & Possible Values & \# Values\tabularnewline
@@ -2093,7 +2098,7 @@ We also briefly experimented with global similarity-based strategies. We used di
 \section{Results}
 Due to the large quantity of datasets experimented on, along with the sheer volume of selection strategies attempted, we do not present the results in entirety here. The reader can view these in the appendix, in Section \ref{sec:fullresults}.
 
-In each category, we choose a small subset of the noteworthy results, comparing it against some previously presented well-performing strategy to aid in comparison.
+In each category, we choose a small subset of the noteworthy results, comparing against against some previously presented well-performing strategy to aid in comparison.
 
 \newpage
 
@@ -2109,6 +2114,7 @@ d['Competence with Sparsity'] = "./ExperimentResults/selected_competence_with_sp
 d['Competence Set Hybrids'] = "./ExperimentResults/selected_competence_hybrids/"
 for (n, d) in d.iteritems():
     print r'\subsection{%s}' % n
+    print r'\vspace{15pt}'
     printFigure(d)
 \end{python}
 
