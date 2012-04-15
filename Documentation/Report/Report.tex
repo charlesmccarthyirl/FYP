@@ -76,7 +76,7 @@ I hereby declare that:
  	\begin{tabular}{l @{:} p{0.4in} l}
 		Name & & Charles McCarthy \\
 		Signature & & \makebox[2.5in]{\hrulefill} \\
-		Date & & March 2012 \\
+		Date & & April 5th 2012 \\
 	\end{tabular}
 \end{center}
 }
@@ -1754,7 +1754,7 @@ This simply maps a set to a sequence of ones of length equal to the size of the 
 The reducer here combines a set of scores down to a single score. Two simple reducers are defined; total, and average.
 
 \subsubsection{RCDL Sets to Use}
-Another decision point for a strategy is which of the RCDL sets to consider in the strategy. For our strategies, for a given strategy, the other decision points applied to one set are also applied to separately to the others.the same decision points are used for each of the RCDL sets in the strategy. 
+Another decision point for a strategy is which of the RCDL sets to consider in the strategy. For our strategies, for a given strategy, the other decision points applied to one set are also applied separately to the others. The same decision points are used for each of the RCDL sets in the strategy. 
 
 It should be noted that this grammar design does not allow representation of a selection strategy with more than one RCDL set, but based on different measures, but is sufficient for us given that we only experimented with basic hybrid strategies. 
 
@@ -1807,7 +1807,7 @@ The decision points are then extracted as follows:
 ID & Decision Point & Value\tabularnewline
 \hline 
 \hline 
-1 & Locality & Local, Global \tabularnewline
+1 & Locality & Local \tabularnewline
 \hline 
 2 & RCDL Sets & Liability, Coverage \tabularnewline
 \hline 
@@ -1974,7 +1974,7 @@ In each, the new case is somehow aiding in the incorrect classification of an ex
 Totalling here, as in other strategies, is probably not the best approach - but as a simplistic initial investigatory strategy, we try to minimize the total of the new case's liability set summed over the different possible supposes.
 
 \subsection{Pruned Cross Product Strategies}
-Understandably, given the 6,528 possible strategies possible through the simple cross-product grammar based approach presented, it was necessary to prune the combinations to a more tractable level. As such - the following restrictions on decision point combinations were made:
+Understandably, given the 6,528 strategies possible through the simple cross-product grammar based approach presented, it was necessary to prune the combinations to a more tractable level. As such - the following restrictions on decision point combinations were made:
 
 \begin{itemize}
 	\item \underline{No Global Strategies:}
@@ -1982,7 +1982,7 @@ Understandably, given the 6,528 possible strategies possible through the simple 
 	Global strategies require more careful thought than local strategies given the possibility of shunting and flipping, and dealing with many cases' sets as opposed to just the candidate case. Certain measures, such as all-pairs similarity, also would need tweaking. As a result, we decided not to include global strategies in our simple cross-product style investigation.
     \item \underline{Only Minimization Strategies:}
     
-    Strategies which were initially thought out were all minimization strategies to try to encourage some kind of sparsity. To cut down largely the number of possibilities given the somewhat limited compute-time available, we only chose minimization cross-product based strategies.
+    Strategies which were initially thought out were all minimization strategies to try to encourage some kind of diversity. To cut down largely the number of possibilities given the somewhat limited compute-time available, we only chose minimization cross-product based strategies.
     \item \underline{Disallow Averaged Counting}
     
     Averaging makes sense for the similarity based set scores, but for counting, it would lead to more of a boolean 0 or 1 defining if the set was empty or not. While this might well lead to valid strategies in some cases, we wanted to reason more about the contents of the sets as opposed to simply if they contained elements or not. 
@@ -2141,7 +2141,7 @@ In this way, it doesn't fall prey to the traditional downfall of pure uncertaint
 
 The addition of density information (in the form of sparsity), has an undeniable benefit to the competence-based strategies, especially on textual data. The benefit is less seen on the non-textual data, probably due to the quicker convergence and smaller data sizes.
 
-It should probably be noted that Diversity + Sparsity, and Uncertainty + Sparsity, also do quite well. We decided to perform basic tests on these to determine if the increase in competence strategies' performance was at all significant. The competence strategies on their own generally aim to pick somewhat diverse cases, and thus adding density information intends to augment this diversity picking with information regarding density of that region in the dataset.
+It should be noted that Diversity + Sparsity, and Uncertainty + Sparsity, also do quite well. We decided to perform basic tests on these to determine if the increase in competence strategies' performance was at all significant. The competence strategies on their own generally aim to pick somewhat diverse cases, and thus adding density information intends to augment this diversity picking with information regarding density of that region in the dataset.
 
 Some of the competence strategies augmented with sparsity do perform significantly better than either Diversity + Sparsity, or Uncertainty + Sparsity, on the textual datasets. Though given the naive approach used for these two comparative strategies, further work is needed to compare with established strategies which aim to incorporate uncertainty, density, and diversity.
 
@@ -2166,7 +2166,7 @@ One small but useful additional capability of the platform is how it deals with 
 
 The experimental result re-use mechanism is another useful feature to the platform, which allows it to read in previous results, and use them if necessary when running the new experiment. 
 
-The capability of the platform to operate on a distributed cluster-based map-reduce fashion is another significant benefit, albeit a relatively undocumented benefit given the late stage of the project that the feature was added. 
+The capability of the platform to operate on a distributed cluster-based map-reduce fashion is another significant, albeit a relatively undocumented benefit given the late stage of the project that the feature was added. 
 
 \subsection{Incremental Algorithm to RCDL}
 
@@ -2276,11 +2276,11 @@ If the platform were to be used in a more intense fashion, increasing the test c
 
 Given the one-person nature of the development of the platform, along with the focus on the research and results of selection strategies, the code of the platform is severely lacking in documentation. 
 
-To be more usable as a general purpose platform that others could easily also use, it would be good to properly document the code and restructure the code to a more disciplined package. 
+To be more usable as a general purpose platform that others could easily also use, it would be good to properly document the code, and restructure the code to a more disciplined package. 
 
 \subsection{Change to support other types of case-based reasoning experimentation}
 
-The current platform was developed for the sole purpose of investigating selection strategies in the context of pool based active learning. A lot of the code however would also be applicable if one were performing other types of case-based reasoning research.
+The current platform was developed for the sole purpose of investigating selection strategies in the context of pool-based active learning. A lot of the code however would also be applicable if one were performing other types of case-based reasoning research.
 
 At a minimum, it would be nice if basic support was added for other core scenarios, such as case-base maintenance. This would allow researchers to build on top of this the elements that are unique to their investigations.
 
